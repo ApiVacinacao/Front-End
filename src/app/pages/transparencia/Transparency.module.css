@@ -1,0 +1,30 @@
+/* Estilo para o h2 */
+.customH2 {
+    font-size: 2.5rem; /* 40px */
+    font-weight: 600; /* Semi-bold */
+    color: #4B5563; /* Cor do texto */
+    text-align: center; /* Centraliza o texto */
+    margin: 1.5rem 0; /* Margem superior e inferior */
+    text-transform: uppercase; /* Texto em maiúsculas */
+    letter-spacing: 1px; /* Espaçamento entre letras */
+  }
+  
+  /* Estilo para o h3 */
+  .customH3 {
+    font-size: 3rem; /* 48px */
+    font-weight: bold; /* Negrito */
+    color: #89b72d; /* Cor verde clara */
+    text-align: center; /* Centraliza o texto */
+    margin: 1rem 0; /* Margem superior e inferior */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* Sombra para destaque */
+  }
+  
+  /* Estilo para o parágrafo */
+  .customParagraph {
+    font-size: 1.5rem; /* 24px */
+    color: rgba(75, 85, 99, 0.9); /* Cinza com opacidade */
+    text-align: center; /* Centraliza o texto */
+    line-height: 1.6; /* Aumenta o espaçamento entre linhas */
+    margin: 0.5rem 0; /* Margem superior e inferior */
+  }
+  

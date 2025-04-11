@@ -1,0 +1,45 @@
+.footer {
+    background-color: #f9f9f9; /* Fundo claro */
+    color: #171717; /* Cor do texto principal */
+    padding: 2rem 0; /* Padding para o footer */
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); /* Sombra sutil no topo do footer */
+  }  
+  .footer h6 {
+    color: #171717; /* Cor dos títulos das seções */
+    margin-bottom: 1rem; /* Espaçamento inferior dos títulos */
+    font-weight: bold;
+  }
+  
+  .footer ul {
+    padding: 0; /* Remove padding padrão da lista */
+    list-style-type: none; /* Remove os marcadores */
+  }
+  
+  .footer ul li {
+    color: #717171; /* Cor dos itens do menu */
+    transition: color 0.3s ease; /* Efeito de transição suave */
+  }
+  
+  .footer ul li:hover {
+    color: #89b72d; /* Cor verde claro ao passar o mouse */
+  }
+  
+  .footer .social-icons a {
+    color: #171717; /* Cor dos ícones das redes sociais */
+    transition: color 0.3s ease; /* Efeito de transição suave */
+  }
+  
+  .footer .social-icons a:hover {
+    color: #89b72d; /* Cor verde claro ao passar o mouse nos ícones */
+  }
+  
+  .footer .border-b {
+    border-color: rgba(0, 0, 0, 0.1); /* Borda suave para separação */
+  }
+  
+  .footer .text-gray-500 {
+    color: rgba(0, 0, 0, 0.5); /* Cor do texto no rodapé */
+    font-size: 0.875rem; /* Tamanho do texto menor */
+    margin-top: 1rem; /* Espaçamento superior para o texto */
+  }
+  

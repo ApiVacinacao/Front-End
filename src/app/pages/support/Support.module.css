@@ -1,0 +1,90 @@
+/* Support.module.css */
+
+/* Estilo para o h2 */
+.customH2 {
+    font-size: 2.5rem; /* 40px */
+    font-weight: 600; /* Semi-bold */
+    color: #4B5563; /* Cor do texto */
+    text-align: center; /* Centraliza o texto */
+    margin: 1.5rem 0; /* Margem superior e inferior */
+    text-transform: uppercase; /* Texto em maiúsculas */
+    letter-spacing: 1px; /* Espaçamento entre letras */
+}
+
+/* Estilo para o h3 */
+.customH3 {
+    font-size: 3rem; /* 48px */
+    font-weight: bold; /* Negrito */
+    color: #89b72d; /* Cor verde clara */
+    text-align: center; /* Centraliza o texto */
+    margin: 1rem 0; /* Margem superior e inferior */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* Sombra para destaque */
+}
+
+/* Estilo para o parágrafo */
+.customParagraph {
+    font-size: 1.5rem; /* 24px */
+    color: rgba(75, 85, 99, 0.9); /* Cinza com opacidade */
+    text-align: center; /* Centraliza o texto */
+    line-height: 1.6; /* Aumenta o espaçamento entre linhas */
+    margin: 0.5rem 0; /* Margem superior e inferior */
+}
+
+/* Estilo geral para os cards */
+.card {
+    background-color: white; /* Fundo branco */
+    border-radius: 1rem; /* Bordas arredondadas */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    transition: transform 0.3s; /* Transição suave para transformação */
+}
+
+.card:hover {
+    transform: scale(1.05); /* Aumenta o tamanho ao passar o mouse */
+}
+
+/* Estilo para os ícones nos cards */
+.cardIcon {
+    width: 4rem; /* Largura do ícone */
+    padding: 1rem; /* Padding interno */
+    background-color: #89b72d; /* Cor de fundo do ícone */
+    color: white; /* Cor do ícone */
+    border-radius: 0.5rem; /* Bordas arredondadas */
+    margin-top: -2rem; /* Move o ícone para cima */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Sombra para o ícone */
+}
+
+/* Estilo para o botão "Saiba Mais" */
+.learnMore {
+    display: flex; /* Alinhamento flexível */
+    align-items: center; /* Centraliza verticalmente */
+    color: #89b72d; /* Cor do texto */
+    cursor: pointer; /* Cursor de ponteiro */
+}
+
+.learnMore:hover {
+    text-decoration: underline; /* Sublinha ao passar o mouse */
+}
+
+/* Estilo para o modal */
+.modal {
+    background-color: white; /* Fundo branco */
+    border-radius: 0.5rem; /* Bordas arredondadas */
+    padding: 2rem; /* Padding interno */
+    width: 24rem; /* Largura do modal */
+    position: relative; /* Para posicionamento do botão de fechar */
+}
+
+/* Estilo para o botão de fechar do modal */
+.closeButton {
+    position: absolute; /* Posicionamento absoluto */
+    top: 0.5rem; /* Margem do topo */
+    right: 0.5rem; /* Margem da direita */
+    color: gray; /* Cor do botão */
+    cursor: pointer; /* Cursor de ponteiro */
+}
+
+.loadingText {
+    text-align: center; /* Centraliza o texto */
+    font-size: 1.2rem; /* Tamanho da fonte */
+    color: gray; /* Cor do texto */
+}
