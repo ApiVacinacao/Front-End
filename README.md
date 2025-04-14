@@ -38,4 +38,3 @@ Este repositório contém uma aplicação completa para **agendamento de vacinas
 - **Banco de Dados:** 
 - **Autenticação:** 
 
-> **📝 Obs:** Atualize as tecnologias acima de acordo com o stack usado no projeto real.
