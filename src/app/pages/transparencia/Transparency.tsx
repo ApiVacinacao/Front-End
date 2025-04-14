@@ -56,7 +56,7 @@ const Transparency: React.FC = () => {
   const fetchCardDetails = async (id: number) => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/valuable'); // Ajuste conforme necessário
+      const response = await fetch('http://localhost:8000/api/valuable');
       if (!response.ok) throw new Error('Erro ao buscar dados');
       const data = await response.json();
       setCardDetails(data);

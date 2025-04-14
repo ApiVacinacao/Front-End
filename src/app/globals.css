@@ -11,16 +11,15 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
-  height: 100vh; /* Altura total da tela */
-  margin: 0; /* Remove margens */
-  padding: 0; /* Remove padding */
+  height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
-/* Custom base styles */
 @layer base {
   html, body {
-    height: 100%; /* Garante que html e body ocupem 100% da altura */
-    width: 100%; /* Garante que html e body ocupem 100% da largura */
+    height: 100%;
+    width: 100%;
   }
 
   li {
@@ -30,5 +29,38 @@ body {
   button {
     @apply text-white border bg-indigo-600 border-indigo-600
            hover:bg-transparent hover:text-indigo-600 rounded-md;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s ease-out forwards;
+  }
+
+  .animation-delay-100 {
+    animation-delay: 0.1s;
+  }
+
+  .animation-delay-300 {
+    animation-delay: 0.3s;
+  }
+
+  .animation-delay-500 {
+    animation-delay: 0.5s;
+  }
+
+  .animation-delay-700 {
+    animation-delay: 0.7s;
+  }
+
+  @keyframes fadeInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }

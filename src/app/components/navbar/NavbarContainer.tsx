@@ -1,5 +1,3 @@
-// src/app/components/NavbarContainer.tsx
-
 import React from 'react';
 
 const NavbarContainer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
