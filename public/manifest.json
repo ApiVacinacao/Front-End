@@ -1,6 +1,6 @@
 {
-    "short_name": "Casa da Paz",
-    "name": "Casa da Paz - Plataforma de Doação",
+    "short_name": "Secretária de Saúde",
+    "name": "Secretária de Saúde",
     "icons": [
       {
         "src": "favicon.ico",
@@ -22,7 +22,7 @@
     "display": "standalone",
     "theme_color": "#89b72d",
     "background_color": "#ffffff",
-    "description": "Plataforma dedicada a doações para a Casa da Paz.",
+    "description": "Plataforma dedicada a vacinação - Secretária de Saúde.",
     "lang": "pt-BR"
   }
   

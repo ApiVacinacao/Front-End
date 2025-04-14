@@ -15,7 +15,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Casa da Paz",
+  title: "Secretária de Saúde",
 };
 
 export default function RootLayout({
