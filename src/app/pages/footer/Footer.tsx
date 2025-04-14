@@ -43,7 +43,7 @@ const Footer: React.FC = () => {
       </div>
 
       <div className="flex flex-col max-w-[1240px] px-4 py-4 mx-auto text-center text-gray-500">
-        <p>© 2024 Faculdade Alfa Umuarama, Alunos: Bruno Cherbaty, Rodrigo Alcantara, Maria Guirelli</p>
+        <p>© 2025 Faculdade Alfa Umuarama, Alunos: Bruno Cherbaty, Rodrigo Alcantara, Maria Guirelli</p>
       </div>
     </footer>
   );
