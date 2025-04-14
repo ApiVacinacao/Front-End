@@ -40,7 +40,6 @@ const Navbar: React.FC<{ onAboutClick: () => void }> = ({ onAboutClick }) => {
       }`}
     >
       <div className="max-w-[1200px] h-full mx-auto px-6 flex items-center justify-between transition-all duration-700 ease-in-out">
-        {/* Logo */}
         <div
           className={`transition-all duration-700 ease-in-out transform ${
             scrolled
@@ -60,7 +59,6 @@ const Navbar: React.FC<{ onAboutClick: () => void }> = ({ onAboutClick }) => {
           />
         </div>
 
-        {/* Menu */}
         <ul
           className={`hidden md:flex flex-1 items-center justify-center space-x-10 text-lg font-medium transition-all duration-700 ease-in-out ${
             scrolled ? "text-black" : "text-white"
@@ -85,7 +83,6 @@ const Navbar: React.FC<{ onAboutClick: () => void }> = ({ onAboutClick }) => {
           ))}
         </ul>
 
-        {/* Ícone mobile */}
         <div
           className="md:hidden ml-auto transition-all duration-500 ease-in-out"
           onClick={handleClick}
@@ -100,7 +97,6 @@ const Navbar: React.FC<{ onAboutClick: () => void }> = ({ onAboutClick }) => {
         </div>
       </div>
 
-      {/* Menu mobile */}
       <ul
         className={`absolute left-0 w-full px-8 bg-white/90 backdrop-blur-lg overflow-hidden transition-[max-height] duration-500 ease-in-out ${
           nav ? "max-h-[500px]" : "max-h-0"
