@@ -11,12 +11,11 @@ const CadastroLocalAtendimento: React.FC = () => {
   const [mensagem, setMensagem] = useState('');
 
   const handleSubmit = () => {
-    if (!nome || !endereco || !telefone) {
+    if (!nome.trim() || !endereco.trim() || !telefone.trim()) {
       alert('Por favor, preencha todos os campos!');
       return;
     }
 
-    // Aqui você pode enviar para a API quando tiver
     setMensagem('Local de Atendimento cadastrado com sucesso!');
     setNome('');
     setEndereco('');
@@ -24,13 +23,19 @@ const CadastroLocalAtendimento: React.FC = () => {
   };
 
   return (
-    <>
+    <div className={styles.pageWrapper}>
       <Navbar />
-      <main className={styles.content}>
+      <main className={styles.mainContent}>
         <div className={styles.formContainer}>
           <h1>Cadastro de Local de Atendimento</h1>
-          <form className={styles.form} onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
-            <label htmlFor="nome">Nome do Local</label>
+          <form
+            className={styles.form}
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
+          >
+            <label htmlFor="nome">Nome do Local *</label>
             <input
               id="nome"
               type="text"
@@ -39,7 +44,7 @@ const CadastroLocalAtendimento: React.FC = () => {
               onChange={(e) => setNome(e.target.value)}
             />
 
-            <label htmlFor="endereco">Endereço</label>
+            <label htmlFor="endereco">Endereço *</label>
             <input
               id="endereco"
               type="text"
@@ -48,7 +53,7 @@ const CadastroLocalAtendimento: React.FC = () => {
               onChange={(e) => setEndereco(e.target.value)}
             />
 
-            <label htmlFor="telefone">Telefone</label>
+            <label htmlFor="telefone">Telefone *</label>
             <input
               id="telefone"
               type="tel"
@@ -62,7 +67,7 @@ const CadastroLocalAtendimento: React.FC = () => {
           </form>
         </div>
       </main>
-    </>
+    </div>
   );
 };
 

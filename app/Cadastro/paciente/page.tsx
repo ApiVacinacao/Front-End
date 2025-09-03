@@ -3,22 +3,23 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../components/navbar/page';
-import styles from '../paciente/paciente.module.css';
+import styles from './paciente.module.css';
 
 const CadastroPaciente: React.FC = () => {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
+  const [cpf, setCpf] = useState('');
   const [cns, setCns] = useState('');
+  const [senha, setSenha] = useState('');
   const router = useRouter();
 
   const handleSubmit = async () => {
-    if (!nome.trim() || !email.trim() || !senha.trim() || !cns.trim()) {
+    if (!nome.trim() || !email.trim() || !cpf.trim() || !cns.trim() || !senha.trim()) {
       alert('Por favor, preencha todos os campos obrigatórios!');
       return;
     }
 
-    const pacienteData = { nome, email, senha, cns };
+    const pacienteData = { nome, email, cpf, cns, senha };
 
     try {
       const response = await fetch('/api/pacientes', {
@@ -40,9 +41,9 @@ const CadastroPaciente: React.FC = () => {
   };
 
   return (
-    <>
+    <div className={styles.pageWrapper}>
       <Navbar />
-      <main className={styles.content}>
+      <main className={styles.mainContent}>
         <div className={styles.container}>
           <h1 className={styles.title}>Cadastro de Paciente</h1>
 
@@ -55,7 +56,6 @@ const CadastroPaciente: React.FC = () => {
               onChange={e => setNome(e.target.value)}
               placeholder="Digite o nome completo"
               className={styles.input}
-              required
             />
           </div>
 
@@ -68,7 +68,6 @@ const CadastroPaciente: React.FC = () => {
               onChange={e => setEmail(e.target.value)}
               placeholder="exemplo@email.com"
               className={styles.input}
-              required
             />
           </div>
 
@@ -76,12 +75,11 @@ const CadastroPaciente: React.FC = () => {
             <label htmlFor="cpf">CPF *</label>
             <input
               id="cpf"
-              type="cpf"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="exemplo@email.com"
+              type="text"
+              value={cpf}
+              onChange={e => setCpf(e.target.value)}
+              placeholder="Digite o CPF"
               className={styles.input}
-              required
             />
           </div>
 
@@ -94,10 +92,9 @@ const CadastroPaciente: React.FC = () => {
               onChange={e => setCns(e.target.value)}
               placeholder="Número do Cartão Nacional de Saúde"
               className={styles.input}
-              required
             />
           </div>
-          
+
           <div className={styles.formGroup}>
             <label htmlFor="senha">Senha *</label>
             <input
@@ -107,18 +104,15 @@ const CadastroPaciente: React.FC = () => {
               onChange={e => setSenha(e.target.value)}
               placeholder="Crie uma senha segura"
               className={styles.input}
-              required
             />
           </div>
-
 
           <button className={styles.button} onClick={handleSubmit}>
             Cadastrar Paciente
           </button>
         </div>
       </main>
-
-    </>
+    </div>
   );
 };
 

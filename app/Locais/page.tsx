@@ -48,47 +48,50 @@ const Locais: React.FC = () => {
   return (
     <>
       <Navbar />
-    
-    <main className={styles.container}>
-      <h1>Lista de Locais</h1>
 
-      <div className={styles.lista}>
-        {locais.map(local => (
-          <div key={local.id} className={styles.card}>
-            <div>
-              <strong>{local.nome}</strong>
-              <p>Endereço: {local.endereco}</p>
-              <p>Status: <span className={local.ativo ? styles.ativo : styles.inativo}>{local.ativo ? 'Ativo' : 'Inativo'}</span></p>
-            </div>
-            <div className={styles.botoes}>
-              <button onClick={() => editarLocal(local.id)} className={styles.editBtn}>Editar</button>
-              <button onClick={() => ativarOuInativar(local.id)} className={styles.toggleBtn}>
-                {local.ativo ? 'Inativar' : 'Ativar'}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      <main className={styles.content}>
+        <div className={styles.container}>
+          <h1 className={styles.title}>Lista de Locais</h1>
+          <hr className={styles.divider} />
 
-      {localEditando && (
-        <div className={modalStyles.modalOverlay}>
-          <div className={modalStyles.modalContent}>
-            <h2>Editar Local</h2>
-
-            <label>Nome</label>
-            <input type="text" name="nome" value={localEditando.nome} onChange={handleInputChange} />
-
-            <label>Endereço</label>
-            <input type="text" name="endereco" value={localEditando.endereco} onChange={handleInputChange} />
-
-            <div className={modalStyles.actions}>
-              <button onClick={() => setLocalEditando(null)}>Cancelar</button>
-              <button className={modalStyles.saveButton} onClick={() => salvarEdicao(localEditando)}>Salvar</button>
-            </div>
+          <div className={styles.lista}>
+            {locais.map(local => (
+              <div key={local.id} className={styles.item}>
+                <div className={styles.info}>
+                  <strong>{local.nome}</strong>
+                  <p>Endereço: {local.endereco}</p>
+                  <p>Status: <span className={local.ativo ? styles.ativo : styles.inativo}>{local.ativo ? 'Ativo' : 'Inativo'}</span></p>
+                </div>
+                <div className={styles.botoes}>
+                  <button className={styles.editButton} onClick={() => editarLocal(local.id)}>Editar</button>
+                  <button className={styles.deleteButton} onClick={() => ativarOuInativar(local.id)}>
+                    {local.ativo ? 'Inativar' : 'Ativar'}
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      )}
-    </main>
+
+        {localEditando && (
+          <div className={modalStyles.modalOverlay}>
+            <div className={modalStyles.modalContent}>
+              <h2>Editar Local</h2>
+
+              <label>Nome</label>
+              <input type="text" name="nome" value={localEditando.nome} onChange={handleInputChange} />
+
+              <label>Endereço</label>
+              <input type="text" name="endereco" value={localEditando.endereco} onChange={handleInputChange} />
+
+              <div className={modalStyles.actions}>
+                <button onClick={() => setLocalEditando(null)} className={modalStyles.cancelButton}>Cancelar</button>
+                <button onClick={() => salvarEdicao(localEditando)} className={modalStyles.saveButton}>Salvar</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
     </>
   );
 };

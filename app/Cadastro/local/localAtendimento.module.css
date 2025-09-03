@@ -1,9 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-
 :root {
   --primary: #3b82f6;
   --primary-hover: #2563eb;
-  --bg: #eaf2ff;
+  --bg: #f0f4ff;
   --text-dark: #1e293b;
   --text-light: #64748b;
   --white: #ffffff;
@@ -11,28 +9,34 @@
   --shadow-light: rgba(59, 130, 246, 0.3);
 }
 
-.content {
+.pageWrapper {
+  display: flex;
   min-height: 100vh;
-  background: var(--bg);
+  background-color: var(--bg);
+}
+
+.mainContent {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 3rem 1rem;
+  min-height: 100vh;
+  padding: 2rem;
 }
 
 .formContainer {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: saturate(180%) blur(20px);
+  background: var(--white);
   padding: 3rem 2.5rem;
   border-radius: 24px;
-  max-width: 480px;
   width: 100%;
+  max-width: 480px;
   box-shadow: 0 8px 32px var(--shadow-light);
+  text-align: center;
   transition: transform 0.3s ease;
 }
 
 .formContainer:hover {
-  transform: translateY(-8px);
+  transform: translateY(-5px);
 }
 
 .formContainer h1 {
@@ -40,13 +44,12 @@
   font-weight: 700;
   color: var(--text-dark);
   margin-bottom: 2.5rem;
-  text-align: center;
-  letter-spacing: 0.04em;
 }
 
 .form {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
 }
 
 .form label {
@@ -55,19 +58,18 @@
   margin-bottom: 0.5rem;
   margin-top: 1.2rem;
   font-size: 1rem;
-  user-select: none;
+  text-align: left;
 }
 
 .form input {
   padding: 0.85rem 1rem;
   border-radius: 14px;
   border: 1.8px solid var(--border);
-  background-color: #fff;
+  background-color: var(--white);
   font-size: 1.05rem;
   color: var(--text-dark);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: none;
-  outline-offset: 2px;
+  outline: none;
 }
 
 .form input::placeholder {
@@ -77,7 +79,6 @@
 .form input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 8px var(--primary);
-  outline: none;
   background-color: #f9fbff;
 }
 
@@ -93,7 +94,6 @@
   cursor: pointer;
   box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
   transition: background 0.4s ease, box-shadow 0.3s ease, transform 0.15s ease;
-  user-select: none;
 }
 
 .form button:hover {
@@ -109,13 +109,31 @@
 
 .mensagem {
   margin-top: 1.8rem;
-  text-align: center;
   font-weight: 600;
   font-size: 1rem;
   color: var(--primary-hover);
 }
 
 /* Responsividade */
+@media (max-width: 768px) {
+  .mainContent {
+    padding: 1.5rem;
+  }
+
+  .formContainer {
+    padding: 2.5rem 2rem;
+  }
+
+  .formContainer h1 {
+    font-size: 1.8rem;
+  }
+
+  .form input,
+  .form button {
+    font-size: 1rem;
+  }
+}
+
 @media (max-width: 480px) {
   .formContainer {
     padding: 2rem 1.5rem;
@@ -124,10 +142,5 @@
 
   .formContainer h1 {
     font-size: 1.5rem;
-  }
-
-  .form button {
-    font-size: 1rem;
-    padding: 0.85rem 0;
   }
 }

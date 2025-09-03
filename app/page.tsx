@@ -1,35 +1,73 @@
 'use client';
 
-import Image from "next/image";
-import Link from "next/link";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
 import './globals.css';
 
 export default function Home() {
-  const options = [
-    {
-      title: "Agendamentos",
-      description: "Gerencie todos os agendamentos do sistema.",
-      path: "/Cadastro/agendamento",
-      icon: "📅"
-    },
-    {
-      title: "Relatórios",
-      description: "Visualize e gere relatórios completos.",
-      path: "/relatorios",
-      icon: "📊"
-    },
-    {
-      title: "Locais",
-      description: "Gerencie os locais cadastrados no sistema.",
-      path: "/Locais",
-      icon: "📍"
-    },
-    {
-      title: "Tipos de Consulta",
-      description: "Configure os tipos de consulta disponíveis.",
-      path: "/Cadastro/tipo-consulta",
-      icon: "🩺"
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loggedIn = localStorage.getItem('loggedIn');
+    if (!loggedIn) {
+      router.replace('/Login');
+    } else {
+      setLoading(false);
     }
+  }, [router]);
+
+  if (loading)
+    return (
+      <div className="loadingWrapper">
+        <div className="spinner"></div>
+        <style jsx>{`
+          .loadingWrapper {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa, #e4e8eb);
+            font-family: 'Segoe UI', sans-serif;
+          }
+
+          .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #e0e0e0;
+            border-top-color: #2d34b7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+          }
+
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+
+          p {
+            color: #2d34b7;
+            font-size: 18px;
+            font-weight: 600;
+          }
+
+          @media (max-width: 480px) {
+            .spinner { width: 50px; height: 50px; border-width: 5px; }
+            p { font-size: 16px; }
+          }
+        `}</style>
+      </div>
+    );
+
+  const options = [
+    { title: 'Agendamentos', description: 'Gerencie todos os agendamentos do sistema.', path: '/Cadastro/agendamento', icon: '📅' },
+    { title: 'Relatórios', description: 'Visualize e gere relatórios completos.', path: '/relatorios', icon: '📊' },
+    { title: 'Locais', description: 'Gerencie os locais cadastrados no sistema.', path: '/Locais', icon: '📍' },
+    { title: 'Tipos de Consulta', description: 'Configure os tipos de consulta disponíveis.', path: '/Cadastro/tipo-consulta', icon: '🩺' },
   ];
 
   return (
@@ -47,7 +85,10 @@ export default function Home() {
               key={index}
               href={item.path}
               className="optionCard floating"
-              style={{ animationDelay: `${index * 0.2}s` }}
+              style={{
+                animation: `fadeInUp 0.5s ease forwards`,
+                animationDelay: `${index * 0.1}s`
+              }}
             >
               <div className="icon">{item.icon}</div>
               <h3>{item.title}</h3>

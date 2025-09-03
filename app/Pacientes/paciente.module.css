@@ -1,128 +1,138 @@
+:root {
+  --primary-blue: #0ea5e9;
+  --primary-blue-dark: #0369a1;
+  --secondary-gradient: linear-gradient(135deg, #ff1717, #ff1428);
+  --secondary-gradient-hover: linear-gradient(135deg, #ff2929, #ff3030);
+
+  --bg-light: #ffffff;
+  --bg-lighter: #f9fafb;
+  --text-primary: #1a1a1a;
+  --text-secondary: #374151;
+  --text-label: #555;
+  --shadow-light: rgba(0,0,0,0.06);
+  --shadow-medium: rgba(0,0,0,0.15);
+}
+
+/* Conteúdo principal considerando navbar lateral fixa */
 .content {
+  margin-left: 250px;
   padding: 2rem;
-  background-color: #f9fafb;
+  background-color: var(--bg-lighter);
   min-height: 100vh;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', sans-serif;
+  transition: margin 0.3s ease;
 }
 
+/* Container centralizado */
 .container {
-  max-width: 900px;
+  max-width: 1200px;
   margin: auto;
-  padding: 2.5rem;
-  background-color: #ffffff;
+  padding: 3rem;
+  background-color: var(--bg-light);
   border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 20px var(--shadow-light);
 }
 
+/* Título com linha abaixo */
 .title {
-  font-size: 2rem;
-  font-weight: 600;
+  font-size: 2.5rem;
+  font-weight: 700;
   margin-bottom: 2rem;
-  color: #1f2937;
+  color: var(--text-primary);
   text-align: center;
+  position: relative;
+  padding-bottom: 0.5rem;
 }
 
+.title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #e5e7eb;
+  border-radius: 1px;
+}
+
+/* Tabela de pacientes */
 .lista {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
 }
 
-.card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #f1f5f9;
-  padding: 1.5rem;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  transition: box-shadow 0.2s ease-in-out;
+.lista thead th {
+  text-align: left;
+  padding: 1rem 1.2rem;
+  font-weight: 600;
+  color: var(--text-label);
+  font-size: 1rem;
 }
 
-.card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-}
-
-.info {
-  flex: 1;
-  color: #374151;
-}
-
-.info strong {
-  font-size: 1.2rem;
-  color: #111827;
-}
-
-.info p {
-  margin: 0.25rem 0;
+.lista tbody td {
+  padding: 1rem 1.2rem;
   font-size: 0.95rem;
-  line-height: 1.4;
+  color: var(--text-secondary);
+  background-color: var(--bg-light);
+  border-radius: 12px;
 }
 
-.ativo {
-  color: #16a34a;
+.lista tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Status */
+.status {
   font-weight: 600;
 }
 
-.inativo {
-  color: #dc2626;
-  font-weight: 600;
-}
+.ativo { color: #16a34a; }
+.inativo { color: #dc2626; }
 
-.botoes {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-left: 1.5rem;
-}
-
-.editButton,
-.deleteButton {
-  padding: 0.45rem 1.2rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 500;
+/* Botões */
+td .editButton,
+td .deleteButton {
+  font-weight: 700;
+  border-radius: 15px;
+  padding: 10px 20px;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  border: none;
+  transition: all 0.25s ease, transform 0.2s;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+  margin-right: 0.5rem;
 }
 
-.editButton {
-  background-color: #2563eb;
-  color: white;
+td .editButton {
+  background: var(--primary-gradient);
+  color: #fff;
+}
+td .editButton:hover {
+  background: var(--primary-gradient-hover);
+  transform: translateY(-2px);
 }
 
-.editButton:hover {
-  background-color: #1d4ed8;
-  transform: translateY(-1px);
+td .deleteButton {
+  background: var(--secondary-gradient);
+  color: #fff;
+}
+td .deleteButton:hover {
+  background: var(--secondary-gradient-hover);
+  transform: translateY(-2px);
 }
 
-.deleteButton {
-  background-color: #f59e0b;
-  color: white;
+/* Responsividade */
+@media (max-width: 1280px) {
+  .content { margin-left: 220px; padding: 2rem; }
 }
 
-.deleteButton:hover {
-  background-color: #d97706;
-  transform: translateY(-1px);
+@media (max-width: 1024px) {
+  .content { margin-left: 0; padding: 1.5rem; }
+  .container { padding: 2rem; }
 }
 
-/* Responsivo */
 @media (max-width: 640px) {
-  .card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .botoes {
-    flex-direction: row;
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .editButton,
-  .deleteButton {
-    width: auto;
-  }
+  .container { padding: 1.5rem 1rem; }
+  td .editButton, td .deleteButton { width: 100%; margin-right: 0; margin-bottom: 0.5rem; }
 }

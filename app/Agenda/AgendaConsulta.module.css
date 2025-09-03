@@ -1,11 +1,14 @@
 .container {
-  max-width: 800px;
-  margin-left: 250px; /* Espaço para a sidebar */
+  max-width: 1200px; /* limita largura máxima em FullHD */
+  width: 100%;
+  margin-left: 250px; /* espaço da sidebar */
   padding: 2rem;
   background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   min-height: 100vh;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .header {
@@ -13,51 +16,53 @@
   margin-bottom: 2rem;
   font-size: 1.8rem;
   font-weight: 600;
+  text-align: left;
 }
 
-.formGroup {
+/* Grid de inputs */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* padrão: dois inputs lado a lado */
+  gap: 1.5rem;
   margin-bottom: 1.5rem;
 }
 
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
 .label {
-  display: block;
   margin-bottom: 0.5rem;
   color: #4a5568;
   font-weight: 500;
 }
 
-.input {
+.input,
+.select {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 1rem;
   transition: all 0.3s;
+  box-sizing: border-box;
 }
 
-.input:focus {
+.input:focus,
+.select:focus {
   outline: none;
   border-color: #4299e1;
   box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
 }
 
-.select {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 1rem;
-  background-color: #fff;
-  cursor: pointer;
-}
-
 .button {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.85rem;
   background-color: #4299e1;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
@@ -79,14 +84,40 @@
   background-color: #f8fafc;
   padding: 1rem;
   margin-bottom: 1rem;
-  border-radius: 6px;
+  border-radius: 8px;
   border-left: 4px solid #4299e1;
 }
 
-/* Responsivo */
-@media (max-width: 768px) {
+/* Responsividade */
+
+/* Tablets e celulares */
+@media (max-width: 1024px) {
   .container {
     margin-left: 0;
+    padding: 1.5rem;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr; /* empilha inputs */
+  }
+
+  .header {
+    font-size: 1.6rem;
+  }
+}
+
+/* Celulares pequenos */
+@media (max-width: 480px) {
+  .container {
     padding: 1rem;
+  }
+
+  .button {
+    font-size: 0.95rem;
+    padding: 0.7rem;
+  }
+
+  .label {
+    font-size: 0.9rem;
   }
 }

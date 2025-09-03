@@ -26,7 +26,6 @@ const AgendaConsulta: React.FC = () => {
     const novaConsulta: Consulta = { nome, especialidade, data, hora };
     setConsultas([...consultas, novaConsulta]);
 
-    // Limpar campos
     setNome('');
     setData('');
     setHora('');
@@ -38,47 +37,49 @@ const AgendaConsulta: React.FC = () => {
       <div className={styles.container}>
         <h1 className={styles.header}>Agendar Consulta</h1>
 
-        <div className={styles.formGroup}>
-          <label className={styles.label}>Nome do Paciente</label>
-          <input 
-            className={styles.input}
-            value={nome} 
-            onChange={(e) => setNome(e.target.value)} 
-          />
-        </div>
+        <div className={styles.formGrid}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Nome do Paciente</label>
+            <input 
+              className={styles.input}
+              value={nome} 
+              onChange={(e) => setNome(e.target.value)} 
+            />
+          </div>
 
-        <div className={styles.formGroup}>
-          <label className={styles.label}>Especialidade</label>
-          <select 
-            className={styles.select}
-            value={especialidade} 
-            onChange={(e) => setEspecialidade(e.target.value)}
-          >
-            <option>Clínico Geral</option>
-            <option>Pediatria</option>
-            <option>Cardiologia</option>
-            <option>Dermatologia</option>
-          </select>
-        </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Especialidade</label>
+            <select 
+              className={styles.select}
+              value={especialidade} 
+              onChange={(e) => setEspecialidade(e.target.value)}
+            >
+              <option>Clínico Geral</option>
+              <option>Pediatria</option>
+              <option>Cardiologia</option>
+              <option>Dermatologia</option>
+            </select>
+          </div>
 
-        <div className={styles.formGroup}>
-          <label className={styles.label}>Data</label>
-          <input 
-            type="date" 
-            className={styles.input}
-            value={data} 
-            onChange={(e) => setData(e.target.value)} 
-          />
-        </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Data</label>
+            <input 
+              type="date" 
+              className={styles.input}
+              value={data} 
+              onChange={(e) => setData(e.target.value)} 
+            />
+          </div>
 
-        <div className={styles.formGroup}>
-          <label className={styles.label}>Hora</label>
-          <input 
-            type="time" 
-            className={styles.input}
-            value={hora} 
-            onChange={(e) => setHora(e.target.value)} 
-          />
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Hora</label>
+            <input 
+              type="time" 
+              className={styles.input}
+              value={hora} 
+              onChange={(e) => setHora(e.target.value)} 
+            />
+          </div>
         </div>
 
         <button className={styles.button} onClick={agendarConsulta}>
@@ -99,4 +100,5 @@ const AgendaConsulta: React.FC = () => {
     </div>
   );
 };
+
 export default AgendaConsulta;

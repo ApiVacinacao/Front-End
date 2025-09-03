@@ -1,21 +1,56 @@
-.mainContent {
-  max-width: 1100px;
-  margin: 0 auto;
-  font-family: 'Inter', sans-serif;
-  color: #1a1a1a;
+/* ================================ */
+/* VARIÁVEIS DE CORES               */
+/* ================================ */
+:root {
+  --primary-green: #22c55e;
+  --primary-green-dark: #15803d;
+  --primary-blue: #0ea5e9;
+  --primary-blue-dark: #0369a1;
+  --secondary-red: #f91616;
+  --secondary-red-dark: #c20c0c;
+  --danger-red: #ef4444;
+  --light-gray: #f3f4f6;
+  --white: #ffffff;
+  --text-dark: #1a1a1a;
+  --text-light: #f9fafb;
 }
 
+/* ================================ */
+/* BODY E FONTES                     */
+/* ================================ */
+body {
+  font-family: 'Inter', sans-serif;
+  color: var(--text-dark);
+  margin: 0;
+  background-color: var(--light-gray);
+}
+
+/* ================================ */
+/* MAIN CONTAINER                    */
+/* ================================ */
+.mainContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* ================================ */
+/* CABEÇALHO                          */
+/* ================================ */
 .header {
   margin-bottom: 2rem;
 }
 
 .header h2 {
   font-size: 2rem;
-  font-weight: 600;
-  color: #222;
+  font-weight: 700;
+  color: var(--text-dark);
   margin: 0;
 }
 
+/* ================================ */
+/* BARRA DE PESQUISA                  */
+/* ================================ */
 .searchBar {
   display: flex;
   gap: 0.75rem;
@@ -25,131 +60,313 @@
 
 .searchBar input {
   flex: 1;
-  padding: 0.65rem 1rem;
+  padding: 0.75rem 1rem;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 1rem;
-  background: #f3f4f6;
+  background: var(--white);
 }
 
 .searchBar button {
-  padding: 0.65rem 1rem;
+  padding: 0.75rem 1rem;
   font-size: 1rem;
   border-radius: 8px;
-  background-color: #89b72d;
-  color: white;
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+  color: var(--white);
   border: none;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s;
 }
 
-.searchBar button:hover {
-  background-color: #729921;
+.searchBar button:hover,
+.searchBar button:focus {
+  background: linear-gradient(135deg, var(--primary-blue-dark), var(--primary-blue));
+  transform: scale(1.05);
+  outline: none;
 }
 
+/* ================================ */
+/* TABELA DE AGENDAMENTOS            */
+/* ================================ */
 .table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  background-color: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  background-color: var(--white);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.th, .td {
+  padding: 1rem;
+  text-align: left;
 }
 
 .th {
-  text-align: left;
   background-color: #f1f5f9;
-  padding: 1rem;
   font-weight: 600;
-}
-
-.td {
-  padding: 1rem;
-  border-top: 1px solid #e5e7eb;
 }
 
 .tr:hover {
   background-color: #f9fafb;
 }
 
-.btnDetails {
-  background-color: #89b72d;
-  border: none;
-  padding: 0.5rem 1rem;
-  color: white;
-  font-size: 0.9rem;
-  border-radius: 6px;
+/* STATUS */
+.ativo {
+  color: var(--primary-green);
+  font-weight: 700;
+}
+
+.inativo {
+  color: var(--danger-red);
+  font-weight: 700;
+}
+
+/* BOTÕES DA TABELA */
+.btnDetails,
+.btnToggle,
+.floatingBtn,
+.btnSecondary {
+  font-weight: 700;
+  border-radius: 14px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s ease, transform 0.2s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  outline: none;
+  border: none;
 }
 
-.btnDetails:hover {
-  background-color: #729921;
+/* Botão detalhes */
+.btnDetails {
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+  color: var(--white);
 }
 
+.btnDetails:hover,
+.btnDetails:focus {
+  transform: scale(1.08);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+
+/* Botão alternar status */
+.btnToggle {
+  background: linear-gradient(135deg, var(--secondary-red), var(--secondary-red-dark));
+  color: var(--white);
+  margin-left: 0.5rem;
+}
+
+.btnToggle:hover,
+.btnToggle:focus {
+  transform: scale(1.08);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+
+/* Botão flutuante */
 .floatingBtn {
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  background-color: #89b72d;
-  border: none;
-  padding: 0.85rem 1.4rem;
-  font-size: 1rem;
-  color: white;
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+  color: var(--white);
+  font-size: 1.1rem;
   border-radius: 50px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-  transition: background 0.3s ease;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
 }
 
-.floatingBtn:hover {
-  background-color: #729921;
+.floatingBtn:hover,
+.floatingBtn:focus {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 4px rgba(14,165,233,0.4);
 }
 
-.modalOverlay {
+/* ================================ */
+/* MODAL DE DETALHES E NOVO          */
+/* ================================ */
+.modal,
+.modalOverlay,
+.mainContainer {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modalContent {
-  background-color: #fff;
-  padding: 2rem;
-  border-radius: 12px;
   width: 100%;
-  max-width: 500px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
 }
 
-.ativo {
-  color: green;
-  font-weight: bold;
+.modalContent,
+.detailCard,
+.form {
+  background-color: var(--white);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+  animation: fadeInScale 0.3s ease forwards;
 }
 
-.inativo {
-  color: red;
-  font-weight: bold;
+/* Animação suave para modals */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-.btnToggle {
-  margin-left: 8px;
-  padding: 4px 8px;
-  background-color: #f0ad4e;
-  color: white;
-  border: none;
-  border-radius: 4px;
+/* ================================ */
+/* FORMULÁRIOS                       */
+/* ================================ */
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 10px 0 5px;
+  color: var(--text-dark);
+}
+
+.input,
+.selectInput {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: #f9fafb;
+  transition: all 0.3s ease;
+}
+
+.input:focus,
+.selectInput:focus {
+  border-color: var(--primary-green);
+  background-color: var(--white);
+  outline: none;
+}
+
+/* GRID PARA DOIS INPUTS LADO A LADO EM TELAS GRANDES */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+/* BOTÕES DO FORMULÁRIO */
+.buttonSubmit,
+.buttonClose {
+  padding: 12px 24px;
+  font-size: 16px;
   cursor: pointer;
+  border-radius: 8px;
+  font-weight: 700;
+  transition: all 0.3s;
 }
 
-.btnToggle:hover {
-  background-color: #ec971f;
+.buttonSubmit {
+  background: linear-gradient(135deg, var(--primary-green), var(--primary-green-dark));
+  color: var(--white);
+  border: none;
+}
+
+.buttonSubmit:hover,
+.buttonSubmit:focus {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+
+.buttonClose {
+  background: var(--danger-red);
+  color: var(--white);
+  border: none;
+  margin-left: 10px;
+}
+
+.buttonClose:hover,
+.buttonClose:focus {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+
+/* ================================ */
+/* DETALHES DO AGENDAMENTO           */
+/* ================================ */
+.detailItem {
+  margin-bottom: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #eee;
+}
+
+.detailItem:last-child {
+  border-bottom: none;
+  margin-bottom: 25px;
+  padding-bottom: 0;
+}
+
+.detailItem strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.detailItem p {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+/* BOTÃO SECUNDÁRIO */
+.btnSecondary {
+  background-color: #e0f2fe;
+  color: #0284c7;
+  border: 2px solid #0284c7;
+}
+
+.btnSecondary:hover,
+.btnSecondary:focus {
+  background-color: #0284c7;
+  color: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 0 0 4px rgba(2,132,199,0.5);
+}
+
+/* ================================ */
+/* RESPONSIVIDADE                     */
+/* ================================ */
+@media (max-width: 768px) {
+  .searchBar {
+    flex-direction: column;
+  }
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  .buttonSubmit,
+  .buttonClose {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .table th,
+  .table td {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+  }
+  .floatingBtn {
+    padding: 0.65rem 1rem;
+    font-size: 0.95rem;
+  }
 }

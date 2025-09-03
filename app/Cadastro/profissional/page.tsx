@@ -7,10 +7,10 @@ import styles from './medico.module.css';
 const CadastroMedico: React.FC = () => {
   const [formData, setFormData] = useState({
     nome: '',
-    email: '',
-    senha: '',
+    cpf: '',
     crm: '',
     especialidade: '',
+    senha: '',
   });
 
   const [mensagem, setMensagem] = useState('');
@@ -22,15 +22,14 @@ const CadastroMedico: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.nome || !formData.email || !formData.senha || !formData.crm) {
+    if (!formData.nome || !formData.cpf || !formData.crm || !formData.senha) {
       setMensagem('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
 
-    // Aqui você pode fazer o POST para o backend
     console.log('Dados do médico:', formData);
     setMensagem('Médico cadastrado com sucesso!');
-    setFormData({ nome: '', email: '', senha: '', crm: '', especialidade: '' });
+    setFormData({ nome: '', cpf: '', crm: '', especialidade: '', senha: '' });
   };
 
   return (
@@ -40,17 +39,70 @@ const CadastroMedico: React.FC = () => {
         <div className={styles.formContainer}>
           <h1>Cadastro de Médico / Profissional</h1>
           <form onSubmit={handleSubmit} className={styles.form}>
-            <label>Nome*</label>
-            <input type="text" name="nome" value={formData.nome} onChange={handleChange} required />
+            <div className={styles.row}>
+              <div className={styles.col}>
+                <label>Nome*</label>
+                <input
+                  type="text"
+                  name="nome"
+                  value={formData.nome}
+                  onChange={handleChange}
+                  placeholder="Digite o nome completo"
+                  required
+                />
+              </div>
 
-            <label>CPF*</label>
-            <input type="email" name="email" value={formData.email} onChange={handleChange} required />
+              <div className={styles.col}>
+                <label>CPF*</label>
+                <input
+                  type="text"
+                  name="cpf"
+                  value={formData.cpf}
+                  onChange={handleChange}
+                  placeholder="000.000.000-00"
+                  required
+                />
+              </div>
+            </div>
 
-            <label>CRM*</label>
-            <input type="text" name="crm" value={formData.crm} onChange={handleChange} required />
+            <div className={styles.row}>
+              <div className={styles.col}>
+                <label>CRM*</label>
+                <input
+                  type="text"
+                  name="crm"
+                  value={formData.crm}
+                  onChange={handleChange}
+                  placeholder="Digite o CRM"
+                  required
+                />
+              </div>
 
-            <label>Especialidade</label>
-            <input type="text" name="especialidade" value={formData.especialidade} onChange={handleChange} />
+              <div className={styles.col}>
+                <label>Especialidade</label>
+                <input
+                  type="text"
+                  name="especialidade"
+                  value={formData.especialidade}
+                  onChange={handleChange}
+                  placeholder="Ex: Cardiologia"
+                />
+              </div>
+            </div>
+
+            <div className={styles.row}>
+              <div className={styles.col}>
+                <label>Senha*</label>
+                <input
+                  type="password"
+                  name="senha"
+                  value={formData.senha}
+                  onChange={handleChange}
+                  placeholder="Crie uma senha segura"
+                  required
+                />
+              </div>
+            </div>
 
             <button type="submit">Cadastrar</button>
             {mensagem && <p className={styles.mensagem}>{mensagem}</p>}

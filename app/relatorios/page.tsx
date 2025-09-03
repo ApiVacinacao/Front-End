@@ -3,8 +3,8 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
 import { useState } from 'react';
-import styles from '../styles/Relatorios.module.css';
 import Navbar from '../components/navbar/page';
+import styles from '../styles/Relatorios.module.css';
 
 interface Appointment {
   date: string;
@@ -50,20 +50,12 @@ const Relatorios: NextPage = () => {
     console.log({ reportType, professional, startDate, endDate, procedure, unit });
   };
 
-  const exportPDF = () => {
-    console.log('Exportando PDF...');
-  };
-
-  const exportExcel = () => {
-    console.log('Exportando Excel...');
-  };
-
-  const printReport = () => {
-    console.log('Imprimindo...');
-  };
+  const exportPDF = () => console.log('Exportando PDF...');
+  const exportExcel = () => console.log('Exportando Excel...');
+  const printReport = () => console.log('Imprimindo...');
 
   return (
-    <div className={styles.container}>
+    <>
       <Head>
         <title>Relatórios</title>
         <meta name="description" content="Página de relatórios do sistema" />
@@ -71,7 +63,7 @@ const Relatorios: NextPage = () => {
 
       <Navbar />
 
-      <main className={styles.content}>
+      <main className={styles.mainContent}>
         <h1>Relatórios</h1>
 
         <div className={styles.cards}>
@@ -178,7 +170,7 @@ const Relatorios: NextPage = () => {
           </div>
         </section>
       </main>
-    </div>
+    </>
   );
 };
 

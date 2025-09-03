@@ -1,8 +1,7 @@
-"use client";
-
-import { useState } from "react";
-import Navbar from "../components/navbar/page";
-import styles from "./medico.module.css";
+'use client';
+import React, { useState } from 'react';
+import Navbar from '../components/navbar/page';
+import styles from './medico.module.css';
 
 type Medico = {
   id: number;
@@ -12,64 +11,71 @@ type Medico = {
 };
 
 const medicosMock: Medico[] = [
-  { id: 1, nome: "Dr. João Silva", crm: "123456", ativo: true },
-  { id: 2, nome: "Dra. Maria Souza", crm: "654321", ativo: true },
-  { id: 3, nome: "Dr. Carlos Oliveira", crm: "987654", ativo: false },
+  { id: 1, nome: 'Dr. João Silva', crm: '123456', ativo: true },
+  { id: 2, nome: 'Dra. Maria Souza', crm: '654321', ativo: true },
+  { id: 3, nome: 'Dr. Carlos Oliveira', crm: '987654', ativo: false },
 ];
 
 export default function MedicosList() {
   const [medicos, setMedicos] = useState<Medico[]>(medicosMock);
-  const [medicoEditando, setMedicoEditando] = useState<Medico | null>(null);
+  const [selected, setSelected] = useState<Medico | null>(null);
+  const [openDetail, setOpenDetail] = useState(false);
+  const [openNew, setOpenNew] = useState(false);
 
-  function salvarMedicoEditado(medicoAtualizado: Medico) {
-    setMedicos((prev) =>
-      prev.map((m) => (m.id === medicoAtualizado.id ? medicoAtualizado : m))
+  const toggleAtivo = (index: number) => {
+    setMedicos(prev =>
+      prev.map((m, i) => i === index ? { ...m, ativo: !m.ativo } : m)
     );
-    setMedicoEditando(null);
-  }
+  };
 
-  function toggleAtivo(id: number) {
-    setMedicos((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, ativo: !m.ativo } : m))
+  const salvarMedico = (medicoAtualizado: Medico) => {
+    setMedicos(prev =>
+      prev.map(m => m.id === medicoAtualizado.id ? medicoAtualizado : m)
     );
-  }
+    setOpenDetail(false);
+    setSelected(null);
+  };
 
   return (
-    <>
+    <body>
       <Navbar />
-      <main className={styles.content}>
-        <h1 className={styles.title}>Médicos Cadastrados</h1>
+      <main className={styles.mainContent}>
+        <div className={styles.header}>
+          <h2>Médicos Cadastrados</h2>
+        </div>
+
+        <div className={styles.searchBar}>
+          <input type="text" placeholder="Buscar médicos..." />
+          <button>🔍</button>
+        </div>
 
         <table className={styles.table}>
-          <thead className={styles.thead}>
+          <thead>
             <tr>
-              <th>Nome</th>
-              <th>CRM</th>
-              <th>Status</th>
-              <th>Ações</th>
+              <th className={styles.th}>Nome</th>
+              <th className={styles.th}>CRM</th>
+              <th className={styles.th}>Status</th>
+              <th className={styles.th}>Ações</th>
             </tr>
           </thead>
-          <tbody className={styles.tbody}>
-            {medicos.map((medico) => (
-              <tr
-                key={medico.id}
-                className={!medico.ativo ? styles.inativo : undefined}
-              >
-                <td>{medico.nome}</td>
-                <td>{medico.crm}</td>
-                <td>{medico.ativo ? "Ativo" : "Inativo"}</td>
-                <td className={styles.actions}>
+          <tbody>
+            {medicos.map((m, i) => (
+              <tr key={m.id} className={styles.tr}>
+                <td className={styles.td}>{m.nome}</td>
+                <td className={styles.td}>{m.crm}</td>
+                <td className={styles.td}>{m.ativo ? 'Ativo' : 'Inativo'}</td>
+                <td className={styles.td}>
                   <button
-                    className="edit"
-                    onClick={() => setMedicoEditando(medico)}
+                    className={styles.btnDetails}
+                    onClick={() => { setSelected(m); setOpenDetail(true); }}
                   >
-                    Editar
+                    Ver
                   </button>
                   <button
-                    className="toggle"
-                    onClick={() => toggleAtivo(medico.id)}
+                    className={styles.btnToggle}
+                    onClick={() => toggleAtivo(i)}
                   >
-                    {medico.ativo ? "Inativar" : "Ativar"}
+                    {m.ativo ? 'Inativar' : 'Ativar'}
                   </button>
                 </td>
               </tr>
@@ -77,72 +83,54 @@ export default function MedicosList() {
           </tbody>
         </table>
 
-        {medicoEditando && (
-          <ModalEditarMedico
-            medico={medicoEditando}
-            onSalvar={salvarMedicoEditado}
-            onCancelar={() => setMedicoEditando(null)}
+        <button className={styles.floatingBtn} onClick={() => setOpenNew(true)}>➕ Novo</button>
+
+        {openNew && (
+          <ModalMedico
+            medico={{ id: 0, nome: '', crm: '', ativo: true }}
+            onSalvar={(m) => { setMedicos(prev => [...prev, { ...m, id: prev.length + 1 }]); setOpenNew(false); }}
+            onCancelar={() => setOpenNew(false)}
+          />
+        )}
+
+        {openDetail && selected && (
+          <ModalMedico
+            medico={selected}
+            onSalvar={salvarMedico}
+            onCancelar={() => { setOpenDetail(false); setSelected(null); }}
           />
         )}
       </main>
-    </>
+    </body>
   );
 }
 
-function ModalEditarMedico({
-  medico,
-  onSalvar,
-  onCancelar,
-}: {
-  medico: Medico;
-  onSalvar: (medico: Medico) => void;
-  onCancelar: () => void;
-}) {
+function ModalMedico({ medico, onSalvar, onCancelar }: { medico: Medico; onSalvar: (m: Medico) => void; onCancelar: () => void }) {
   const [nome, setNome] = useState(medico.nome);
   const [crm, setCrm] = useState(medico.crm);
 
-  function salvar() {
+  const salvar = () => {
     if (!nome.trim() || !crm.trim()) {
-      alert("Preencha todos os campos.");
+      alert('Preencha todos os campos.');
       return;
     }
     onSalvar({ ...medico, nome, crm });
-  }
+  };
 
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
         <h2 className={styles.modalTitle}>Editar Médico</h2>
 
-        <label className={styles.modalLabel} htmlFor="nome">
-          Nome:
-        </label>
-        <input
-          id="nome"
-          type="text"
-          className={styles.modalInput}
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-        />
+        <label className={styles.modalLabel}>Nome</label>
+        <input className={styles.modalInput} value={nome} onChange={e => setNome(e.target.value)} />
 
-        <label className={styles.modalLabel} htmlFor="crm">
-          CRM:
-        </label>
-        <input
-          id="crm"
-          type="text"
-          className={styles.modalInput}
-          value={crm}
-          onChange={(e) => setCrm(e.target.value)}
-        />
+        <label className={styles.modalLabel}>CRM</label>
+        <input className={styles.modalInput} value={crm} onChange={e => setCrm(e.target.value)} />
 
         <div className={styles.modalButtons}>
-          <button className="cancel" onClick={onCancelar}>
-            Cancelar
-          </button>
-          <button className="save" onClick={salvar}>
-            Salvar
-          </button>
+          <button className={styles.buttonClose} onClick={onCancelar}>Cancelar</button>
+          <button className={styles.buttonSubmit} onClick={salvar}>Salvar</button>
         </div>
       </div>
     </div>

@@ -1,186 +1,208 @@
-.container {
+:root {
+  --primary-green: #22c55e;
+  --primary-green-dark: #15803d;
+  --primary-blue: #0ea5e9;
+  --primary-blue-dark: #0369a1;
+  --secondary-red: #f91616;
+  --secondary-red-dark: #c20c0c;
+  --danger-red: #ef4444;
+  --light-gray: #f3f4f6;
+  --white: #ffffff;
+  --text-dark: #1a1a1a;
+  --text-light: #f9fafb;
+}
+
+.mainContent {
+  width: calc(100% - 250px);
+  max-width: 1200px;
+  margin-left: 250px;
   padding: 2rem;
-  padding-top: 80px; /* Espaço pra navbar fixa */
-  max-width: 900px;
-  margin: 0 auto;
-  font-family: Arial, sans-serif;
-   color: #000;
+  background-color: var(--light-gray);
+  min-height: 100vh;
+  transition: all 0.3s ease;
 }
 
-/* Botão adicionar */
-.addBtn {
-  padding: 0.7rem 1.2rem;
-  background-color: #28a745;
-  color: white;
-  border-radius: 6px;
-  border: none;
-  margin-bottom: 1.5rem;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
+@media (min-width: 1920px) {
+  .mainContent {
+    width: calc(100% - 250px);
+    margin-left: 250px;
+    max-width: 100%;
+    background-color: var(--white);
+    padding: 3rem;
+  }
 }
 
-.addBtn:hover {
-  background-color: #218838;
+.header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
 }
 
-/* Lista vertical */
-.lista {
+.searchBar {
   display: flex;
-  flex-direction: column;
   gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
 
-/* Card */
+.searchBar input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--white);
+}
+
+.searchBar button {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+  color: var(--white);
+  border: none;
+  cursor: pointer;
+}
+
+/* Lista de Tipos de Consulta */
 .card {
-  background: #f9f9f9;
-  padding: 1.2rem 1rem;
-  border-radius: 10px;
+  background-color: var(--white);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
-/* Status */
 .ativo {
-  color: green;
-  font-weight: bold;
+  color: var(--primary-green);
+  font-weight: 700;
 }
 
 .inativo {
-  color: red;
-  font-weight: bold;
+  color: var(--danger-red);
+  font-weight: 700;
 }
 
-/* Botões dentro do card */
 .botoes {
   display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
-.editBtn, .toggleBtn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
+.btnDetails,
+.btnToggle,
+.floatingBtn,
+.buttonSubmit,
+.buttonClose {
+  font-weight: 700;
+  border-radius: 14px;
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
   cursor: pointer;
-  font-weight: 600;
-  color: white;
-  transition: background-color 0.2s ease;
+  transition: all 0.3s ease, transform 0.2s;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  outline: none;
+  border: none;
 }
 
-.editBtn {
-  background-color: #007bff;
+.btnDetails {
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+  color: var(--white);
+}
+.btnDetails:hover { transform: scale(1.08); }
+
+.btnToggle {
+  background: linear-gradient(135deg, var(--secondary-red), var(--secondary-red-dark));
+  color: var(--white);
+}
+.btnToggle:hover { transform: scale(1.08); }
+
+.floatingBtn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+  color: var(--white);
+  font-size: 1.1rem;
+  border-radius: 50px;
 }
 
-.editBtn:hover {
-  background-color: #0056b3;
-}
-
-.toggleBtn {
-  background-color: #6c757d;
-}
-
-.toggleBtn:hover {
-  background-color: #565e64;
-}
-
-/* Modal Overlay */
+/* Modal */
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
+  inset: 0;
+  background-color: rgba(0,0,0,0.6);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1200;
+  padding: 1rem;
+  z-index: 1000;
 }
 
-/* Modal Content */
 .modalContent {
-  background: white;
+  background-color: var(--white);
+  border-radius: 16px;
   padding: 2rem;
-  border-radius: 10px;
-  width: 400px;
-  max-width: 90%;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-  color: #000;
-  font-family: Arial, sans-serif;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
-.modalContent label {
+.modalLabel {
+  display: block;
+  margin-bottom: 8px;
   font-weight: 600;
-  margin-bottom: 0.4rem;
-}
-
-.modalContent input[type="text"] {
-  padding: 0.7rem 1rem;
   font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  outline: none;
-  transition: border-color 0.3s ease;
 }
 
-.modalContent input[type="text"]:focus {
-  border-color: #007bff;
+.modalInput {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #dcdcdc;
+  border-radius: 10px;
+  font-size: 1rem;
+  margin-bottom: 20px;
 }
 
-/* Ações do modal */
-.actions {
+.modalButtons {
   display: flex;
   justify-content: flex-end;
-  gap: 1rem;
+  gap: 16px;
 }
 
-/* Botões do modal */
-.saveButton {
-  background-color: #28a745;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.3rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 700;
-  transition: background-color 0.3s ease;
+.buttonSubmit {
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+  color: var(--white);
 }
 
-.saveButton:hover {
-  background-color: #218838;
+.buttonClose {
+  background: linear-gradient(135deg, var(--secondary-red), var(--secondary-red-dark));
+  color: var(--white);
 }
 
-.cancelButton {
-  background-color: #ccc;
-  color: #333;
-  border-radius: 8px;
-  padding: 0.6rem 1.3rem;
-  cursor: pointer;
-  font-weight: 600;
-  border: none;
-  transition: background-color 0.3s ease;
+.buttonClose:hover {
+  transform: scale(1.08);
+  color: var(--white);
 }
 
-.cancelButton:hover {
-  background-color: #b3b3b3;
-}
-
-/* Responsividade */
-@media (max-width: 600px) {
-  .card {
-    flex-direction: column;
-    align-items: flex-start;
+@media (max-width: 1200px) {
+  .mainContent {
+    width: 100%;
+    margin-left: 0;
+    padding: 2rem 1rem;
   }
+}
 
-  .botoes {
-    flex-direction: row;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
+@media (max-width: 768px) {
+  .searchBar { flex-direction: column; gap: 0.5rem; }
+  .mainContent { padding: 1rem; }
+  .btnDetails, .btnToggle, .floatingBtn { width: 100%; text-align: center; }
+}
+
+@media (max-width: 480px) {
+  .modalContent { padding: 1rem; }
+  .modalButtons { flex-direction: column; gap: 10px; }
 }

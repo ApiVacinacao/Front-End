@@ -1,14 +1,13 @@
 'use client';
-
 import React, { useState } from 'react';
 import styles from '../styles/ListaAgendamento.module.css';
-import DetalheAgendamento from '../Agendamento/AgendamentoDetalhe';
-import NovoAgendamento from '../Agendamento/NovoAgendamento';
+import NovoAgendamento from './NovoAgendamento';
+import DetalheAgendamento from './AgendamentoDetalhe';
 
 interface Appointment {
   date: string;
   time: string;
-  service: string;
+  services: string[]; // agora é array
   professional: string;
   location: string;
   notes: string;
@@ -17,76 +16,24 @@ interface Appointment {
 }
 
 const AgendamentosList: React.FC = () => {
-  const [appointments, setAppointments] = useState<Appointment[]>([
-    {
-      date: '25/10/2023',
-      time: '14:30',
-      service: 'Consulta Clínica Geral',
-      professional: 'Dr. Ana Silva',
-      location: 'UBS Jardim das Flores - Sala 12',
-      notes: 'Trazer exames recentes e carteirinha do SUS.',
-      patient: 'Paciente 1',
-      ativo: true,
-    },
-    {
-      date: '28/10/2023',
-      time: '10:00',
-      service: 'Exames de Sangue',
-      professional: 'Enf. Roberto Souza',
-      location: 'UBS Central - Sala 5',
-      notes: 'Jejum de 8 horas.',
-      patient: 'Paciente 2',
-      ativo: true,
-    },
-    {
-      date: '29/10/2023',
-      time: '16:00',
-      service: 'Consulta Oftalmológica',
-      professional: 'Dr. João Lima',
-      location: 'Clínica Olhar Certo - Sala 3',
-      notes: 'Levar óculos se possuir.',
-      patient: 'Paciente 3',
-      ativo: true,
-    },
-  ]);
-
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isNewAppointmentModalOpen, setIsNewAppointmentModalOpen] = useState(false);
-
-  const handleShowDetails = (appointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedAppointment(null);
-  };
-
-  const handleAddAppointment = (appointment: Appointment) => {
-    setAppointments((prevAppointments) => [...prevAppointments, appointment]);
-  };
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [selected, setSelected] = useState<Appointment | null>(null);
+  const [openDetail, setOpenDetail] = useState(false);
+  const [openNew, setOpenNew] = useState(false);
 
   const toggleAtivo = (index: number) => {
     setAppointments(prev =>
-      prev.map((appointment, i) =>
-        i === index ? { ...appointment, ativo: !appointment.ativo } : appointment
-      )
+      prev.map((a, i) => i === index ? { ...a, ativo: !a.ativo } : a)
     );
   };
 
   return (
     <main className={styles.mainContent}>
-      <div className={styles.header}>
-        <h2>Lista de Agendamentos</h2>
-      </div>
+      <div className={styles.header}><h2>Agendamentos</h2></div>
 
       <div className={styles.searchBar}>
         <input type="text" placeholder="Buscar agendamentos..." />
-        <button>
-          <i className="fas fa-search"></i>
-        </button>
+        <button>🔍</button>
       </div>
 
       <table className={styles.table}>
@@ -102,34 +49,20 @@ const AgendamentosList: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {appointments.map((appointment, index) => (
-            <tr key={index} className={styles.tr}>
-              <td className={styles.td}>{appointment.patient}</td>
-              <td className={styles.td}>{appointment.date}</td>
-              <td className={styles.td}>{appointment.time}</td>
-              <td className={styles.td}>{appointment.service}</td>
-              <td className={styles.td}>{appointment.professional}</td>
+          {appointments.map((a, i) => (
+            <tr key={i} className={styles.tr}>
+              <td className={styles.td}>{a.patient}</td>
+              <td className={styles.td}>{a.date}</td>
+              <td className={styles.td}>{a.time}</td>
+              <td className={styles.td}>{a.services.join(', ')}</td>
+              <td className={styles.td}>{a.professional}</td>
+              <td className={styles.td}>{a.ativo ? 'Ativo' : 'Inativo'}</td>
               <td className={styles.td}>
-                <span
-                  className={
-                    appointment.ativo ? styles.ativo : styles.inativo
-                  }
-                >
-                  {appointment.ativo ? 'Ativo' : 'Inativo'}
-                </span>
-              </td>
-              <td className={styles.td}>
-                <button
-                  onClick={() => handleShowDetails(appointment)}
-                  className={styles.btnDetails}
-                >
-                  Ver Detalhes
+                <button className={styles.btnDetails} onClick={() => { setSelected(a); setOpenDetail(true); }}>
+                  Ver
                 </button>
-                <button
-                  className={styles.btnToggle}
-                  onClick={() => toggleAtivo(index)}
-                >
-                  {appointment.ativo ? 'Inativar' : 'Ativar'}
+                <button className={styles.btnToggle} onClick={() => toggleAtivo(i)}>
+                  {a.ativo ? 'Inativar' : 'Ativar'}
                 </button>
               </td>
             </tr>
@@ -137,26 +70,20 @@ const AgendamentosList: React.FC = () => {
         </tbody>
       </table>
 
-      <button
-        className={styles.floatingBtn}
-        onClick={() => setIsNewAppointmentModalOpen(true)}
-      >
-        <i className="fas fa-plus"></i> Novo Agendamento
-      </button>
+      <button className={styles.floatingBtn} onClick={() => setOpenNew(true)}>➕ Novo</button>
 
-      {isNewAppointmentModalOpen && (
+      {openNew && (
         <NovoAgendamento
-          onAddAppointment={handleAddAppointment}
-          onClose={() => setIsNewAppointmentModalOpen(false)}
+          onClose={() => setOpenNew(false)}
+          onAddAppointment={(appointment) => { setAppointments(prev => [...prev, { ...appointment, services: Array.isArray(appointment.service) ? appointment.service : [appointment.service], ativo: true }]); setOpenNew(false); }}
         />
       )}
 
-      {isModalOpen && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <DetalheAgendamento appointment={selectedAppointment} onClose={handleCloseModal} />
-          </div>
-        </div>
+      {openDetail && selected && (
+        <DetalheAgendamento
+          appointment={selected}
+          onClose={() => { setOpenDetail(false); setSelected(null); }}
+        />
       )}
     </main>
   );

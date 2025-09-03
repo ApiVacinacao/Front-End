@@ -1,18 +1,41 @@
-/* Configuracoes.module.css */
+:root {
+  --white: #ffffff;
+  --light-gray: #f4f7ff;
+  --primary-blue: #2a52be;
+  --primary-blue-dark: #224a99;
+  --text-dark: #222f51;
+}
 
-.container {
-  max-width: 480px;
-  margin: 40px auto;
-  background-color: #f4f7ff; /* azul claro suave */
-  padding: 30px 25px;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(42, 82, 190, 0.15);
+/* Conteúdo principal */
+.mainContent {
+  margin-left: 250px; /* sidebar */
+  padding: 2rem;
+  min-height: 100vh;
+  background-color: var(--white);
+  transition: all 0.3s ease;
+  max-width: calc(100% - 250px);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #222f51;
+}
+
+@media (max-width: 1024px) {
+  .mainContent {
+    margin-left: 0;
+    max-width: 100%;
+  }
+}
+
+/* Card */
+.card {
+  background-color: var(--white);
+  padding: 25px 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(42, 82, 190, 0.1);
+  max-width: 500px;
+  margin: 20px auto;
 }
 
 .section {
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   display: flex;
   flex-direction: column;
 }
@@ -21,31 +44,30 @@
   font-weight: 600;
   margin-bottom: 8px;
   font-size: 1rem;
-  color: #1a3c82; /* azul escuro */
+  color: var(--text-dark);
 }
 
-.input,
-.selectInput {
-  padding: 10px 14px;
+.input {
+  padding: 12px 14px;
   border-radius: 6px;
   border: 1.8px solid #aac3ff;
-  background-color: white;
+  background-color: var(--white);
   font-size: 1rem;
-  color: #222f51;
+  color: var(--text-dark);
   transition: border-color 0.3s ease;
 }
 
-.input:focus,
-.selectInput:focus {
-  border-color: #2a52be;
+.input:focus {
+  border-color: var(--primary-blue);
   outline: none;
   background-color: #e6ecff;
 }
 
+/* Botão Salvar */
 .buttonSave {
   width: 100%;
-  background-color: #2a52be;
-  color: white;
+  background-color: var(--primary-blue);
+  color: var(--white);
   border: none;
   padding: 14px 0;
   border-radius: 8px;
@@ -57,14 +79,13 @@
 }
 
 .buttonSave:hover {
-  background-color: #224a99;
+  background-color: var(--primary-blue-dark);
 }
 
 /* Responsividade */
-
 @media (max-width: 500px) {
-  .container {
-    margin: 20px 15px;
-    padding: 25px 20px;
+  .card {
+    padding: 20px;
+    margin: 15px;
   }
 }

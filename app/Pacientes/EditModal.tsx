@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import styles from './editModal.module.css';
+import styles from './EditModal.module.css';
 
 interface EditModalProps {
   paciente: {
@@ -45,11 +45,12 @@ const EditModal: React.FC<EditModalProps> = ({ paciente, onClose, onSave }) => {
         <input type="text" name="cns" value={form.cns} onChange={handleChange} />
 
         <div className={styles.actions}>
-          <button onClick={onClose}>Cancelar</button>
+          <button onClick={onClose} className={styles.cancelButton}>Cancelar</button>
           <button onClick={handleSubmit} className={styles.saveButton}>Salvar</button>
         </div>
       </div>
     </div>
+
   );
 };
 

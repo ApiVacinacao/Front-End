@@ -1,86 +1,65 @@
 'use client';
-
-import React, { useState } from 'react';
+import React from 'react';
 import styles from '../styles/DetalheAgendamento.module.css';
 
 interface Appointment {
   date: string;
   time: string;
-  service: string;
+  services: string[];
   professional: string;
   location: string;
   notes: string;
   patient: string;
 }
 
-interface DetalheAgendamentoProps {
+interface Props {
   appointment: Appointment | null;
   onClose: () => void;
 }
 
-const DetalheAgendamento: React.FC<DetalheAgendamentoProps> = ({ appointment, onClose }) => {
+const DetalheAgendamento: React.FC<Props> = ({ appointment, onClose }) => {
   if (!appointment) return null;
 
   return (
-    <main className={styles.mainContainer} onClick={onClose} role="dialog" aria-modal="true">
-      <div className={styles.detailCard} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.detailItem}>
-          <strong>Paciente</strong>
-          <p>{appointment.patient}</p>
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.detailCard} onClick={e => e.stopPropagation()}>
+        <h1 className={styles.modalTitle}>Detalhes do Agendamento</h1>
+
+        <div className={styles.detailGrid}>
+          <div className={styles.detailGridItem}>
+            <span className={styles.detailLabel}>Paciente</span>
+            <span className={styles.detailValue}>{appointment.patient}</span>
+          </div>
+          <div className={styles.detailGridItem}>
+            <span className={styles.detailLabel}>Data e Hora</span>
+            <span className={styles.detailValue}>{appointment.date} - {appointment.time}</span>
+          </div>
+          <div className={styles.detailGridItem}>
+            <span className={styles.detailLabel}>Local</span>
+            <span className={styles.detailValue}>{appointment.location}</span>
+          </div>
+          <div className={styles.detailGridItem}>
+            <span className={styles.detailLabel}>Profissional</span>
+            <span className={styles.detailValue}>{appointment.professional}</span>
+          </div>
+          <div className={styles.detailGridItem}>
+            <span className={styles.detailLabel}>Serviços</span>
+            <div className={styles.serviceList}>
+              {appointment.services.map((s, i) => (
+                <span key={i} className={styles.serviceItem}>{s}</span>
+              ))}
+            </div>
+          </div>
+          <div className={styles.detailGridItem}>
+            <span className={styles.detailLabel}>Observações</span>
+            <span className={styles.detailValue}>{appointment.notes || 'Nenhuma'}</span>
+          </div>
         </div>
-        <div className={styles.detailItem}>
-          <strong>Data e Hora</strong>
-          <p>{appointment.date} - {appointment.time}</p>
-        </div>
-        <div className={styles.detailItem}>
-          <strong>Serviço</strong>
-          <p>{appointment.service}</p>
-        </div>
-        <div className={styles.detailItem}>
-          <strong>Profissional</strong>
-          <p>{appointment.professional}</p>
-        </div>
-        <div className={styles.detailItem}>
-          <strong>Local</strong>
-          <p>{appointment.location}</p>
-        </div>
-        <div className={styles.detailItem}>
-          <strong>Observações</strong>
-          <p>{appointment.notes}</p>
-        </div>
+
         <button className={styles.btnSecondary} onClick={onClose}>Fechar</button>
       </div>
-    </main>
+    </div>
   );
 };
 
 export default DetalheAgendamento;
-
-export const ExemploUso = () => {
-  const [modalOpen, setModalOpen] = useState(false);
-
-  const exampleAppointment: Appointment = {
-    patient: 'João Silva',
-    date: '2025-06-10',
-    time: '14:30',
-    service: 'Consulta Geral',
-    professional: 'Dra. Maria Souza',
-    location: 'Clínica Central',
-    notes: 'Paciente prefere atendimento pela manhã',
-  };
-
-  return (
-    <div>
-      <button onClick={() => setModalOpen(true)} className={styles.btnSecondary}>
-        Abrir Detalhes do Agendamento
-      </button>
-
-      {modalOpen && (
-        <DetalheAgendamento
-          appointment={exampleAppointment}
-          onClose={() => setModalOpen(false)}
-        />
-      )}
-    </div>
-  );
-};

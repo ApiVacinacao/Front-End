@@ -1,91 +1,171 @@
-/* Container principal que ocupa a tela toda, com fundo escuro e centraliza o modal */
-.mainContainer {
+:root {
+  --primary-blue: #0ea5e9;
+  --primary-blue-dark: #0369a1;
+  --primary-green: #22c55e;
+  --primary-green-dark: #15803d;
+  --white: #ffffff;
+  --text-dark: #1a1a1a;
+  --text-light: #f9fafb;
+  --bg-light: #f3f4f6;
+  --section-bg: #f9fafb;
+  --section-bg-alt: #f0f7fd;
+  --service-bg: #e0f2fe;
+  --service-color: #0284c7;
+  --divider-color: #e5e7eb;
+}
+
+/* ================= MODAL OVERLAY ================= */
+.modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(5px);
+  display: flex; justify-content: center; align-items: center;
+  padding: 1rem;
   z-index: 1000;
-}
-
-/* Card branco centralizado da popup */
-.detailCard {
-  background: white;
-  border-radius: 16px;
-  padding: 30px 35px;
-  width: 90%;
-  max-width: 580px;
-  max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+}
+
+/* ================= CARD MODAL ================= */
+.detailCard {
+  background: var(--white);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 1000px;
+  padding: 30px 35px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
   position: relative;
-  animation: fadeInScale 0.3s ease forwards;
+  animation: fadeInScale 0.35s ease forwards;
 }
 
-/* Animação suave para aparecer */
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+@keyframes fadeInScale { 
+  from { opacity: 0; transform: scale(0.95); } 
+  to { opacity: 1; transform: scale(1); } 
 }
 
-/* Itens do detalhe */
-.detailItem {
-  margin-bottom: 18px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid #eee;
+/* ================= TÍTULO ================= */
+.modalTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 20px;
+  text-align: center;
+  border-bottom: 2px solid var(--divider-color);
+  padding-bottom: 12px;
 }
 
-.detailItem:last-child {
-  border-bottom: none;
-  margin-bottom: 25px;
-  padding-bottom: 0;
+/* ================= GRID DE DETALHES ================= */
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
 }
 
-.detailItem strong {
-  color: #444;
-  font-size: 18px;
+/* ================= ITEM ================= */
+.detailGridItem {
+  display: flex;
+  flex-direction: column;
+  background: var(--section-bg-alt);
+  padding: 18px 20px;
+  border-radius: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.detailGridItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+.detailLabel {
   font-weight: 600;
-  display: block;
+  color: #555;
+  font-size: 0.95rem;
   margin-bottom: 6px;
 }
 
-.detailItem p {
+.detailValue {
   font-size: 16px;
-  color: #333;
-  line-height: 1.4;
+  color: var(--text-dark);
+  line-height: 1.5;
+  word-break: break-word;
 }
 
-/* Botão secundário estilizado */
-.btnSecondary {
-  background-color: white;
-  color: #89b72d;
-  border: 2px solid #89b72d;
-  padding: 12px 28px;
-  border-radius: 8px;
-  cursor: pointer;
+/* ================= LISTA DE SERVIÇOS ================= */
+.serviceList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+  padding: 0;
+}
+
+.serviceItem {
+  background: var(--service-bg);
+  color: var(--service-color);
+  padding: 6px 14px;
+  border-radius: 25px;
+  font-size: 14px;
   font-weight: 600;
-  transition: background 0.3s, color 0.3s, transform 0.2s;
-  display: inline-block;
-  user-select: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s;
 }
 
-.btnSecondary:hover {
-  background-color: #89b72d;
-  color: white;
-  transform: scale(1.05);
+.serviceItem:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  background: var(--primary-blue);
+  color: var(--white);
 }
 
+/* ================= BOTÃO FECHAR ================= */
+.btnSecondary {
+  align-self: flex-end;
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+  color: var(--white);
+  font-size: 1.1rem;
+  padding: 12px 28px;
+  border-radius: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.3s ease, transform 0.2s, box-shadow 0.3s;
+  border: none;
+  margin-top: 10px;
+}
+
+.btnSecondary:hover,
 .btnSecondary:focus {
+  background: linear-gradient(135deg, var(--primary-blue-dark), var(--primary-blue));
+  transform: scale(1.05);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.35);
   outline: none;
-  box-shadow: 0 0 6px rgba(137, 183, 45, 0.6);
+}
+
+/* ================= RESPONSIVIDADE ================= */
+@media (max-width: 1280px) { .detailCard { width: 95%; } .modalTitle { font-size: 1.9rem; } }
+@media (max-width: 1024px) { 
+  .detailCard { width: 95%; padding: 28px 30px; }
+  .modalTitle { font-size: 1.8rem; }
+  .detailValue, .serviceItem { font-size: 15px; }
+  .detailLabel { font-size: 0.9rem; }
+  .btnSecondary { padding: 12px 26px; font-size: 1rem; }
+}
+@media (max-width: 768px) {
+  .detailCard { width: 95%; padding: 24px 25px; grid-template-columns: 1fr; }
+  .modalTitle { font-size: 1.7rem; }
+  .detailValue, .serviceItem { font-size: 14px; }
+  .detailLabel { font-size: 0.85rem; }
+  .btnSecondary { padding: 10px 24px; font-size: 0.95rem; }
+}
+@media (max-width: 480px) {
+  .detailCard { width: 100%; padding: 20px; grid-template-columns: 1fr; }
+  .modalTitle { font-size: 1.5rem; }
+  .detailValue, .serviceItem { font-size: 13px; }
+  .detailLabel { font-size: 0.8rem; }
+  .btnSecondary { padding: 8px 20px; font-size: 0.9rem; }
 }
