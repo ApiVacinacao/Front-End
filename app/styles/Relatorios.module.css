@@ -5,15 +5,19 @@
   --primary-blue-dark: #224a99;
   --danger-red: #d32f2f;
   --text-dark: #222f51;
+  --text-secondary: #555555;
 }
 
+/* Conteúdo principal */
 .mainContent {
-  margin-left: 250px; /* sidebar */
+  margin-left: 250px; /* sidebar fixa */
   min-height: 100vh;
   background-color: var(--white);
   padding: 2rem;
   transition: all 0.3s ease;
   max-width: calc(100% - 250px);
+  font-family: 'Inter', sans-serif;
+  color: var(--text-dark);
 }
 
 @media (max-width: 1024px) {
@@ -38,13 +42,24 @@
   box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
   flex: 1 1 200px;
   text-align: center;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.card:hover { transform: translateY(-5px); }
+.card:hover { 
+  transform: translateY(-5px); 
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.15);
+}
 
-.card p { font-weight: 600; color: #666; margin-bottom: 8px; }
-.card h2 { font-size: 2rem; color: var(--primary-blue); margin: 0; }
+.card p { 
+  font-weight: 600; 
+  color: var(--text-secondary); 
+  margin-bottom: 8px; 
+}
+.card h2 { 
+  font-size: 2rem; 
+  color: var(--primary-blue-dark); /* azul escuro para legibilidade */
+  margin: 0; 
+}
 
 /* Filtro */
 .filterSection {
@@ -53,6 +68,11 @@
   border-radius: 8px;
   box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
   margin-bottom: 40px;
+}
+
+.filterSection h3 {
+  color: var(--text-dark); /* título escuro */
+  margin-bottom: 20px;
 }
 
 .filterGrid {
@@ -78,6 +98,7 @@
   border: 1px solid #c1c9e4;
   background-color: var(--light-gray);
   color: var(--text-dark);
+  font-size: 0.95rem;
 }
 
 .filterGrid select:focus,
@@ -87,6 +108,7 @@
   background-color: var(--white);
 }
 
+/* Botão de filtro */
 .btnFilter {
   background-color: var(--primary-blue);
   color: var(--white);
@@ -95,6 +117,7 @@
   border-radius: 5px;
   cursor: pointer;
   font-weight: 600;
+  transition: background 0.3s ease;
 }
 
 .btnFilter:hover { background-color: var(--primary-blue-dark); }
@@ -107,6 +130,11 @@
   box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
 }
 
+.reportPreview h3 {
+  color: var(--text-dark);
+  margin-bottom: 20px;
+}
+
 .reportTable {
   width: 100%;
   border-collapse: collapse;
@@ -115,20 +143,23 @@
 
 .reportTable th {
   background-color: var(--primary-blue);
-  color: white;
+  color: var(--white);
   padding: 12px 15px;
   text-align: left;
+  font-weight: 600;
 }
 
 .reportTable td {
   padding: 12px 15px;
   border-bottom: 1px solid #c1c9e4;
+  color: var(--text-dark); /* texto legível */
 }
 
 .reportTable tbody tr:hover {
   background-color: #e6ecff;
 }
 
+/* Status */
 .statusRealizado { color: var(--primary-blue-dark); font-weight: 700; }
 .statusCancelado { color: var(--danger-red); font-weight: 700; }
 
@@ -149,10 +180,14 @@
   border-radius: 5px;
   font-weight: 600;
   cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .btnExport:hover,
-.btnPrint:hover { background-color: var(--primary-blue-dark); }
+.btnPrint:hover { 
+  background-color: var(--primary-blue-dark); 
+  transform: translateY(-2px);
+}
 
 /* Responsividade */
 @media (max-width: 768px) {

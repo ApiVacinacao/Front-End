@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import AgendamentosList from '../Agendamento/ListaAgendamento';
 import Sidebar from '../components/navbar/page';

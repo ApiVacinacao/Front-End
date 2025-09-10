@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './locais.module.css';
 import modalStyles from './EditModal.module.css';
 import Navbar from '../components/navbar/page';
@@ -12,31 +12,107 @@ interface Local {
   ativo: boolean;
 }
 
-const Locais: React.FC = () => {
-  const [locais, setLocais] = useState<Local[]>([
-    { id: 1, nome: 'UBS Central', endereco: 'Rua Principal, 123', ativo: true },
-    { id: 2, nome: 'Clínica Vida', endereco: 'Av. Saúde, 456', ativo: true },
-    { id: 3, nome: 'Posto Jardim', endereco: 'Rua das Flores, 789', ativo: false },
-  ]);
+const API_URL = 'http://localhost:8000/api/localAtendimentos';
 
+const Locais: React.FC = () => {
+  const [locais, setLocais] = useState<Local[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [localEditando, setLocalEditando] = useState<Local | null>(null);
+
+  // Fetch dos locais
+  const fetchLocais = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const token = localStorage.getItem('token'); // certifique-se que o token está no localStorage
+      const res = await fetch(API_URL, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      });
+
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          setError('Você não tem permissão para acessar essa informação.');
+        } else {
+          setError(`Erro ao carregar locais: ${res.status}`);
+        }
+        return;
+      }
+
+      const data = await res.json();
+      setLocais(data);
+    } catch (err) {
+      console.error(err);
+      setError('Erro ao conectar com o servidor.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLocais();
+  }, []);
 
   const editarLocal = (id: number) => {
     const local = locais.find(l => l.id === id);
     if (local) setLocalEditando(local);
   };
 
-  const salvarEdicao = (atualizado: Local) => {
-    setLocais(prev => prev.map(l => l.id === atualizado.id ? atualizado : l));
-    setLocalEditando(null);
+  const salvarEdicao = async (atualizado: Local) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/${atualizado.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify(atualizado),
+      });
+
+      if (!res.ok) {
+        alert('Erro ao salvar local.');
+        return;
+      }
+
+      setLocais(prev => prev.map(l => l.id === atualizado.id ? atualizado : l));
+      setLocalEditando(null);
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao conectar com o servidor.');
+    }
   };
 
-  const ativarOuInativar = (id: number) => {
-    setLocais(prev =>
-      prev.map(l =>
-        l.id === id ? { ...l, ativo: !l.ativo } : l
-      )
-    );
+  const ativarOuInativar = async (id: number) => {
+    const local = locais.find(l => l.id === id);
+    if (!local) return;
+
+    const atualizado = { ...local, ativo: !local.ativo };
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify(atualizado),
+      });
+
+      if (!res.ok) {
+        alert('Erro ao atualizar status do local.');
+        return;
+      }
+
+      setLocais(prev => prev.map(l => l.id === id ? atualizado : l));
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao conectar com o servidor.');
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,11 +124,13 @@ const Locais: React.FC = () => {
   return (
     <>
       <Navbar />
-
       <main className={styles.content}>
         <div className={styles.container}>
           <h1 className={styles.title}>Lista de Locais</h1>
           <hr className={styles.divider} />
+
+          {loading && <p>Carregando locais...</p>}
+          {error && <p style={{ color: 'red' }}>{error}</p>}
 
           <div className={styles.lista}>
             {locais.map(local => (

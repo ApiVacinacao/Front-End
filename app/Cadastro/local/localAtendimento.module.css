@@ -6,7 +6,7 @@
   --text-light: #64748b;
   --white: #ffffff;
   --border: #cbd5e1;
-  --shadow-light: rgba(59, 130, 246, 0.3);
+  --shadow-light: rgba(59, 130, 246, 0.2);
 }
 
 .pageWrapper {
@@ -20,7 +20,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
   padding: 2rem;
 }
 
@@ -96,7 +95,12 @@
   transition: background 0.4s ease, box-shadow 0.3s ease, transform 0.15s ease;
 }
 
-.form button:hover {
+.form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form button:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--primary-hover), #1e40af);
   box-shadow: 0 8px 20px rgba(37, 99, 235, 0.7);
   transform: translateY(-2px);
@@ -111,7 +115,8 @@
   margin-top: 1.8rem;
   font-weight: 600;
   font-size: 1rem;
-  color: var(--primary-hover);
+  color: var(--text-dark);
+  text-align: center;
 }
 
 /* Responsividade */

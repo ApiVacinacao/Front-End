@@ -4,22 +4,57 @@ import React, { useState } from 'react';
 import Navbar from '../../components/navbar/page';
 import styles from './localAtendimento.module.css';
 
+const API_URL = 'http://127.0.0.1:8000/api/localAtendimentos';
+
 const CadastroLocalAtendimento: React.FC = () => {
   const [nome, setNome] = useState('');
   const [endereco, setEndereco] = useState('');
   const [telefone, setTelefone] = useState('');
   const [mensagem, setMensagem] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!nome.trim() || !endereco.trim() || !telefone.trim()) {
-      alert('Por favor, preencha todos os campos!');
+      setMensagem('Por favor, preencha todos os campos!');
       return;
     }
 
-    setMensagem('Local de Atendimento cadastrado com sucesso!');
-    setNome('');
-    setEndereco('');
-    setTelefone('');
+    const token = localStorage.getItem('token'); // Recupera o token do localStorage
+
+    if (!token) {
+      setMensagem('Usuário não autenticado. Faça login para continuar.');
+      return;
+    }
+
+    setLoading(true);
+    setMensagem('');
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Token incluído corretamente
+        },
+        body: JSON.stringify({ nome, endereco, telefone }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMensagem(data.error || 'Erro ao cadastrar local');
+      } else {
+        setMensagem('Local de Atendimento cadastrado com sucesso!');
+        setNome('');
+        setEndereco('');
+        setTelefone('');
+      }
+    } catch (err) {
+      console.error(err);
+      setMensagem('Erro ao conectar com o servidor');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -62,7 +97,10 @@ const CadastroLocalAtendimento: React.FC = () => {
               onChange={(e) => setTelefone(e.target.value)}
             />
 
-            <button type="submit">Cadastrar Local</button>
+            <button type="submit" disabled={loading}>
+              {loading ? 'Cadastrando...' : 'Cadastrar Local'}
+            </button>
+
             {mensagem && <p className={styles.mensagem}>{mensagem}</p>}
           </form>
         </div>

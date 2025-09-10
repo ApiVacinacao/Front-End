@@ -11,8 +11,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loggedIn = localStorage.getItem('loggedIn');
-    if (!loggedIn) {
+    const token = localStorage.getItem('token'); // ✅ agora verifica o token
+    if (!token) {
       router.replace('/Login');
     } else {
       setLoading(false);

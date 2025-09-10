@@ -5,7 +5,7 @@ import styles from "../styles/NovoAgendamento.module.css";
 interface Appointment {
   date: string;
   time: string;
-  service: string;
+  services: string[];     // agora é array
   professional: string;
   patient: string;
   location: string;
@@ -21,20 +21,25 @@ const NovoAgendamento: React.FC<Props> = ({ onClose, onAddAppointment }) => {
   const [formData, setFormData] = useState({
     date: "",
     time: "",
-    service: "",
+    services: "",
     professional: "",
     patient: "",
     location: "",
+    notes: ""
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newAppointment: Appointment = { ...formData, notes: "Nenhuma observação" };
+    const newAppointment: Appointment = {
+      ...formData,
+      services: formData.services.split(',').map(s => s.trim()).filter(Boolean),
+      notes: formData.notes || "Nenhuma observação"
+    };
     onAddAppointment(newAppointment);
     onClose();
   };
@@ -46,8 +51,8 @@ const NovoAgendamento: React.FC<Props> = ({ onClose, onAddAppointment }) => {
 
         <div className={styles.row}>
           <div className={styles.col}>
-            <label className={styles.label}>Paciente</label>
-            <select name="patient" value={formData.patient} onChange={handleChange} className={styles.selectInput} required>
+            <label>Paciente</label>
+            <select name="patient" value={formData.patient} onChange={handleChange} required>
               <option value="">Selecione um paciente</option>
               <option value="Paciente 1">Paciente 1</option>
               <option value="Paciente 2">Paciente 2</option>
@@ -56,8 +61,8 @@ const NovoAgendamento: React.FC<Props> = ({ onClose, onAddAppointment }) => {
           </div>
 
           <div className={styles.col}>
-            <label className={styles.label}>Local</label>
-            <select name="location" value={formData.location} onChange={handleChange} className={styles.selectInput} required>
+            <label>Local</label>
+            <select name="location" value={formData.location} onChange={handleChange} required>
               <option value="">Selecione o local</option>
               <option value="UBS Jardim das Flores - Sala 12">UBS Jardim das Flores - Sala 12</option>
               <option value="UBS Central - Sala 5">UBS Central - Sala 5</option>
@@ -68,31 +73,38 @@ const NovoAgendamento: React.FC<Props> = ({ onClose, onAddAppointment }) => {
 
         <div className={styles.row}>
           <div className={styles.col}>
-            <label className={styles.label}>Data</label>
-            <input type="date" name="date" value={formData.date} onChange={handleChange} className={styles.input} required />
+            <label>Data</label>
+            <input type="date" name="date" value={formData.date} onChange={handleChange} required />
           </div>
 
           <div className={styles.col}>
-            <label className={styles.label}>Hora</label>
-            <input type="time" name="time" value={formData.time} onChange={handleChange} className={styles.input} required />
+            <label>Hora</label>
+            <input type="time" name="time" value={formData.time} onChange={handleChange} required />
           </div>
         </div>
 
         <div className={styles.row}>
           <div className={styles.col}>
-            <label className={styles.label}>Serviço</label>
-            <input type="text" name="service" value={formData.service} onChange={handleChange} className={styles.input} required />
+            <label>Serviços (separar por vírgula)</label>
+            <input type="text" name="services" value={formData.services} onChange={handleChange} required />
           </div>
 
           <div className={styles.col}>
-            <label className={styles.label}>Profissional</label>
-            <input type="text" name="professional" value={formData.professional} onChange={handleChange} className={styles.input} required />
+            <label>Profissional</label>
+            <input type="text" name="professional" value={formData.professional} onChange={handleChange} required />
+          </div>
+        </div>
+
+        <div className={styles.row}>
+          <div className={styles.col}>
+            <label>Observações</label>
+            <textarea name="notes" value={formData.notes} onChange={handleChange} />
           </div>
         </div>
 
         <div className={styles.actions}>
-          <button type="submit" className={styles.buttonSubmit}>Salvar Agendamento</button>
-          <button type="button" className={styles.buttonClose} onClick={onClose}>Fechar</button>
+          <button type="submit">Salvar Agendamento</button>
+          <button type="button" onClick={onClose}>Fechar</button>
         </div>
       </form>
     </div>

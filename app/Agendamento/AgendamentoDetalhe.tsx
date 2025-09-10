@@ -3,6 +3,7 @@ import React from 'react';
 import styles from '../styles/DetalheAgendamento.module.css';
 
 interface Appointment {
+  id?: number;
   date: string;
   time: string;
   services: string[];
@@ -10,6 +11,7 @@ interface Appointment {
   location: string;
   notes: string;
   patient: string;
+  ativo?: boolean;
 }
 
 interface Props {

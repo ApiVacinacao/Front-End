@@ -31,17 +31,28 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cpf, password }),
-    });
+    try {
+      const res = await fetch('http://localhost:8000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cpf, password }),
+      });
 
-    if (res.ok) {
-      if (remember) localStorage.setItem('rememberMe', 'true');
-      router.replace('/');
-    } else {
-      alert('CPF ou senha inválidos!');
+      const data = await res.json();
+
+      if (res.ok && data.token) {
+        // salva token
+        localStorage.setItem('token', data.token);
+        if (remember) localStorage.setItem('rememberMe', 'true');
+
+        alert('Login realizado com sucesso!');
+        router.replace('/'); // redireciona pra listagem
+      } else {
+        alert(data.error || 'CPF ou senha inválidos!');
+      }
+    } catch (error) {
+      alert('Erro ao conectar com o servidor');
+      console.error(error);
     }
   };
 
@@ -83,7 +94,9 @@ const LoginPage: React.FC = () => {
             />
             <label htmlFor="remember">Lembrar-me</label>
           </div>
-          <a href="/senha" className={styles.forgotLink}>Esqueci minha senha</a>
+          <a href="/senha" className={styles.forgotLink}>
+            Esqueci minha senha
+          </a>
         </div>
 
         <button className={styles.btnLogin} onClick={handleLogin}>

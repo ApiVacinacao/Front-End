@@ -1,8 +1,7 @@
 'use client';
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navbar/page';
-import styles from './paciente.module.css';
+import styles from './paciente.module.css'; // seu CSS enviado
 import modalStyles from './EditModal.module.css';
 
 interface Paciente {
@@ -13,34 +12,98 @@ interface Paciente {
   ativo: boolean;
 }
 
-const Pacientes: React.FC = () => {
-  const [pacientes, setPacientes] = useState<Paciente[]>([
-    { id: 1, nome: 'João Silva', email: 'joao@example.com', cns: '12345678900', ativo: true },
-    { id: 2, nome: 'Maria Souza', email: 'maria@example.com', cns: '98765432100', ativo: true },
-    { id: 3, nome: 'Carlos Oliveira', email: 'carlos@example.com', cns: '45678912300', ativo: true },
-  ]);
+const API_URL = 'http://localhost:8000/api/pacientes';
 
+export default function Pacientes() {
+  const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [pacienteEditando, setPacienteEditando] = useState<Paciente | null>(null);
+  const [openNew, setOpenNew] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const editarPaciente = (id: number) => {
-    const paciente = pacientes.find(p => p.id === id);
-    if (paciente) setPacienteEditando(paciente);
+  useEffect(() => {
+    fetchPacientes();
+  }, []);
+
+  const fetchPacientes = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(API_URL, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error(`Erro ao carregar pacientes: ${res.status}`);
+      const data = await res.json();
+      setPacientes(data);
+    } catch (err) {
+      console.error(err);
+      alert(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const salvarEdicao = (atualizado: Paciente) => {
-    setPacientes(prev => prev.map(p => (p.id === atualizado.id ? atualizado : p)));
-    setPacienteEditando(null);
+  const toggleAtivo = async (paciente: Paciente) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/${paciente.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ ativo: !paciente.ativo }),
+      });
+      if (!res.ok) throw new Error(`Erro ao atualizar status: ${res.status}`);
+      const data = await res.json();
+      setPacientes(prev => prev.map(p => p.id === data.id ? data : p));
+    } catch (err) {
+      console.error(err);
+      alert(err);
+    }
   };
 
-  const inativarPaciente = (id: number) => {
-    setPacientes(prev =>
-      prev.map(p => (p.id === id ? { ...p, ativo: !p.ativo } : p))
-    );
-  };
+  const salvarPaciente = async (pacienteAtualizado: Partial<Paciente> & { id?: number }) => {
+    try {
+      const token = localStorage.getItem('token');
+      let res: Response;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (pacienteEditando) {
-      setPacienteEditando({ ...pacienteEditando, [e.target.name]: e.target.value });
+      if (pacienteAtualizado.id) {
+        res = await fetch(`${API_URL}/${pacienteAtualizado.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(pacienteAtualizado),
+        });
+      } else {
+        res = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            nome: pacienteAtualizado.nome,
+            email: pacienteAtualizado.email,
+            cns: pacienteAtualizado.cns,
+            ativo: pacienteAtualizado.ativo ?? true,
+          }),
+        });
+      }
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || `Erro ao salvar paciente: ${res.status}`);
+      }
+
+      const data = await res.json();
+      setPacientes(prev => pacienteAtualizado.id ? prev.map(p => p.id === data.id ? data : p) : [...prev, data]);
+      setPacienteEditando(null);
+      setOpenNew(false);
+    } catch (err) {
+      console.error(err);
+      alert(err);
     }
   };
 
@@ -50,63 +113,94 @@ const Pacientes: React.FC = () => {
       <main className={styles.content}>
         <div className={styles.container}>
           <h1 className={styles.title}>Lista de Pacientes</h1>
-          <table className={styles.lista}>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Email</th>
-                <th>CNS</th>
-                <th>Status</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pacientes.map(p => (
-                <tr key={p.id}>
-                  <td>{p.nome}</td>
-                  <td>{p.email}</td>
-                  <td>{p.cns}</td>
-                  <td className={styles.status}>
-                    <span className={p.ativo ? styles.ativo : styles.inativo}>
-                      {p.ativo ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </td>
-                  <td>
-                    <button className={styles.editButton} onClick={() => editarPaciente(p.id)}>Editar</button>
-                    <button className={styles.deleteButton} onClick={() => inativarPaciente(p.id)}>
-                      {p.ativo ? 'Inativar' : 'Ativar'}
-                    </button>
-                  </td>
+
+          {loading ? (
+            <p>Carregando pacientes...</p>
+          ) : (
+            <table className={styles.lista}>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Email</th>
+                  <th>CNS</th>
+                  <th>Status</th>
+                  <th>Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {pacientes.map(p => (
+                  <tr key={p.id}>
+                    <td>{p.nome}</td>
+                    <td>{p.email}</td>
+                    <td>{p.cns}</td>
+                    <td className={styles.status}>
+                      <span className={p.ativo ? styles.ativo : styles.inativo}>
+                        {p.ativo ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </td>
+                    <td>
+                      <button className={styles.editButton} onClick={() => setPacienteEditando(p)}>Editar</button>
+                      <button className={styles.deleteButton} onClick={() => toggleAtivo(p)}>
+                        {p.ativo ? 'Inativar' : 'Ativar'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          <button className={styles.floatingBtn} onClick={() => setOpenNew(true)}>➕ Novo</button>
         </div>
       </main>
 
-      {pacienteEditando && (
-        <div className={modalStyles.modalOverlay}>
-          <div className={modalStyles.modalContent}>
-            <h2>Editar Paciente</h2>
-
-            <label>Nome</label>
-            <input type="text" name="nome" value={pacienteEditando.nome} onChange={handleInputChange} />
-
-            <label>Email</label>
-            <input type="email" name="email" value={pacienteEditando.email} onChange={handleInputChange} />
-
-            <label>CNS</label>
-            <input type="text" name="cns" value={pacienteEditando.cns} onChange={handleInputChange} />
-
-            <div className={modalStyles.actions}>
-              <button onClick={() => setPacienteEditando(null)}>Cancelar</button>
-              <button onClick={() => salvarEdicao(pacienteEditando)} className={modalStyles.saveButton}>Salvar</button>
-            </div>
-          </div>
-        </div>
+      {(pacienteEditando || openNew) && (
+        <ModalPaciente
+          paciente={pacienteEditando ?? { nome: '', email: '', cns: '', ativo: true }}
+          onSalvar={salvarPaciente}
+          onCancelar={() => { setPacienteEditando(null); setOpenNew(false); }}
+        />
       )}
     </>
   );
-};
+}
 
-export default Pacientes;
+function ModalPaciente({ paciente, onSalvar, onCancelar }: { paciente: Partial<Paciente>; onSalvar: (p: Partial<Paciente>) => void; onCancelar: () => void }) {
+  const [nome, setNome] = useState(paciente.nome ?? '');
+  const [email, setEmail] = useState(paciente.email ?? '');
+  const [cns, setCns] = useState(paciente.cns ?? '');
+  const [ativo, setAtivo] = useState(paciente.ativo ?? true);
+
+  const salvar = () => {
+    if (!nome.trim() || !email.trim() || !cns.trim()) {
+      alert('Preencha todos os campos.');
+      return;
+    }
+    onSalvar({ ...paciente, nome, email, cns, ativo });
+  };
+
+  return (
+    <div className={modalStyles.modalOverlay}>
+      <div className={modalStyles.modalContent}>
+        <h2 className={modalStyles.modalTitle}>{paciente.id ? 'Editar Paciente' : 'Novo Paciente'}</h2>
+
+        <label className={modalStyles.modalLabel}>Nome</label>
+        <input className={modalStyles.modalInput} value={nome} onChange={e => setNome(e.target.value)} />
+
+        <label className={modalStyles.modalLabel}>Email</label>
+        <input className={modalStyles.modalInput} type="email" value={email} onChange={e => setEmail(e.target.value)} />
+
+        <label className={modalStyles.modalLabel}>CNS</label>
+        <input className={modalStyles.modalInput} value={cns} onChange={e => setCns(e.target.value)} />
+
+        <label className={modalStyles.modalLabel}>Ativo</label>
+        <input type="checkbox" checked={ativo} onChange={e => setAtivo(e.target.checked)} />
+
+        <div className={modalStyles.actions}>
+          <button onClick={onCancelar}>Cancelar</button>
+          <button className={modalStyles.saveButton} onClick={salvar}>Salvar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
