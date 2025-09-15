@@ -14,12 +14,20 @@ const CadastroAgendamento: React.FC = () => {
   const router = useRouter();
 
   const handleSubmit = async () => {
+    // Validação simples
     if (!data || !hora || !local || !profissional || !tipoAgendamento) {
       alert('Por favor, preencha todos os campos!');
       return;
     }
 
-    const agendamentoData = { data, hora, local, profissional, tipoAgendamento };
+    // Dados que serão enviados para a API
+    const agendamentoData = { 
+      data, 
+      hora, 
+      local, 
+      profissional, 
+      tipoAgendamento 
+    };
 
     try {
       const response = await fetch('/api/agendamentos', {
@@ -30,9 +38,10 @@ const CadastroAgendamento: React.FC = () => {
 
       if (response.ok) {
         alert('Agendamento cadastrado com sucesso!');
-        router.push('/');
+        router.push('/'); // Redireciona para a home
       } else {
-        alert('Erro ao cadastrar agendamento!');
+        const errorData = await response.json();
+        alert(errorData.message || 'Erro ao cadastrar agendamento!');
       }
     } catch (error) {
       console.error('Erro ao enviar os dados:', error);

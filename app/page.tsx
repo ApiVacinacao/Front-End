@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import './globals.css';
+import './globals.css'; // seu CSS com :root e variáveis
 
 export default function Home() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token'); // ✅ agora verifica o token
+    const token = localStorage.getItem('token');
     if (!token) {
       router.replace('/Login');
     } else {
@@ -26,11 +26,10 @@ export default function Home() {
         <style jsx>{`
           .loadingWrapper {
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: linear-gradient(135deg, #f5f7fa, #e4e8eb);
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
             font-family: 'Segoe UI', sans-serif;
           }
 
@@ -38,7 +37,7 @@ export default function Home() {
             width: 60px;
             height: 60px;
             border: 6px solid #e0e0e0;
-            border-top-color: #2d34b7;
+            border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-bottom: 15px;
@@ -47,17 +46,6 @@ export default function Home() {
           @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-          }
-
-          p {
-            color: #2d34b7;
-            font-size: 18px;
-            font-weight: 600;
-          }
-
-          @media (max-width: 480px) {
-            .spinner { width: 50px; height: 50px; border-width: 5px; }
-            p { font-size: 16px; }
           }
         `}</style>
       </div>
@@ -86,7 +74,7 @@ export default function Home() {
               href={item.path}
               className="optionCard floating"
               style={{
-                animation: `fadeInUp 0.5s ease forwards`,
+                animation: `fadeUp 0.5s ease forwards`,
                 animationDelay: `${index * 0.1}s`
               }}
             >
