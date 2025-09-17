@@ -71,6 +71,12 @@ const Navbar = () => {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/Cadastro/consulta" className={`${styles.subLink} ${isActive("/Cadastro/consulta") ? styles.activeSubLink : ""}`}>
+                    <MdMedicalServices size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                    Tipo de Consulta
+                  </Link>
+                </li>
+                <li>
                   <Link href="/Cadastro/especialidade" className={`${styles.subLink} ${isActive("/Cadastro/especialidade") ? styles.activeSubLink : ""}`}>
                     <MdLocationOn size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
                     Cadastro de Especialidade

@@ -1,50 +1,119 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/navbar/page';
 import styles from './agendamento.module.css';
 import { useRouter } from 'next/navigation';
 
+interface LocalAtendimento {
+  id: number;
+  nome: string;
+}
+
+interface Medico {
+  id: number;
+  nome: string;
+}
+
+interface Paciente {
+  id: number;
+  nome: string;
+}
+
 const CadastroAgendamento: React.FC = () => {
   const [data, setData] = useState('');
   const [hora, setHora] = useState('');
-  const [local, setLocal] = useState('');
-  const [profissional, setProfissional] = useState('');
+  const [localId, setLocalId] = useState('');
+  const [profissionalId, setProfissionalId] = useState('');
   const [tipoAgendamento, setTipoAgendamento] = useState('');
+  const [pacienteId, setPacienteId] = useState('');
+
+  const [locais, setLocais] = useState<LocalAtendimento[]>([]);
+  const [profissionais, setProfissionais] = useState<Medico[]>([]);
+  const [pacientes, setPacientes] = useState<Paciente[]>([]);
+
   const router = useRouter();
 
+  // Buscar dados do banco
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    const fetchLocais = async () => {
+      try {
+        const res = await fetch('http://localhost:8001/api/localAtendimentos', {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
+        const data = await res.json();
+        if (res.ok) setLocais(data);
+      } catch (err) {
+        console.error('Erro ao buscar locais:', err);
+      }
+    };
+
+    const fetchProfissionais = async () => {
+      try {
+        const res = await fetch('http://localhost:8001/api/medicos', {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
+        const data = await res.json();
+        if (res.ok) setProfissionais(data);
+      } catch (err) {
+        console.error('Erro ao buscar profissionais:', err);
+      }
+    };
+
+    const fetchPacientes = async () => {
+      try {
+        const res = await fetch('http://localhost:8001/api/user', {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
+        const data = await res.json();
+        if (res.ok) setPacientes(data);
+      } catch (err) {
+        console.error('Erro ao buscar pacientes:', err);
+      }
+    };
+
+    fetchLocais();
+    fetchProfissionais();
+    fetchPacientes();
+  }, []);
+
   const handleSubmit = async () => {
-    // Validação simples
-    if (!data || !hora || !local || !profissional || !tipoAgendamento) {
-      alert('Por favor, preencha todos os campos!');
+    if (!data || !hora || !localId || !profissionalId || !tipoAgendamento || !pacienteId) {
+      alert('Preencha todos os campos!');
       return;
     }
 
-    // Dados que serão enviados para a API
-    const agendamentoData = { 
-      data, 
-      hora, 
-      local, 
-      profissional, 
-      tipoAgendamento 
+    const agendamentoData = {
+      data,
+      hora,
+      local_id: Number(localId),
+      profissional_id: Number(profissionalId),
+      paciente_id: Number(pacienteId),
+      tipoAgendamento
     };
 
     try {
-      const response = await fetch('/api/agendamentos', {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:8001/api/agendamentos', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : '',
+        },
         body: JSON.stringify(agendamentoData),
       });
 
       if (response.ok) {
         alert('Agendamento cadastrado com sucesso!');
-        router.push('/'); // Redireciona para a home
+        router.push('/');
       } else {
         const errorData = await response.json();
         alert(errorData.message || 'Erro ao cadastrar agendamento!');
       }
-    } catch (error) {
-      console.error('Erro ao enviar os dados:', error);
+    } catch (err) {
+      console.error('Erro ao cadastrar agendamento:', err);
       alert('Erro ao cadastrar agendamento!');
     }
   };
@@ -58,9 +127,8 @@ const CadastroAgendamento: React.FC = () => {
 
           <div className={styles.row}>
             <div className={styles.col}>
-              <label htmlFor="tipoAgendamento">Tipo de Agendamento</label>
+              <label>Tipo de Agendamento</label>
               <select
-                id="tipoAgendamento"
                 value={tipoAgendamento}
                 onChange={(e) => setTipoAgendamento(e.target.value)}
                 className={styles.input}
@@ -75,59 +143,63 @@ const CadastroAgendamento: React.FC = () => {
             </div>
 
             <div className={styles.col}>
-              <label htmlFor="data">Data</label>
-              <input
-                type="date"
-                id="data"
-                value={data}
-                onChange={(e) => setData(e.target.value)}
-                className={styles.input}
-              />
+              <label>Data</label>
+              <input type="date" value={data} onChange={e => setData(e.target.value)} className={styles.input} />
             </div>
           </div>
 
           <div className={styles.row}>
             <div className={styles.col}>
-              <label htmlFor="hora">Hora</label>
-              <input
-                type="time"
-                id="hora"
-                value={hora}
-                onChange={(e) => setHora(e.target.value)}
-                className={styles.input}
-              />
+              <label>Hora</label>
+              <input type="time" value={hora} onChange={e => setHora(e.target.value)} className={styles.input} />
             </div>
 
             <div className={styles.col}>
-              <label htmlFor="local">Local de Atendimento</label>
-              <input
-                type="text"
-                id="local"
-                value={local}
-                onChange={(e) => setLocal(e.target.value)}
-                placeholder="Digite o local"
+              <label>Local de Atendimento</label>
+              <select
+                value={localId}
+                onChange={e => setLocalId(e.target.value)}
                 className={styles.input}
-              />
+              >
+                <option value="">Selecione o local</option>
+                {locais.map(local => (
+                  <option key={local.id} value={local.id}>{local.nome}</option>
+                ))}
+              </select>
             </div>
           </div>
 
           <div className={styles.row}>
             <div className={styles.col}>
-              <label htmlFor="profissional">Profissional</label>
-              <input
-                type="text"
-                id="profissional"
-                value={profissional}
-                onChange={(e) => setProfissional(e.target.value)}
-                placeholder="Nome do profissional"
+              <label>Profissional</label>
+              <select
+                value={profissionalId}
+                onChange={e => setProfissionalId(e.target.value)}
                 className={styles.input}
-              />
+              >
+                <option value="">Selecione o profissional</option>
+                {profissionais.map(prof => (
+                  <option key={prof.id} value={prof.id}>{prof.nome}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.col}>
+              <label>Paciente</label>
+              <select
+                value={pacienteId}
+                onChange={e => setPacienteId(e.target.value)}
+                className={styles.input}
+              >
+                <option value="">Selecione o paciente</option>
+                {pacientes.map(p => (
+                  <option key={p.id} value={p.id}>{p.nome}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          <button className={styles.button} onClick={handleSubmit}>
-            Cadastrar Agendamento
-          </button>
+          <button className={styles.button} onClick={handleSubmit}>Cadastrar Agendamento</button>
         </div>
       </main>
     </div>

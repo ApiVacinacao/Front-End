@@ -9,10 +9,10 @@ interface Local {
   id: number;
   nome: string;
   endereco: string;
-  ativo: boolean;
+  telefone: string; // adicionado telefone
 }
 
-const API_URL = 'http://localhost:8000/api/localAtendimentos';
+const API_URL = 'http://localhost:8001/api/localAtendimentos';
 
 const Locais: React.FC = () => {
   const [locais, setLocais] = useState<Local[]>([]);
@@ -25,7 +25,7 @@ const Locais: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('token'); // certifique-se que o token está no localStorage
+      const token = localStorage.getItem('token');
       const res = await fetch(API_URL, {
         headers: {
           'Content-Type': 'application/json',
@@ -86,35 +86,6 @@ const Locais: React.FC = () => {
     }
   };
 
-  const ativarOuInativar = async (id: number) => {
-    const local = locais.find(l => l.id === id);
-    if (!local) return;
-
-    const atualizado = { ...local, ativo: !local.ativo };
-
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : '',
-        },
-        body: JSON.stringify(atualizado),
-      });
-
-      if (!res.ok) {
-        alert('Erro ao atualizar status do local.');
-        return;
-      }
-
-      setLocais(prev => prev.map(l => l.id === id ? atualizado : l));
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao conectar com o servidor.');
-    }
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (localEditando) {
       setLocalEditando({ ...localEditando, [e.target.name]: e.target.value });
@@ -138,13 +109,10 @@ const Locais: React.FC = () => {
                 <div className={styles.info}>
                   <strong>{local.nome}</strong>
                   <p>Endereço: {local.endereco}</p>
-                  <p>Status: <span className={local.ativo ? styles.ativo : styles.inativo}>{local.ativo ? 'Ativo' : 'Inativo'}</span></p>
+                  <p>Telefone: {local.telefone}</p>
                 </div>
                 <div className={styles.botoes}>
                   <button className={styles.editButton} onClick={() => editarLocal(local.id)}>Editar</button>
-                  <button className={styles.deleteButton} onClick={() => ativarOuInativar(local.id)}>
-                    {local.ativo ? 'Inativar' : 'Ativar'}
-                  </button>
                 </div>
               </div>
             ))}
@@ -161,6 +129,9 @@ const Locais: React.FC = () => {
 
               <label>Endereço</label>
               <input type="text" name="endereco" value={localEditando.endereco} onChange={handleInputChange} />
+
+              <label>Telefone</label>
+              <input type="text" name="telefone" value={localEditando.telefone} onChange={handleInputChange} />
 
               <div className={modalStyles.actions}>
                 <button onClick={() => setLocalEditando(null)} className={modalStyles.cancelButton}>Cancelar</button>

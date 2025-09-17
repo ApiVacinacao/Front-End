@@ -14,9 +14,7 @@ const CadastroMedico: React.FC = () => {
     nome: '',
     cpf: '',
     crm: '',
-    senha: '',
-    especialidade_id: '', // envia o ID para o backend
-    status: true, // sempre ativo
+    especialidade_id: '', // guarda o ID da especialidade
   });
 
   const [mensagem, setMensagem] = useState('');
@@ -32,7 +30,6 @@ const CadastroMedico: React.FC = () => {
         });
         const data = await res.json();
         if (res.ok) setEspecialidades(data);
-        else console.error('Erro ao buscar especialidades', data);
       } catch (err) {
         console.error('Erro ao conectar à API de especialidades', err);
       }
@@ -40,43 +37,49 @@ const CadastroMedico: React.FC = () => {
     fetchEspecialidades();
   }, []);
 
-  // Atualiza qualquer campo
+  // Atualiza campos genéricos
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Formata CPF automaticamente
+  // Formata CPF: 000.000.000-00, mas envia sem formatação
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 11) value = value.slice(0, 11);
-    value = value.replace(/(\d{3})(\d)/, '$1.$2');
-    value = value.replace(/(\d{3})(\d)/, '$1.$2');
-    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    let value = e.target.value.replace(/\D/g, '').slice(0, 11);
+    value = value
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
     setFormData({ ...formData, cpf: value });
   };
 
-  // Formata CRM automaticamente (ex: CRM/SP 123456)
+  // Formata CRM em maiúsculo, aceita letras e números
   const handleCrmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.toUpperCase().replace(/[^A-Z0-9/ ]/g, '');
-    const parts = value.split(' ');
-    if (parts.length > 1) parts[1] = parts[1].slice(0, 6); // limita números
-    setFormData({ ...formData, crm: parts.join(' ') });
+    const value = e.target.value.toUpperCase().replace(/[^A-Z0-9/ ]/g, '');
+    setFormData({ ...formData, crm: value });
   };
 
+  // Submissão do formulário
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMensagem('');
 
-    const { nome, cpf, crm, senha, especialidade_id } = formData;
-    if (!nome || !cpf || !crm || !senha || !especialidade_id) {
+    const { nome, cpf, crm, especialidade_id } = formData;
+    if (!nome || !cpf || !crm || !especialidade_id) {
       setMensagem('Preencha todos os campos obrigatórios.');
       return;
     }
 
     try {
       const token = localStorage.getItem('token');
-      const payload = { ...formData, status: true }; // sempre ativo
+
+      const payload = {
+        nome,
+        cpf: cpf.replace(/\D/g, ''), // envia apenas números
+        CRM: crm.toUpperCase(),
+        especialidade_id: Number(especialidade_id),
+        status: true, // sempre ativo
+      };
 
       const res = await fetch('http://localhost:8001/api/medicos', {
         method: 'POST',
@@ -91,7 +94,7 @@ const CadastroMedico: React.FC = () => {
 
       if (res.ok) {
         setMensagem(`Médico ${data.nome} cadastrado com sucesso!`);
-        setFormData({ nome: '', cpf: '', crm: '', senha: '', especialidade_id: '', status: true });
+        setFormData({ nome: '', cpf: '', crm: '', especialidade_id: '' });
       } else {
         setMensagem(data.error || 'Erro ao cadastrar médico.');
       }
@@ -155,29 +158,13 @@ const CadastroMedico: React.FC = () => {
                 >
                   <option value="">Selecione a especialidade</option>
                   {especialidades.map((esp) => (
-                    <option key={esp.id} value={esp.id}>
-                      {esp.nome}
-                    </option>
+                    <option key={esp.id} value={esp.id}>{esp.nome}</option>
                   ))}
                 </select>
               </div>
             </div>
 
-            <div className={styles.row}>
-              <div className={styles.col}>
-                <label>Senha*</label>
-                <input
-                  type="password"
-                  name="senha"
-                  value={formData.senha}
-                  onChange={handleChange}
-                  placeholder="Crie uma senha"
-                  required
-                />
-              </div>
-            </div>
-
-            <button type="submit">Cadastrar</button>
+            <button type="submit" className={styles.button}>Cadastrar</button>
             {mensagem && <p className={styles.mensagem}>{mensagem}</p>}
           </form>
         </div>

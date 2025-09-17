@@ -1,35 +1,59 @@
 'use client';
+
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navbar/page';
 import styles from './medico.module.css';
 
+type Especialidade = {
+  id: number;
+  nome: string;
+};
+
 type Medico = {
   id: number;
   nome: string;
-  crm: string;
-  ativo: boolean;
+  CRM: string;
+  status: boolean;
+  especialidade: Especialidade | null;
 };
 
-const API_URL = 'http://localhost:8000/api/medicos'; // ajuste para sua rota real
+const API_URL = 'http://localhost:8001/api/medicos';
+const API_ESPECIALIDADES = 'http://localhost:8001/api/especialidades';
 
 export default function MedicosList() {
   const [medicos, setMedicos] = useState<Medico[]>([]);
+  const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
   const [selected, setSelected] = useState<Medico | null>(null);
   const [openDetail, setOpenDetail] = useState(false);
   const [openNew, setOpenNew] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Buscar médicos da API
   useEffect(() => {
+    fetchEspecialidades();
     fetchMedicos();
   }, []);
+
+  const fetchEspecialidades = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(API_ESPECIALIDADES, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error(`Erro ao carregar especialidades: ${res.status}`);
+      const data = await res.json();
+      setEspecialidades(data);
+    } catch (err) {
+      console.error(err);
+      alert(err);
+    }
+  };
 
   const fetchMedicos = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token'); // se houver autenticação
+      const token = localStorage.getItem('token');
       const res = await fetch(API_URL, {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error(`Erro ao carregar médicos: ${res.status}`);
       const data = await res.json();
@@ -42,16 +66,16 @@ export default function MedicosList() {
     }
   };
 
-  const toggleAtivo = async (medico: Medico) => {
+  const toggleStatus = async (medico: Medico) => {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_URL}/${medico.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ ativo: !medico.ativo }),
+        body: JSON.stringify({ status: !medico.status }),
       });
       if (!res.ok) throw new Error(`Erro ao atualizar status: ${res.status}`);
       const data = await res.json();
@@ -68,27 +92,33 @@ export default function MedicosList() {
       let res: Response;
 
       if (medicoAtualizado.id) {
-        // edição
+        // Atualizar
         res = await fetch(`${API_URL}/${medicoAtualizado.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-          body: JSON.stringify(medicoAtualizado),
+          body: JSON.stringify({
+            nome: medicoAtualizado.nome,
+            CRM: medicoAtualizado.CRM,
+            status: medicoAtualizado.status,
+            especialidade_id: medicoAtualizado.especialidade?.id,
+          }),
         });
       } else {
-        // criação
+        // Criar
         res = await fetch(API_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({
             nome: medicoAtualizado.nome,
-            crm: medicoAtualizado.crm,
-            ativo: medicoAtualizado.ativo ?? true,
+            CRM: medicoAtualizado.CRM,
+            status: medicoAtualizado.status ?? true,
+            especialidade_id: medicoAtualizado.especialidade?.id,
           }),
         });
       }
@@ -99,14 +129,11 @@ export default function MedicosList() {
       }
 
       const data = await res.json();
-      // atualizar lista
-      setMedicos(prev => {
-        if (medicoAtualizado.id) {
-          return prev.map(m => m.id === data.id ? data : m);
-        } else {
-          return [...prev, data];
-        }
-      });
+      setMedicos(prev => medicoAtualizado.id
+        ? prev.map(m => m.id === data.id ? data : m)
+        : [...prev, data]
+      );
+
       setOpenDetail(false);
       setOpenNew(false);
       setSelected(null);
@@ -124,11 +151,6 @@ export default function MedicosList() {
           <h2>Médicos Cadastrados</h2>
         </div>
 
-        <div className={styles.searchBar}>
-          <input type="text" placeholder="Buscar médicos..." />
-          <button>🔍</button>
-        </div>
-
         {loading ? (
           <p>Carregando médicos...</p>
         ) : (
@@ -137,6 +159,7 @@ export default function MedicosList() {
               <tr>
                 <th className={styles.th}>Nome</th>
                 <th className={styles.th}>CRM</th>
+                <th className={styles.th}>Especialidade</th>
                 <th className={styles.th}>Status</th>
                 <th className={styles.th}>Ações</th>
               </tr>
@@ -145,14 +168,15 @@ export default function MedicosList() {
               {medicos.map(m => (
                 <tr key={m.id} className={styles.tr}>
                   <td className={styles.td}>{m.nome}</td>
-                  <td className={styles.td}>{m.crm}</td>
-                  <td className={styles.td}>{m.ativo ? 'Ativo' : 'Inativo'}</td>
+                  <td className={styles.td}>{m.CRM}</td>
+                  <td className={styles.td}>{m.especialidade?.nome || '-'}</td>
+                  <td className={styles.td}>{m.status ? 'Ativo' : 'Inativo'}</td>
                   <td className={styles.td}>
                     <button className={styles.btnDetails} onClick={() => { setSelected(m); setOpenDetail(true); }}>
                       Ver
                     </button>
-                    <button className={styles.btnToggle} onClick={() => toggleAtivo(m)}>
-                      {m.ativo ? 'Inativar' : 'Ativar'}
+                    <button className={styles.btnToggle} onClick={() => toggleStatus(m)}>
+                      {m.status ? 'Inativar' : 'Ativar'}
                     </button>
                   </td>
                 </tr>
@@ -163,9 +187,10 @@ export default function MedicosList() {
 
         <button className={styles.floatingBtn} onClick={() => setOpenNew(true)}>➕ Novo</button>
 
-        {(openNew || openDetail) && (
+        {(openNew || openDetail) && selected !== null && (
           <ModalMedico
-            medico={selected ?? { nome: '', crm: '', ativo: true }}
+            medico={selected ?? { nome: '', CRM: '', status: true, especialidade: null }}
+            especialidades={especialidades}
             onSalvar={salvarMedico}
             onCancelar={() => { setOpenDetail(false); setOpenNew(false); setSelected(null); }}
           />
@@ -175,17 +200,36 @@ export default function MedicosList() {
   );
 }
 
-function ModalMedico({ medico, onSalvar, onCancelar }: { medico: Partial<Medico>; onSalvar: (m: Partial<Medico>) => void; onCancelar: () => void }) {
+function ModalMedico({
+  medico,
+  especialidades,
+  onSalvar,
+  onCancelar
+}: {
+  medico: Partial<Medico>;
+  especialidades: Especialidade[];
+  onSalvar: (m: Partial<Medico>) => void;
+  onCancelar: () => void;
+}) {
   const [nome, setNome] = useState(medico.nome ?? '');
-  const [crm, setCrm] = useState(medico.crm ?? '');
-  const [ativo, setAtivo] = useState(medico.ativo ?? true);
+  const [crm, setCrm] = useState(medico.CRM ?? '');
+  const [status, setStatus] = useState(medico.status ?? true);
+  const [especialidadeId, setEspecialidadeId] = useState<number | undefined>(medico.especialidade?.id);
+
+  const handleCrmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.toUpperCase().replace(/[^A-Z0-9/ ]/g, '');
+    const parts = value.split(' ');
+    if (parts.length > 1) parts[1] = parts[1].slice(0, 6);
+    setCrm(parts.join(' '));
+  };
 
   const salvar = () => {
-    if (!nome.trim() || !crm.trim()) {
+    if (!nome.trim() || !crm.trim() || !especialidadeId) {
       alert('Preencha todos os campos.');
       return;
     }
-    onSalvar({ ...medico, nome, crm, ativo });
+    const espSelecionada = especialidades.find(e => e.id === especialidadeId) || null;
+    onSalvar({ ...medico, nome, CRM: crm, status, especialidade: espSelecionada });
   };
 
   return (
@@ -197,10 +241,20 @@ function ModalMedico({ medico, onSalvar, onCancelar }: { medico: Partial<Medico>
         <input className={styles.modalInput} value={nome} onChange={e => setNome(e.target.value)} />
 
         <label className={styles.modalLabel}>CRM</label>
-        <input className={styles.modalInput} value={crm} onChange={e => setCrm(e.target.value)} />
+        <input className={styles.modalInput} value={crm} onChange={handleCrmChange} placeholder="CRM/SP 123456" />
+
+        <label className={styles.modalLabel}>Especialidade</label>
+        <select
+          className={styles.modalInput}
+          value={especialidadeId}
+          onChange={e => setEspecialidadeId(Number(e.target.value))}
+        >
+          <option value={undefined}>Selecione</option>
+          {especialidades.map(e => <option key={e.id} value={e.id}>{e.nome}</option>)}
+        </select>
 
         <label className={styles.modalLabel}>Ativo</label>
-        <input type="checkbox" checked={ativo} onChange={e => setAtivo(e.target.checked)} />
+        <input type="checkbox" checked={status} onChange={e => setStatus(e.target.checked)} />
 
         <div className={styles.modalButtons}>
           <button className={styles.buttonClose} onClick={onCancelar}>Cancelar</button>

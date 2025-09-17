@@ -20,6 +20,11 @@ const CadastroEspecialidade: React.FC = () => {
             return;
         }
 
+        if (!area) {
+            setMensagem('Por favor, selecione uma área.');
+            return;
+        }
+
         const token = localStorage.getItem('token');
         if (!token) {
             setMensagem('Usuário não autenticado.');
@@ -37,7 +42,7 @@ const CadastroEspecialidade: React.FC = () => {
                     nome, 
                     descricao, 
                     area, 
-                    status // envia true ou false
+                    status 
                 }),
             });
 
@@ -93,15 +98,23 @@ const CadastroEspecialidade: React.FC = () => {
 
                         <div className={styles.row}>
                             <div className={styles.col}>
-                                <label>Área</label>
-                                <input
-                                    type="text"
+                                <label>Área*</label>
+                                <select
                                     value={area}
                                     onChange={(e) => setArea(e.target.value)}
-                                    placeholder="Ex: Cardiologia Geral"
                                     className={styles.input}
-                                />
+                                    required
+                                >
+                                    <option value="">Selecione...</option>
+                                    <option value="Medica">Médica</option>
+                                    <option value="Enfermagem">Enfermagem</option>
+                                    <option value="Odontologia">Odontologia</option>
+                                    <option value="Fisioterapia">Fisioterapia</option>
+                                    <option value="Psicologia">Psicologia</option>
+                                    <option value="Outros">Outros</option>
+                                </select>
                             </div>
+
                             <div className={styles.col}>
                                 <label>Status</label>
                                 <select

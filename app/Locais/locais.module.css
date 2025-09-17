@@ -117,7 +117,41 @@
   transform: translateY(-2px);
 }
 
-/* Responsividade */
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.info strong {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: 0.3px;
+}
+
+.info p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.info p:nth-of-type(1)::before {
+  content: "📍";
+}
+.info p:nth-of-type(2)::before {
+  content: "📞";
+}
+
+.info p:last-of-type {
+  font-weight: 500;
+  color: #2563eb;
+}
+
 @media (max-width: 1280px) {
   .content { margin-left: 220px; }
 }

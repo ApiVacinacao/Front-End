@@ -1,51 +1,113 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navbar/page';
 import styles from './tipoConsulta.module.css';
 
 type TipoConsulta = {
   id: number;
-  nome: string;
-  ativo: boolean;
+  descricao: string;
+  status: boolean;
 };
 
-let nextId = 4;
+const API_URL = 'http://localhost:8001/api/tipoConsultas';
 
 export default function TipoConsultaPage() {
-  const [tipos, setTipos] = useState<TipoConsulta[]>([
-    { id: 1, nome: 'Clínico Geral', ativo: true },
-    { id: 2, nome: 'Pediatria', ativo: true },
-    { id: 3, nome: 'Dermatologia', ativo: false },
-  ]);
-
+  const [tipos, setTipos] = useState<TipoConsulta[]>([]);
   const [selected, setSelected] = useState<TipoConsulta | null>(null);
   const [openModal, setOpenModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Buscar do backend
+  useEffect(() => {
+    fetchTipos();
+  }, []);
+
+  const fetchTipos = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(API_URL, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error('Erro ao buscar tipos de consulta');
+      const data = await res.json();
+      setTipos(data);
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao carregar tipos de consulta');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const abrirModal = (tipo?: TipoConsulta) => {
-    setSelected(tipo || { id: 0, nome: '', ativo: true });
+    setSelected(tipo || { id: 0, descricao: '', status: true });
     setOpenModal(true);
   };
 
-  const salvarTipo = (tipo: TipoConsulta) => {
-    if (!tipo.nome.trim()) {
-      alert('Preencha o nome.');
+  const salvarTipo = async (tipo: TipoConsulta) => {
+    if (!tipo.descricao.trim()) {
+      alert('Preencha a descrição.');
       return;
     }
 
-    if (tipo.id === 0) {
-      // Novo tipo
-      setTipos(prev => [...prev, { ...tipo, id: nextId++, ativo: true }]);
-    } else {
-      // Editar tipo
-      setTipos(prev => prev.map(t => t.id === tipo.id ? tipo : t));
-    }
+    try {
+      const token = localStorage.getItem('token');
+      let res: Response;
 
-    setOpenModal(false);
-    setSelected(null);
+      if (tipo.id === 0) {
+        // Criar novo sempre como ativo
+        res = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ descricao: tipo.descricao, status: true }),
+        });
+      } else {
+        // Atualizar existente mantendo o status
+        res = await fetch(`${API_URL}/${tipo.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ descricao: tipo.descricao, status: tipo.status }),
+        });
+      }
+
+      if (!res.ok) throw new Error('Erro ao salvar tipo de consulta');
+
+      await res.json();
+      fetchTipos(); // atualizar lista
+      setOpenModal(false);
+      setSelected(null);
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao salvar tipo de consulta');
+    }
   };
 
-  const toggleAtivo = (id: number) => {
-    setTipos(prev => prev.map(t => t.id === id ? { ...t, ativo: !t.ativo } : t));
+  const toggleStatus = async (tipo: TipoConsulta) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/${tipo.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ status: !tipo.status }),
+      });
+
+      if (!res.ok) throw new Error('Erro ao alterar status');
+
+      fetchTipos(); // atualizar lista
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao alterar status');
+    }
   };
 
   return (
@@ -56,29 +118,26 @@ export default function TipoConsultaPage() {
           <h2>Tipos de Consulta</h2>
         </div>
 
-        <div className={styles.searchBar}>
-          <input type="text" placeholder="Buscar tipos de consulta..." />
-          <button>🔍</button>
-        </div>
-
-        <div>
-          {tipos.map(tipo => (
-            <div key={tipo.id} className={styles.card}>
-              <div>
-                <strong>{tipo.nome}</strong>
-                <p>Status: <span className={tipo.ativo ? styles.ativo : styles.inativo}>
-                  {tipo.ativo ? 'Ativo' : 'Inativo'}
-                </span></p>
+        {loading ? <p>Carregando...</p> : (
+          <div>
+            {tipos.map(tipo => (
+              <div key={tipo.id} className={styles.card}>
+                <div>
+                  <strong>{tipo.descricao}</strong>
+                  <p>Status: <span className={tipo.status ? styles.ativo : styles.inativo}>
+                    {tipo.status ? 'Ativo' : 'Inativo'}
+                  </span></p>
+                </div>
+                <div className={styles.botoes}>
+                  <button className={styles.btnDetails} onClick={() => abrirModal(tipo)}>Editar</button>
+                  <button className={styles.btnToggle} onClick={() => toggleStatus(tipo)}>
+                    {tipo.status ? 'Inativar' : 'Ativar'}
+                  </button>
+                </div>
               </div>
-              <div className={styles.botoes}>
-                <button className={styles.btnDetails} onClick={() => abrirModal(tipo)}>Editar</button>
-                <button className={styles.btnToggle} onClick={() => toggleAtivo(tipo.id)}>
-                  {tipo.ativo ? 'Inativar' : 'Ativar'}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <button className={styles.floatingBtn} onClick={() => abrirModal()}>➕ Novo</button>
 
@@ -99,21 +158,21 @@ function ModalTipoConsulta({ tipo, onSalvar, onCancelar }: {
   onSalvar: (tipo: TipoConsulta) => void;
   onCancelar: () => void;
 }) {
-  const [nome, setNome] = useState(tipo.nome);
+  const [descricao, setDescricao] = useState(tipo.descricao);
 
-  const salvar = () => onSalvar({ ...tipo, nome });
+  const salvar = () => onSalvar({ ...tipo, descricao });
 
   return (
     <div className={styles.modalOverlay} onClick={onCancelar}>
       <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
         <h2>{tipo.id === 0 ? 'Novo Tipo de Consulta' : 'Editar Tipo de Consulta'}</h2>
 
-        <label className={styles.modalLabel}>Nome</label>
+        <label className={styles.modalLabel}>Descrição</label>
         <input
           className={styles.modalInput}
           type="text"
-          value={nome}
-          onChange={e => setNome(e.target.value)}
+          value={descricao}
+          onChange={e => setDescricao(e.target.value)}
           autoFocus
         />
 
