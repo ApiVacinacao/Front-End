@@ -1,86 +1,73 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Navbar from '../../components/navbar/page';
 import styles from './agendamento.module.css';
-import { useRouter } from 'next/navigation';
 
-interface LocalAtendimento {
-  id: number;
-  nome: string;
-}
-
-interface Medico {
-  id: number;
-  nome: string;
-}
-
-interface Paciente {
-  id: number;
-  nome: string;
-}
+interface LocalAtendimento { id: number; nome: string; }
+interface Medico { id: number; nome: string; }
+interface Paciente { id: number; name: string; }
+interface TipoAgendamento { id: number; descricao: string; }
 
 const CadastroAgendamento: React.FC = () => {
   const [data, setData] = useState('');
   const [hora, setHora] = useState('');
-  const [localId, setLocalId] = useState('');
-  const [profissionalId, setProfissionalId] = useState('');
+  const [localAtendimentoId, setLocalAtendimentoId] = useState('');
+  const [medicoId, setMedicoId] = useState('');
   const [tipoAgendamento, setTipoAgendamento] = useState('');
-  const [pacienteId, setPacienteId] = useState('');
+  const [userId, setUserId] = useState('');
 
   const [locais, setLocais] = useState<LocalAtendimento[]>([]);
-  const [profissionais, setProfissionais] = useState<Medico[]>([]);
+  const [medicos, setMedicos] = useState<Medico[]>([]);
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
+  const [tiposAgendamento, setTiposAgendamento] = useState<TipoAgendamento[]>([]);
 
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // Buscar dados do banco
   useEffect(() => {
     const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
 
-    const fetchLocais = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch('http://localhost:8001/api/localAtendimentos', {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-        const data = await res.json();
-        if (res.ok) setLocais(data);
+        const [locaisRes, medicosRes, pacRes, tiposRes] = await Promise.all([
+          fetch('http://localhost:8000/api/localAtendimentos', { headers }),
+          fetch('http://localhost:8000/api/medicos', { headers }),
+          fetch('http://localhost:8000/api/usuario', { headers }),
+          fetch('http://localhost:8000/api/tipoConsultas', { headers }),
+        ]);
+        if (!locaisRes.ok || !medicosRes.ok || !pacRes.ok || !tiposRes.ok) {
+          throw new Error('Erro ao buscar dados');
+        }
+        const [locaisData, medicosData, pacData, tiposData] = await Promise.all([
+          locaisRes.json(),
+          medicosRes.json(),
+          pacRes.json(),
+          tiposRes.json(),
+        ]);
+
+        setLocais(locaisData);
+        setMedicos(medicosData);
+        setPacientes(pacData);
+        setTiposAgendamento(tiposData);
       } catch (err) {
-        console.error('Erro ao buscar locais:', err);
+        console.error('Erro ao buscar dados:', err);
+        alert('Erro ao carregar dados. Tente novamente mais tarde.');
+      } finally {
+        setLoading(false);
       }
     };
 
-    const fetchProfissionais = async () => {
-      try {
-        const res = await fetch('http://localhost:8001/api/medicos', {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-        const data = await res.json();
-        if (res.ok) setProfissionais(data);
-      } catch (err) {
-        console.error('Erro ao buscar profissionais:', err);
-      }
-    };
-
-    const fetchPacientes = async () => {
-      try {
-        const res = await fetch('http://localhost:8001/api/user', {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-        const data = await res.json();
-        if (res.ok) setPacientes(data);
-      } catch (err) {
-        console.error('Erro ao buscar pacientes:', err);
-      }
-    };
-
-    fetchLocais();
-    fetchProfissionais();
-    fetchPacientes();
+    fetchData();
   }, []);
 
   const handleSubmit = async () => {
-    if (!data || !hora || !localId || !profissionalId || !tipoAgendamento || !pacienteId) {
+    if (!data || !hora || !localAtendimentoId || !medicoId || !tipoAgendamento || !userId) {
       alert('Preencha todos os campos!');
       return;
     }
@@ -88,19 +75,21 @@ const CadastroAgendamento: React.FC = () => {
     const agendamentoData = {
       data,
       hora,
-      local_id: Number(localId),
-      profissional_id: Number(profissionalId),
-      paciente_id: Number(pacienteId),
-      tipoAgendamento
+      local_atendimento_id: Number(localAtendimentoId),
+      medico_id: Number(medicoId),
+      tipo_consulta_id: Number(tipoAgendamento),
+      user_id: Number(userId),
     };
+
+    console.log('📦 Dados enviados para o backend (POST /agendamentos):', agendamentoData);
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8001/api/agendamentos', {
+      const response = await fetch('http://localhost:8000/api/agendamentos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: token ? `Bearer ${token}` : '',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
         body: JSON.stringify(agendamentoData),
       });
@@ -122,85 +111,111 @@ const CadastroAgendamento: React.FC = () => {
     <div className={styles.pageWrapper}>
       <Navbar />
       <main className={styles.mainContent}>
-        <div className={styles.container}>
-          <h1 className={styles.title}>Cadastrar Agendamento</h1>
-
-          <div className={styles.row}>
-            <div className={styles.col}>
-              <label>Tipo de Agendamento</label>
-              <select
-                value={tipoAgendamento}
-                onChange={(e) => setTipoAgendamento(e.target.value)}
-                className={styles.input}
-              >
-                <option value="">Selecione o tipo de agendamento</option>
-                <option value="Atendimento Especializado">Atendimento Especializado</option>
-                <option value="Consulta">Consulta</option>
-                <option value="Vacina">Vacina</option>
-                <option value="Exame">Exame</option>
-                <option value="Emergência">Emergência</option>
-              </select>
-            </div>
-
-            <div className={styles.col}>
-              <label>Data</label>
-              <input type="date" value={data} onChange={e => setData(e.target.value)} className={styles.input} />
-            </div>
+        {loading ? (
+          <div className="loadingWrapper" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh' }}>
+            <div className="spinner" style={{
+              width: 60,
+              height: 60,
+              border: '6px solid #e0e0e0',
+              borderTopColor: '#3b82f6',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }} />
+            <style>{`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
           </div>
+        ) : (
+          <div className={styles.container}>
+            <h1 className={styles.title}>Cadastrar Agendamento</h1>
 
-          <div className={styles.row}>
-            <div className={styles.col}>
-              <label>Hora</label>
-              <input type="time" value={hora} onChange={e => setHora(e.target.value)} className={styles.input} />
+            <div className={styles.row}>
+              <div className={styles.col}>
+                <label>Paciente</label>
+                <select
+                  value={userId}
+                  onChange={e => setUserId(e.target.value)}
+                  className={styles.input}
+                >
+                  <option value="">Selecione o paciente</option>
+                  {pacientes.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles.col}>
+                <label>Médico</label>
+                <select
+                  value={medicoId}
+                  onChange={e => setMedicoId(e.target.value)}
+                  className={styles.input}
+                >
+                  <option value="">Selecione o médico</option>
+                  {medicos.map(m => (
+                    <option key={m.id} value={m.id}>{m.nome}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div className={styles.col}>
-              <label>Local de Atendimento</label>
-              <select
-                value={localId}
-                onChange={e => setLocalId(e.target.value)}
-                className={styles.input}
-              >
-                <option value="">Selecione o local</option>
-                {locais.map(local => (
-                  <option key={local.id} value={local.id}>{local.nome}</option>
-                ))}
-              </select>
+            <div className={styles.row}>
+              <div className={styles.col}>
+                <label>Tipo de Agendamento</label>
+                <select
+                  value={tipoAgendamento}
+                  onChange={e => setTipoAgendamento(e.target.value)}
+                  className={styles.input}
+                >
+                  <option value="">Selecione o tipo</option>
+                  {tiposAgendamento.map(t => (
+                    <option key={t.id} value={t.id}>{t.descricao}</option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles.col}>
+                <label>Local de Atendimento</label>
+                <select
+                  value={localAtendimentoId}
+                  onChange={e => setLocalAtendimentoId(e.target.value)}
+                  className={styles.input}
+                >
+                  <option value="">Selecione o local</option>
+                  {locais.map(l => (
+                    <option key={l.id} value={l.id}>{l.nome}</option>
+                  ))}
+                </select>
+              </div>
             </div>
+
+            <div className={styles.row}>
+              <div className={styles.col}>
+                <label>Data</label>
+                <input
+                  type="date"
+                  value={data}
+                  onChange={e => setData(e.target.value)}
+                  className={styles.input}
+                />
+              </div>
+              <div className={styles.col}>
+                <label>Hora</label>
+                <input
+                  type="time"
+                  value={hora}
+                  onChange={e => setHora(e.target.value)}
+                  className={styles.input}
+                />
+              </div>
+            </div>
+
+            <button className={styles.button} onClick={handleSubmit}>
+              Cadastrar Agendamento
+            </button>
           </div>
-
-          <div className={styles.row}>
-            <div className={styles.col}>
-              <label>Profissional</label>
-              <select
-                value={profissionalId}
-                onChange={e => setProfissionalId(e.target.value)}
-                className={styles.input}
-              >
-                <option value="">Selecione o profissional</option>
-                {profissionais.map(prof => (
-                  <option key={prof.id} value={prof.id}>{prof.nome}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className={styles.col}>
-              <label>Paciente</label>
-              <select
-                value={pacienteId}
-                onChange={e => setPacienteId(e.target.value)}
-                className={styles.input}
-              >
-                <option value="">Selecione o paciente</option>
-                {pacientes.map(p => (
-                  <option key={p.id} value={p.id}>{p.nome}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <button className={styles.button} onClick={handleSubmit}>Cadastrar Agendamento</button>
-        </div>
+        )}
       </main>
     </div>
   );

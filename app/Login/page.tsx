@@ -32,7 +32,7 @@ const LoginPage: React.FC = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:8001/api/login', {
+      const res = await fetch('http://localhost:8000/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cpf, password }),
@@ -44,15 +44,11 @@ const LoginPage: React.FC = () => {
         // salva token
         localStorage.setItem('token', data.token);
         if (remember) localStorage.setItem('rememberMe', 'true');
-
-        alert('Login realizado com sucesso!');
         router.replace('/'); // redireciona pra listagem
       } else {
         alert(data.error || 'CPF ou senha inválidos!');
       }
     } catch (error) {
-      alert('Erro ao conectar com o servidor');
-      console.error(error);
     }
   };
 

@@ -5,16 +5,43 @@ import NovoAgendamento from './NovoAgendamento';
 import DetalheAgendamento from './AgendamentoDetalhe';
 import { useRouter } from 'next/navigation';
 
-interface Appointment {
+// Tipos auxiliares para dados relacionados
+interface User {
+  id: number;
+  name: string;
+}
+
+interface Medico {
+  id: number;
+  nome: string;
+}
+
+interface LocalAtendimento {
+  id: number;
+  descricao: string;
+}
+
+interface TipoConsulta {
+  id: number;
+  descricao: string;
+}
+
+export interface Appointment {
   id?: number;
+  user_id: number;
+  medico_id: number;
+  local_atendimento_id: number;
+  tipo_consulta_id: number;
   date: string;
   time: string;
-  services: string[];     // array no front
-  professional: string;
-  location: string;
-  notes: string;
-  patient: string;
+  services: string[];
   ativo: boolean;
+
+  // Dados "expandido" para exibição
+  user?: User | null;
+  medico?: Medico | null;
+  local?: LocalAtendimento | null;
+  tipoConsulta?: TipoConsulta | null;
 }
 
 const API_BASE = 'http://localhost:8000/api';
@@ -38,14 +65,24 @@ const AgendamentosList: React.FC = () => {
     };
   };
 
+  // Normaliza payload da API para array
   const normalizeToArray = (payload: any): Appointment[] => {
-    // aceita [ ... ] ou { data: [...] } ; senão, array vazio
     if (Array.isArray(payload)) return payload as Appointment[];
     if (payload && Array.isArray(payload.data)) return payload.data as Appointment[];
     return [];
   };
 
-  // 🔹 Carregar lista
+  // Função genérica para buscar dados auxiliares por ID
+  const fetchEntityById = async <T,>(endpoint: string, id: number): Promise<T | null> => {
+    try {
+      const res = await fetch(`${API_BASE}/${endpoint}/${id}`, { headers: authHeaders() });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
     const token = getToken();
     if (!token) {
@@ -62,30 +99,48 @@ const AgendamentosList: React.FC = () => {
           return;
         }
         const data = await res.json();
-        const list = normalizeToArray(data).map((a: any) => ({
-          ...a,
-          // garante services como array no front, mesmo se vier string/JSON
-          services: Array.isArray(a.services)
-            ? a.services
-            : typeof a.services === 'string'
-              ? (() => {
-                  try { const parsed = JSON.parse(a.services); return Array.isArray(parsed) ? parsed : [a.services]; }
-                  catch { return a.services.split(',').map((s: string) => s.trim()).filter(Boolean); }
-                })()
-              : [],
-          ativo: Boolean(a.ativo),
-        }));
-        setAppointments(list);
+        const list = normalizeToArray(data);
+
+        // Para cada agendamento, buscar os dados relacionados em paralelo
+        const enrichedAppointments = await Promise.all(
+          list.map(async (a: any) => {
+            const user = a.user_id ? await fetchEntityById<User>('users', a.user_id) : null;
+            const medico = a.medico_id ? await fetchEntityById<Medico>('medicos', a.medico_id) : null;
+            const local = a.local_atendimento_id ? await fetchEntityById<LocalAtendimento>('locais', a.local_atendimento_id) : null;
+            const tipoConsulta = a.tipo_consulta_id ? await fetchEntityById<TipoConsulta>('tipos_consulta', a.tipo_consulta_id) : null;
+
+            return {
+              ...a,
+              services: Array.isArray(a.services)
+                ? a.services
+                : typeof a.services === 'string'
+                  ? (() => {
+                      try {
+                        const parsed = JSON.parse(a.services);
+                        return Array.isArray(parsed) ? parsed : [a.services];
+                      } catch {
+                        return a.services.split(',').map((s: string) => s.trim()).filter(Boolean);
+                      }
+                    })()
+                  : [],
+              ativo: Boolean(a.ativo),
+              user,
+              medico,
+              local,
+              tipoConsulta,
+            };
+          })
+        );
+
+        setAppointments(enrichedAppointments);
       } catch (err) {
         console.error('Erro ao carregar agendamentos:', err);
       } finally {
         setLoading(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [router]);
 
-  // 🔹 Criar
   const addAppointment = async (appointment: Partial<Appointment>) => {
     try {
       const payload = {
@@ -125,7 +180,6 @@ const AgendamentosList: React.FC = () => {
     }
   };
 
-  // 🔹 Ativar/Inativar
   const toggleAtivo = async (index: number) => {
     const appt = appointments[index];
     if (!appt?.id) return;
@@ -157,7 +211,6 @@ const AgendamentosList: React.FC = () => {
     }
   };
 
-  // 🔹 Deletar
   const deleteAppointment = async (id?: number) => {
     if (!id) return;
     try {
@@ -210,6 +263,8 @@ const AgendamentosList: React.FC = () => {
             <th className={styles.th}>Hora</th>
             <th className={styles.th}>Serviço</th>
             <th className={styles.th}>Profissional</th>
+            <th className={styles.th}>Local</th>
+            <th className={styles.th}>Tipo Consulta</th>
             <th className={styles.th}>Status</th>
             <th className={styles.th}>Ações</th>
           </tr>
@@ -217,13 +272,15 @@ const AgendamentosList: React.FC = () => {
         <tbody>
           {appointments.map((a, i) => (
             <tr key={a.id ?? i} className={styles.tr}>
-              <td className={styles.td}>{a.patient}</td>
+              <td className={styles.td}>{a.user?.name ?? 'Desconhecido'}</td>
               <td className={styles.td}>{a.date}</td>
               <td className={styles.td}>{a.time}</td>
               <td className={styles.td}>
                 {Array.isArray(a.services) ? a.services.join(', ') : String(a.services ?? '')}
               </td>
-              <td className={styles.td}>{a.professional}</td>
+              <td className={styles.td}>{a.medico?.nome ?? 'Desconhecido'}</td>
+              <td className={styles.td}>{a.local?.descricao ?? 'Desconhecido'}</td>
+              <td className={styles.td}>{a.tipoConsulta?.descricao ?? 'Desconhecido'}</td>
               <td className={styles.td}>{a.ativo ? 'Ativo' : 'Inativo'}</td>
               <td className={styles.td}>
                 <button
@@ -248,7 +305,7 @@ const AgendamentosList: React.FC = () => {
             </tr>
           ))}
           {appointments.length === 0 && (
-            <tr><td className={styles.td} colSpan={7}>Nenhum agendamento encontrado.</td></tr>
+            <tr><td className={styles.td} colSpan={9}>Nenhum agendamento encontrado.</td></tr>
           )}
         </tbody>
       </table>

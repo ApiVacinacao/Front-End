@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Navbar from '../../components/navbar/page';
 import styles from './localAtendimento.module.css';
 
-const API_URL = 'http://127.0.0.1:8001/api/localAtendimentos';
+const API_URL = 'http://127.0.0.1:8000/api/localAtendimentos';
 
 const CadastroLocalAtendimento: React.FC = () => {
   const [nome, setNome] = useState('');
@@ -62,7 +62,7 @@ const CadastroLocalAtendimento: React.FC = () => {
       <Navbar />
       <main className={styles.mainContent}>
         <div className={styles.formContainer}>
-          <h1>Cadastro de Local de Atendimento</h1>
+          <h1 className={styles.title}>Cadastro de Local de Atendimento</h1>
           <form
             className={styles.form}
             onSubmit={(e) => {
