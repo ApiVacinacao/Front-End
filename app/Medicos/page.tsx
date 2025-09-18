@@ -17,8 +17,8 @@ type Medico = {
   especialidade: Especialidade | null;
 };
 
-const API_URL = 'http://localhost:8000/api/medicos';
-const API_ESPECIALIDADES = 'http://localhost:8000/api/especialidades';
+const API_URL = 'http://localhost:8001/api/medicos';
+const API_ESPECIALIDADES = 'http://localhost:8001/api/especialidades';
 
 export default function MedicosList() {
   const [medicos, setMedicos] = useState<Medico[]>([]);

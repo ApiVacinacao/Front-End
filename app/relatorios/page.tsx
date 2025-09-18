@@ -36,7 +36,7 @@ const Relatorios: NextPage = () => {
       if (procedure !== 'Todos') params.append('tipo_consulta_id', procedure);
       if (unit !== 'Todas') params.append('local_atendimento_id', unit);
 
-      const res = await fetch(`http://localhost:8000/api/relatorios/agendamentos?${params.toString()}`);
+      const res = await fetch(`http://localhost:8001/api/relatorios/agendamentos?${params.toString()}`);
       if (!res.ok) throw new Error('Erro ao carregar agendamentos');
       const data = await res.json();
 

@@ -9,7 +9,7 @@ type TipoConsulta = {
   status: boolean;
 };
 
-const API_URL = 'http://localhost:8000/api/tipoConsultas';
+const API_URL = 'http://localhost:8001/api/tipoConsultas';
 
 export default function TipoConsultaPage() {
   const [tipos, setTipos] = useState<TipoConsulta[]>([]);

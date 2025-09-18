@@ -12,7 +12,7 @@ interface Paciente {
   ativo: boolean;
 }
 
-const API_URL = 'http://localhost:8000/api/pacientes';
+const API_URL = 'http://localhost:8001/api/pacientes';
 
 export default function Pacientes() {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
