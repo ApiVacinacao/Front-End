@@ -47,6 +47,25 @@
   to { opacity: 1; transform: scale(1); } 
 }
 
+/* ================= BOTÃO FECHAR ================= */
+.modalCloseBtn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modalCloseBtn:hover {
+  color: var(--primary-blue);
+  transform: scale(1.2);
+}
+
 /* ================= TÍTULO ================= */
 .modalTitle {
   font-size: 2rem;
@@ -95,36 +114,27 @@
   word-break: break-word;
 }
 
-/* ================= LISTA DE SERVIÇOS ================= */
-.serviceList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 5px;
-  padding: 0;
+/* ================= INPUTS ================= */
+.inputField {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  transition: all 0.2s ease;
 }
 
-.serviceItem {
-  background: var(--service-bg);
-  color: var(--service-color);
-  padding: 6px 14px;
-  border-radius: 25px;
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s;
+.inputField:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 5px rgba(14,165,233,0.3);
 }
 
-.serviceItem:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-  background: var(--primary-blue);
-  color: var(--white);
-}
-
-/* ================= BOTÃO FECHAR ================= */
+/* ================= BOTÃO SALVAR ================= */
 .btnSecondary {
   align-self: flex-end;
+  margin-top: 15px;
   background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
   color: var(--white);
   font-size: 1.1rem;
@@ -132,10 +142,8 @@
   border-radius: 18px;
   font-weight: 700;
   cursor: pointer;
-  text-align: center;
   transition: all 0.3s ease, transform 0.2s, box-shadow 0.3s;
   border: none;
-  margin-top: 10px;
 }
 
 .btnSecondary:hover,
@@ -143,29 +151,29 @@
   background: linear-gradient(135deg, var(--primary-blue-dark), var(--primary-blue));
   transform: scale(1.05);
   box-shadow: 0 8px 22px rgba(0,0,0,0.35);
-  outline: none;
 }
 
 /* ================= RESPONSIVIDADE ================= */
-@media (max-width: 1280px) { .detailCard { width: 95%; } .modalTitle { font-size: 1.9rem; } }
-@media (max-width: 1024px) { 
+@media (max-width: 1024px) {
   .detailCard { width: 95%; padding: 28px 30px; }
   .modalTitle { font-size: 1.8rem; }
-  .detailValue, .serviceItem { font-size: 15px; }
   .detailLabel { font-size: 0.9rem; }
+  .detailValue, .inputField { font-size: 15px; }
   .btnSecondary { padding: 12px 26px; font-size: 1rem; }
 }
+
 @media (max-width: 768px) {
-  .detailCard { width: 95%; padding: 24px 25px; grid-template-columns: 1fr; }
+  .detailCard { width: 95%; padding: 24px 25px; }
   .modalTitle { font-size: 1.7rem; }
-  .detailValue, .serviceItem { font-size: 14px; }
   .detailLabel { font-size: 0.85rem; }
+  .detailValue, .inputField { font-size: 14px; }
   .btnSecondary { padding: 10px 24px; font-size: 0.95rem; }
 }
+
 @media (max-width: 480px) {
-  .detailCard { width: 100%; padding: 20px; grid-template-columns: 1fr; }
+  .detailCard { width: 100%; padding: 20px; }
   .modalTitle { font-size: 1.5rem; }
-  .detailValue, .serviceItem { font-size: 13px; }
   .detailLabel { font-size: 0.8rem; }
+  .detailValue, .inputField { font-size: 13px; }
   .btnSecondary { padding: 8px 20px; font-size: 0.9rem; }
 }

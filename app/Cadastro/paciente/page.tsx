@@ -10,13 +10,12 @@ const CadastroPaciente: React.FC = () => {
     nome: '',
     email: '',
     cpf: '',
-    cns: '',
     senha: '',
   });
   const [mensagem, setMensagem] = useState('');
   const router = useRouter();
 
-  // Atualiza campos com máscaras para CPF e CNS
+  // Atualiza campos com máscara para CPF
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
@@ -26,12 +25,6 @@ const CadastroPaciente: React.FC = () => {
            .replace(/(\d{3})(\d)/, '$1.$2')
            .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
       setFormData(prev => ({ ...prev, cpf: v }));
-    } else if (name === 'cns') {
-      let v = value.replace(/\D/g, '').slice(0, 15); // só números, max 16
-      v = v.replace(/^(\d{3})(\d)/, '$1 $2')
-           .replace(/^(\d{3} \d{4})(\d)/, '$1 $2')
-           .replace(/^(\d{3} \d{4} \d{4})(\d)/, '$1 $2');
-      setFormData(prev => ({ ...prev, cns: v }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -41,9 +34,9 @@ const CadastroPaciente: React.FC = () => {
     e.preventDefault();
     setMensagem('');
 
-    const { nome, email, cpf, cns, senha } = formData;
+    const { nome, email, cpf, senha } = formData;
 
-    if (!nome || !email || !cpf || !cns || !senha) {
+    if (!nome || !email || !cpf || !senha) {
       setMensagem('Preencha todos os campos obrigatórios!');
       return;
     }
@@ -54,7 +47,6 @@ const CadastroPaciente: React.FC = () => {
         nome,
         email,
         cpf: cpf.replace(/\D/g, ''),  // apenas números
-        cns: cns.replace(/\D/g, ''),  // apenas números
         senha,
       };
 
@@ -66,7 +58,7 @@ const CadastroPaciente: React.FC = () => {
 
       if (res.ok) {
         setMensagem('Paciente cadastrado com sucesso!');
-        setFormData({ nome: '', email: '', cpf: '', cns: '', senha: '' });
+        setFormData({ nome: '', email: '', cpf: '', senha: '' });
         setTimeout(() => router.push('/'), 1500);
       } else {
         const data = await res.json();
@@ -119,17 +111,6 @@ const CadastroPaciente: React.FC = () => {
                   value={formData.cpf}
                   onChange={handleChange}
                   placeholder="000.000.000-00"
-                  required
-                />
-              </div>
-              <div className={styles.col}>
-                <label htmlFor="cns">CNS *</label>
-                <input
-                  type="text"
-                  name="cns"
-                  value={formData.cns}
-                  onChange={handleChange}
-                  placeholder="000 0000 0000 0000"
                   required
                 />
               </div>

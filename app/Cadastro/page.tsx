@@ -27,7 +27,7 @@ const CadastroPage: React.FC = () => {
             <button className={styles.card} onClick={() => router.push('/Cadastro/agendamento')}>
               📅 Cadastrar Agendamento
             </button>
-            <button className={styles.card} onClick={() => router.push('/Cadastro/usuario')}>
+            <button className={styles.card} onClick={() => router.push('/Cadastro/users')}>
               🧍‍♂️ Cadastrar Usuário
             </button>
           </div>

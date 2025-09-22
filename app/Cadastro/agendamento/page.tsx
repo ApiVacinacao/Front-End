@@ -38,7 +38,7 @@ const CadastroAgendamento: React.FC = () => {
         const [locaisRes, medicosRes, pacRes, tiposRes] = await Promise.all([
           fetch('http://localhost:8001/api/localAtendimentos', { headers }),
           fetch('http://localhost:8001/api/medicos', { headers }),
-          fetch('http://localhost:8001/api/usuario', { headers }),
+          fetch('http://localhost:8001/api/users', { headers }),
           fetch('http://localhost:8001/api/tipoConsultas', { headers }),
         ]);
         if (!locaisRes.ok || !medicosRes.ok || !pacRes.ok || !tiposRes.ok) {

@@ -1,7 +1,5 @@
 'use client';
 
-import { NextPage } from 'next';
-import Head from 'next/head';
 import { useState, useEffect } from 'react';
 import Navbar from '../components/navbar/page';
 import styles from '../styles/Relatorios.module.css';
@@ -9,53 +7,39 @@ import styles from '../styles/Relatorios.module.css';
 interface Appointment {
   id: number;
   data: string;
-  paciente: string;
-  procedimento: string;
-  profissional: string;
-  status: 'Realizado' | 'Cancelado' | 'Agendado';
+  hora?: string;
+  status?: 'Agendado' | 'Realizado' | 'Cancelado';
+  user?: { id: number; name: string };
+  medico?: { id: number; nome: string; CRM?: string; especialidade?: { nome: string } };
+  tipo_consulta?: { id: number; descricao: string };
+  local_atendimento?: { id: number; nome: string };
 }
 
-const Relatorios: NextPage = () => {
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [reportType, setReportType] = useState('Agendamentos por Período');
-  const [professional, setProfessional] = useState('Todos');
-  const [procedure, setProcedure] = useState('Todos');
-  const [unit, setUnit] = useState('Todas');
-
+const RelatoriosPage = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Filtros
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const fetchAppointments = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (startDate) params.append('dataInicial', startDate);
-      if (endDate) params.append('dataFinal', endDate);
-      if (professional !== 'Todos') params.append('medico_id', professional);
-      if (procedure !== 'Todos') params.append('tipo_consulta_id', procedure);
-      if (unit !== 'Todas') params.append('local_atendimento_id', unit);
+      if (startDate) params.append('data_inicial', startDate);
+      if (endDate) params.append('data_final', endDate);
 
       const res = await fetch(`http://localhost:8001/api/relatorios/agendamentos?${params.toString()}`);
       if (!res.ok) throw new Error('Erro ao carregar agendamentos');
-      const data = await res.json();
-
-      // Map para se adaptar à interface local
-      const mapped: Appointment[] = data.map((item: any) => ({
-        id: item.id,
-        data: item.data,
-        paciente: item.user?.name || item.paciente || '---',
-        procedimento: item.tipoConsulta?.nome || item.procedimento || '---',
-        profissional: item.medico?.nome || item.profissional || '---',
-        status: item.status || 'Agendado',
-      }));
-
-      setAppointments(mapped);
+      const data: Appointment[] = await res.json();
+      setAppointments(data);
     } catch (err) {
       console.error(err);
       alert('Erro ao carregar os agendamentos.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -66,21 +50,11 @@ const Relatorios: NextPage = () => {
     fetchAppointments();
   };
 
-  const exportPDF = () => console.log('Exportando PDF...');
-  const exportExcel = () => console.log('Exportando Excel...');
-  const printReport = () => console.log('Imprimindo...');
-
   return (
     <>
-      <Head>
-        <title>Relatórios</title>
-        <meta name="description" content="Página de relatórios do sistema" />
-      </Head>
-
       <Navbar />
-
       <main className={styles.mainContent}>
-        <h1>Relatórios</h1>
+        <h1>Relatórios de Agendamentos</h1>
 
         <div className={styles.cards}>
           <div className={styles.card}>
@@ -98,50 +72,15 @@ const Relatorios: NextPage = () => {
         </div>
 
         <section className={styles.filterSection}>
-          <h3>Filtrar Relatório</h3>
+          <h3>Filtros</h3>
           <div className={styles.filterGrid}>
             <div>
-              <label>Tipo de Relatório</label>
-              <select value={reportType} onChange={(e) => setReportType(e.target.value)}>
-                <option>Agendamentos por Período</option>
-                <option>Comparecimento por Profissional</option>
-                <option>Cancelamentos por Mês</option>
-              </select>
-            </div>
-            <div>
-              <label>Profissional</label>
-              <select value={professional} onChange={(e) => setProfessional(e.target.value)}>
-                <option>Todos</option>
-                <option value="1">Dra. Ana Silva</option>
-                <option value="2">Enf. Roberta Souza</option>
-                <option value="3">Enf. Carlos Mendes</option>
-              </select>
-            </div>
-            <div>
               <label>Período Inicial</label>
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
             </div>
             <div>
               <label>Período Final</label>
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-            </div>
-            <div>
-              <label>Procedimento</label>
-              <select value={procedure} onChange={(e) => setProcedure(e.target.value)}>
-                <option>Todos</option>
-                <option value="1">Consulta Clínica Geral</option>
-                <option value="2">Exames de Sangue</option>
-                <option value="3">Vacinação - Gripe</option>
-              </select>
-            </div>
-            <div>
-              <label>Unidade</label>
-              <select value={unit} onChange={(e) => setUnit(e.target.value)}>
-                <option>Todas</option>
-                <option value="1">Unidade Centro</option>
-                <option value="2">Unidade Zona Norte</option>
-                <option value="3">Unidade Zona Sul</option>
-              </select>
+              <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
             </div>
           </div>
           <button className={styles.btnFilter} onClick={handleFilter}>Aplicar Filtro</button>
@@ -156,36 +95,45 @@ const Relatorios: NextPage = () => {
               <thead>
                 <tr>
                   <th>Data</th>
+                  <th>Hora</th>
                   <th>Paciente</th>
-                  <th>Procedimento</th>
                   <th>Profissional</th>
+                  <th>Especialidade</th>
+                  <th>CRM</th>
+                  <th>Tipo Consulta</th>
+                  <th>Local Atendimento</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {appointments.map((appt) => (
-                  <tr key={appt.id}>
-                    <td>{appt.data}</td>
-                    <td>{appt.paciente}</td>
-                    <td>{appt.procedimento}</td>
-                    <td>{appt.profissional}</td>
-                    <td className={appt.status === 'Realizado' ? styles.statusRealizado : appt.status === 'Cancelado' ? styles.statusCancelado : ''}>
-                      {appt.status}
+                {appointments.map(a => (
+                  <tr key={a.id}>
+                    <td>{a.data}</td>
+                    <td>{a.hora || '-'}</td>
+                    <td>{a.user?.name || '-'}</td>
+                    <td>{a.medico?.nome || '-'}</td>
+                    <td>{a.medico?.especialidade?.nome || '-'}</td>
+                    <td>{a.medico?.CRM || '-'}</td>
+                    <td>{a.tipo_consulta?.descricao || '-'}</td>
+                    <td>{a.local_atendimento?.nome || '-'}</td>
+                    <td className={
+                      a.status === 'Realizado'
+                        ? styles.statusRealizado
+                        : a.status === 'Cancelado'
+                        ? styles.statusCancelado
+                        : ''
+                    }>
+                      {a.status || 'Agendado'}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
-          <div className={styles.actions}>
-            <button className={styles.btnExport} onClick={exportPDF}>Exportar PDF</button>
-            <button className={styles.btnExport} onClick={exportExcel}>Exportar Excel</button>
-            <button className={styles.btnPrint} onClick={printReport}>Imprimir</button>
-          </div>
         </section>
       </main>
     </>
   );
 };
 
-export default Relatorios;
+export default RelatoriosPage;
