@@ -6,13 +6,13 @@ import modalStyles from './EditModal.module.css';
 
 interface Paciente {
   id: number;
-  nome: string;
+  name: string;
   email: string;
-  cns: string;
-  ativo: boolean;
+  cpf: string;
+  status: boolean;
 }
 
-const API_URL = 'http://localhost:8001/api/pacientes';
+const API_URL = 'http://localhost:8000/api/users';
 
 export default function Pacientes() {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
@@ -51,7 +51,7 @@ export default function Pacientes() {
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ ativo: !paciente.ativo }),
+        body: JSON.stringify({ status: !paciente.status }),
       });
       if (!res.ok) throw new Error(`Erro ao atualizar status: ${res.status}`);
       const data = await res.json();
@@ -84,10 +84,10 @@ export default function Pacientes() {
             ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({
-            nome: pacienteAtualizado.nome,
+            name: pacienteAtualizado.name,
             email: pacienteAtualizado.email,
-            cns: pacienteAtualizado.cns,
-            ativo: pacienteAtualizado.ativo ?? true,
+            cpf: pacienteAtualizado.cpf,
+            status: pacienteAtualizado.status ?? true,
           }),
         });
       }
@@ -122,7 +122,7 @@ export default function Pacientes() {
                 <tr>
                   <th>Nome</th>
                   <th>Email</th>
-                  <th>CNS</th>
+                  <th>CPF</th>
                   <th>Status</th>
                   <th>Ações</th>
                 </tr>
@@ -130,18 +130,18 @@ export default function Pacientes() {
               <tbody>
                 {pacientes.map(p => (
                   <tr key={p.id}>
-                    <td>{p.nome}</td>
+                    <td>{p.name}</td>
                     <td>{p.email}</td>
-                    <td>{p.cns}</td>
+                    <td>{p.cpf}</td>
                     <td className={styles.status}>
-                      <span className={p.ativo ? styles.ativo : styles.inativo}>
-                        {p.ativo ? 'Ativo' : 'Inativo'}
+                      <span className={p.status ? styles.status : styles.instatus}>
+                        {p.status ? 'Ativo' : 'Instatus'}
                       </span>
                     </td>
                     <td>
                       <button className={styles.editButton} onClick={() => setPacienteEditando(p)}>Editar</button>
                       <button className={styles.deleteButton} onClick={() => toggleAtivo(p)}>
-                        {p.ativo ? 'Inativar' : 'Ativar'}
+                        {p.status ? 'Inativar' : 'Ativar'}
                       </button>
                     </td>
                   </tr>
@@ -156,7 +156,7 @@ export default function Pacientes() {
 
       {(pacienteEditando || openNew) && (
         <ModalPaciente
-          paciente={pacienteEditando ?? { nome: '', email: '', cns: '', ativo: true }}
+          paciente={pacienteEditando ?? { name: '', email: '', cpf: '', status: true }}
           onSalvar={salvarPaciente}
           onCancelar={() => { setPacienteEditando(null); setOpenNew(false); }}
         />
@@ -166,17 +166,17 @@ export default function Pacientes() {
 }
 
 function ModalPaciente({ paciente, onSalvar, onCancelar }: { paciente: Partial<Paciente>; onSalvar: (p: Partial<Paciente>) => void; onCancelar: () => void }) {
-  const [nome, setNome] = useState(paciente.nome ?? '');
+  const [name, setNome] = useState(paciente.name ?? '');
   const [email, setEmail] = useState(paciente.email ?? '');
-  const [cns, setCns] = useState(paciente.cns ?? '');
-  const [ativo, setAtivo] = useState(paciente.ativo ?? true);
+  const [cpf, setCns] = useState(paciente.cpf ?? '');
+  const [status, setAtivo] = useState(paciente.status ?? true);
 
   const salvar = () => {
-    if (!nome.trim() || !email.trim() || !cns.trim()) {
+    if (!name.trim() || !email.trim() || !cpf.trim()) {
       alert('Preencha todos os campos.');
       return;
     }
-    onSalvar({ ...paciente, nome, email, cns, ativo });
+    onSalvar({ ...paciente, name, email, cpf, status });
   };
 
   return (
@@ -185,16 +185,16 @@ function ModalPaciente({ paciente, onSalvar, onCancelar }: { paciente: Partial<P
         <h2 className={modalStyles.modalTitle}>{paciente.id ? 'Editar Paciente' : 'Novo Paciente'}</h2>
 
         <label className={modalStyles.modalLabel}>Nome</label>
-        <input className={modalStyles.modalInput} value={nome} onChange={e => setNome(e.target.value)} />
+        <input className={modalStyles.modalInput} value={name} onChange={e => setNome(e.target.value)} />
 
         <label className={modalStyles.modalLabel}>Email</label>
         <input className={modalStyles.modalInput} type="email" value={email} onChange={e => setEmail(e.target.value)} />
 
         <label className={modalStyles.modalLabel}>CNS</label>
-        <input className={modalStyles.modalInput} value={cns} onChange={e => setCns(e.target.value)} />
+        <input className={modalStyles.modalInput} value={cpf} onChange={e => setCns(e.target.value)} />
 
         <label className={modalStyles.modalLabel}>Ativo</label>
-        <input type="checkbox" checked={ativo} onChange={e => setAtivo(e.target.checked)} />
+        <input type="checkbox" checked={status} onChange={e => setAtivo(e.target.checked)} />
 
         <div className={modalStyles.actions}>
           <button onClick={onCancelar}>Cancelar</button>

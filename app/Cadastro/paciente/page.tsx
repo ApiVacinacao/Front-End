@@ -7,13 +7,22 @@ import styles from './paciente.module.css';
 
 const CadastroPaciente: React.FC = () => {
   const [formData, setFormData] = useState({
-    nome: '',
+    name: '',
     email: '',
     cpf: '',
-    senha: '',
+    password: '',
+    password_confirmation: '', // Adicionando o campo para confirmação de senha
   });
   const [mensagem, setMensagem] = useState('');
   const router = useRouter();
+
+  // Função para pegar o token do localStorage
+  const getToken = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('token'); // Pegando o token do localStorage
+    }
+    return null;
+  };
 
   // Atualiza campos com máscara para CPF
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,31 +43,52 @@ const CadastroPaciente: React.FC = () => {
     e.preventDefault();
     setMensagem('');
 
-    const { nome, email, cpf, senha } = formData;
+    const { name, email, cpf, password, password_confirmation } = formData;
 
-    if (!nome || !email || !cpf || !senha) {
+    if (!name || !email || !cpf || !password || !password_confirmation) {
       setMensagem('Preencha todos os campos obrigatórios!');
+      return;
+    }
+
+    if (password !== password_confirmation) {
+      setMensagem('As senhas não coincidem!');
       return;
     }
 
     try {
       // Remove formatação antes de enviar
       const payload = {
-        nome,
+        name,
         email,
         cpf: cpf.replace(/\D/g, ''),  // apenas números
-        senha,
+        password,
+        password_confirmation, // Enviando o campo de confirmação de senha
       };
 
-      const res = await fetch('/api/register', {
+      // Pegando o token do localStorage
+      const token = getToken();
+
+      // Verificando se o token existe
+      if (!token) {
+        setMensagem('Token de autenticação não encontrado. Faça login novamente.');
+        return;
+      }
+
+      // Exibir os dados no console antes de enviar
+      console.log('Dados enviados:', payload);
+
+      const res = await fetch('http://localhost:8000/api/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}`, 
+        },
         body: JSON.stringify(payload),
       });
 
       if (res.ok) {
         setMensagem('Paciente cadastrado com sucesso!');
-        setFormData({ nome: '', email: '', cpf: '', senha: '' });
+        setFormData({ name: '', email: '', cpf: '', password: '', password_confirmation: '' });
         setTimeout(() => router.push('/'), 1500);
       } else {
         const data = await res.json();
@@ -79,11 +109,11 @@ const CadastroPaciente: React.FC = () => {
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.row}>
               <div className={styles.col}>
-                <label htmlFor="nome">Nome *</label>
+                <label htmlFor="name">Nome *</label>
                 <input
                   type="text"
-                  name="nome"
-                  value={formData.nome}
+                  name="name"
+                  value={formData.name}
                   onChange={handleChange}
                   placeholder="Nome completo"
                   required
@@ -121,10 +151,21 @@ const CadastroPaciente: React.FC = () => {
                 <label htmlFor="senha">Senha *</label>
                 <input
                   type="password"
-                  name="senha"
-                  value={formData.senha}
+                  name="password"
+                  value={formData.password}
                   onChange={handleChange}
                   placeholder="Crie uma senha segura"
+                  required
+                />
+              </div>
+              <div className={styles.col}>
+                <label htmlFor="password_confirmation">Confirmação de Senha *</label>
+                <input
+                  type="password"
+                  name="password_confirmation"
+                  value={formData.password_confirmation}
+                  onChange={handleChange}
+                  placeholder="Confirme sua senha"
                   required
                 />
               </div>

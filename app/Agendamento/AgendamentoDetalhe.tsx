@@ -31,7 +31,7 @@ const DetalheAgendamento: React.FC<Props> = ({ appointment, onClose }) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`http://localhost:8001/api/agendamentos/${appointment.id}`, {
+      const res = await fetch(`http://localhost:8000/api/agendamentos/${appointment.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),

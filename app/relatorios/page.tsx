@@ -30,7 +30,7 @@ const RelatoriosPage = () => {
       if (startDate) params.append('data_inicial', startDate);
       if (endDate) params.append('data_final', endDate);
 
-      const res = await fetch(`http://localhost:8001/api/relatorios/agendamentos?${params.toString()}`);
+      const res = await fetch(`http://localhost:8000/api/relatorios/agendamentos?${params.toString()}`);
       if (!res.ok) throw new Error('Erro ao carregar agendamentos');
       const data: Appointment[] = await res.json();
       setAppointments(data);

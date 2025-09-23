@@ -11,7 +11,7 @@ export interface Appointment {
   tipo_consulta_id: number;
   data: string;
   hora: string;
-
+  
   user?: { id: number; name: string };
   medico?: { id: number; nome: string };
   local_atendimento?: { id: number; nome: string };
