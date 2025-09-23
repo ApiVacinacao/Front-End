@@ -206,3 +206,9 @@
   .modalContent { padding: 1rem; }
   .modalButtons { flex-direction: column; gap: 10px; }
 }
+
+body {
+  color: var(--text-dark);
+  background-color: var(--light-gray);
+  font-family: Arial, Helvetica, sans-serif;
+}

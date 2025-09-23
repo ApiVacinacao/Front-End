@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navbar/page';
-import styles from './paciente.module.css'; // seu CSS enviado
+import styles from './paciente.module.css';
 import modalStyles from './EditModal.module.css';
 
 interface Paciente {
@@ -17,7 +17,6 @@ const API_URL = 'http://localhost:8000/api/users';
 export default function Pacientes() {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [pacienteEditando, setPacienteEditando] = useState<Paciente | null>(null);
-  const [openNew, setOpenNew] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -64,33 +63,20 @@ export default function Pacientes() {
 
   const salvarPaciente = async (pacienteAtualizado: Partial<Paciente> & { id?: number }) => {
     try {
-      const token = localStorage.getItem('token');
-      let res: Response;
-
-      if (pacienteAtualizado.id) {
-        res = await fetch(`${API_URL}/${pacienteAtualizado.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify(pacienteAtualizado),
-        });
-      } else {
-        res = await fetch(API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({
-            name: pacienteAtualizado.name,
-            email: pacienteAtualizado.email,
-            cpf: pacienteAtualizado.cpf,
-            status: pacienteAtualizado.status ?? true,
-          }),
-        });
+      if (!pacienteAtualizado.id) {
+        alert('Não é permitido adicionar novos pacientes.');
+        return;
       }
+
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/${pacienteAtualizado.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(pacienteAtualizado),
+      });
 
       if (!res.ok) {
         const data = await res.json();
@@ -98,9 +84,8 @@ export default function Pacientes() {
       }
 
       const data = await res.json();
-      setPacientes(prev => pacienteAtualizado.id ? prev.map(p => p.id === data.id ? data : p) : [...prev, data]);
+      setPacientes(prev => prev.map(p => p.id === data.id ? data : p));
       setPacienteEditando(null);
-      setOpenNew(false);
     } catch (err) {
       console.error(err);
       alert(err);
@@ -135,7 +120,7 @@ export default function Pacientes() {
                     <td>{p.cpf}</td>
                     <td className={styles.status}>
                       <span className={p.status ? styles.status : styles.instatus}>
-                        {p.status ? 'Ativo' : 'Instatus'}
+                        {p.status ? 'Ativo' : 'Inativo'}
                       </span>
                     </td>
                     <td>
@@ -149,16 +134,14 @@ export default function Pacientes() {
               </tbody>
             </table>
           )}
-
-          <button className={styles.floatingBtn} onClick={() => setOpenNew(true)}>➕ Novo</button>
         </div>
       </main>
 
-      {(pacienteEditando || openNew) && (
+      {pacienteEditando && (
         <ModalPaciente
-          paciente={pacienteEditando ?? { name: '', email: '', cpf: '', status: true }}
+          paciente={pacienteEditando}
           onSalvar={salvarPaciente}
-          onCancelar={() => { setPacienteEditando(null); setOpenNew(false); }}
+          onCancelar={() => setPacienteEditando(null)}
         />
       )}
     </>
@@ -182,7 +165,7 @@ function ModalPaciente({ paciente, onSalvar, onCancelar }: { paciente: Partial<P
   return (
     <div className={modalStyles.modalOverlay}>
       <div className={modalStyles.modalContent}>
-        <h2 className={modalStyles.modalTitle}>{paciente.id ? 'Editar Paciente' : 'Novo Paciente'}</h2>
+        <h2 className={modalStyles.modalTitle}>Editar Paciente</h2>
 
         <label className={modalStyles.modalLabel}>Nome</label>
         <input className={modalStyles.modalInput} value={name} onChange={e => setNome(e.target.value)} />

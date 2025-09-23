@@ -1,6 +1,7 @@
 :root {
   --primary-blue: #0ea5e9;
   --primary-blue-dark: #0369a1;
+
   --secondary-gradient: linear-gradient(135deg, #ff1717, #ff1428);
   --secondary-gradient-hover: linear-gradient(135deg, #ff2929, #ff3030);
 
@@ -11,6 +12,8 @@
   --text-label: #555;
   --shadow-light: rgba(0,0,0,0.06);
   --shadow-medium: rgba(0,0,0,0.15);
+
+  --border-color: #e5e7eb;
 }
 
 /* Conteúdo principal considerando navbar lateral fixa */
@@ -51,78 +54,121 @@
   bottom: 0;
   width: 100%;
   height: 2px;
-  background-color: #e5e7eb;
+  background-color: var(--border-color);
   border-radius: 1px;
 }
 
-/* Tabela de pacientes */
+/* =========================
+   Tabela de pacientes
+   ========================= */
 .lista {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 10px;
+  border-collapse: collapse;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
+/* Cabeçalho */
 .lista thead th {
   text-align: left;
   padding: 1rem 1.2rem;
   font-weight: 600;
   color: var(--text-label);
   font-size: 1rem;
+  background-color: var(--bg-lighter);
+  border-bottom: 2px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
 }
 
+.lista thead th:last-child {
+  border-right: none;
+}
+
+/* Linhas do corpo */
+.lista tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.lista tbody tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+.lista tbody tr:hover {
+  background-color: #f0f9ff;
+}
+
+/* Células */
 .lista tbody td {
   padding: 1rem 1.2rem;
   font-size: 0.95rem;
   color: var(--text-secondary);
-  background-color: var(--bg-light);
-  border-radius: 12px;
+  border-top: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
 }
 
-.lista tbody tr {
-  border-bottom: 1px solid #e5e7eb;
+.lista tbody td:last-child {
+  border-right: none;
 }
 
-/* Status */
+/* =========================
+   Status Badge
+   ========================= */
 .status {
   font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  display: inline-block;
 }
 
-.ativo { color: #16a34a; }
-.inativo { color: #dc2626; }
+.ativo { 
+  color: #16a34a;
+  background: rgba(22,163,74,0.1);
+}
 
-/* Botões */
+.inativo { 
+  color: #dc2626;
+  background: rgba(220,38,38,0.1);
+}
+
+/* =========================
+   Botões de ação
+   ========================= */
 td .editButton,
 td .deleteButton {
-  font-weight: 700;
-  border-radius: 15px;
-  padding: 10px 20px;
-  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
   cursor: pointer;
   border: none;
   transition: all 0.25s ease, transform 0.2s;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.12);
-  margin-right: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin-right: 0.4rem;
 }
 
 td .editButton {
-  background: var(--primary-gradient);
+  background: var(--primary-blue);
   color: #fff;
 }
 td .editButton:hover {
-  background: var(--primary-gradient-hover);
+  background: var(--primary-blue-dark);
   transform: translateY(-2px);
 }
 
 td .deleteButton {
-  background: var(--secondary-gradient);
+  background: #ef4444;
   color: #fff;
 }
 td .deleteButton:hover {
-  background: var(--secondary-gradient-hover);
+  background: #dc2626;
   transform: translateY(-2px);
 }
 
-/* Responsividade */
+/* =========================
+   Responsividade
+   ========================= */
 @media (max-width: 1280px) {
   .content { margin-left: 220px; padding: 2rem; }
 }
@@ -130,9 +176,41 @@ td .deleteButton:hover {
 @media (max-width: 1024px) {
   .content { margin-left: 0; padding: 1.5rem; }
   .container { padding: 2rem; }
+  .lista thead { display: none; }
+  
+  .lista, .lista tbody, .lista tr, .lista td {
+    display: block;
+    width: 100%;
+  }
+  
+  .lista tr {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 0.8rem;
+    background-color: var(--bg-light);
+  }
+  
+  .lista td {
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.95rem;
+  }
+  
+  .lista td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-label);
+  }
 }
 
 @media (max-width: 640px) {
   .container { padding: 1.5rem 1rem; }
-  td .editButton, td .deleteButton { width: 100%; margin-right: 0; margin-bottom: 0.5rem; }
+  td .editButton, td .deleteButton { 
+    width: 100%; 
+    margin-right: 0; 
+    margin-bottom: 0.5rem; 
+  }
 }

@@ -14,6 +14,3 @@ COPY . .
 
 # Expõe a porta padrão do Next.js
 EXPOSE 3000
-
-# Comando para rodar em dev
-CMD ["npm", "run", "dev", "--", "-p", "3060"]

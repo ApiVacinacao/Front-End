@@ -55,7 +55,7 @@ export default function Home() {
     { title: 'Agendamentos', description: 'Gerencie todos os agendamentos do sistema.', path: '/Cadastro/agendamento', icon: '📅' },
     { title: 'Relatórios', description: 'Visualize e gere relatórios completos.', path: '/relatorios', icon: '📊' },
     { title: 'Locais', description: 'Gerencie os locais cadastrados no sistema.', path: '/Locais', icon: '📍' },
-    { title: 'Tipos de Consulta', description: 'Configure os tipos de consulta disponíveis.', path: '/Cadastro/tipo-consulta', icon: '🩺' },
+    { title: 'Tipos de Consulta', description: 'Configure os tipos de consulta disponíveis.', path: '/Cadastro/consulta', icon: '🩺' },
   ];
 
   return (
