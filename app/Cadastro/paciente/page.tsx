@@ -89,7 +89,7 @@ const CadastroPaciente: React.FC = () => {
       if (res.ok) {
         setMensagem('Paciente cadastrado com sucesso!');
         setFormData({ name: '', email: '', cpf: '', password: '', password_confirmation: '' });
-        setTimeout(() => router.push('/'), 1500);
+        //setTimeout(() => router.push('/'), 1500);
       } else {
         const data = await res.json();
         setMensagem(data.message || 'Erro ao cadastrar paciente.');

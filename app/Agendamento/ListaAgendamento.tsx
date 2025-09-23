@@ -18,7 +18,7 @@ export interface Appointment {
   tipo_consulta?: { id: number; descricao: string };
 }
 
-const API_URL = 'http://localhost:8001/api/agendamentos';
+const API_URL = 'http://localhost:8000/api/agendamentos';
 
 const AgendamentosList: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);

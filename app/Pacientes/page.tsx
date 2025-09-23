@@ -168,7 +168,7 @@ export default function Pacientes() {
 function ModalPaciente({ paciente, onSalvar, onCancelar }: { paciente: Partial<Paciente>; onSalvar: (p: Partial<Paciente>) => void; onCancelar: () => void }) {
   const [name, setNome] = useState(paciente.name ?? '');
   const [email, setEmail] = useState(paciente.email ?? '');
-  const [cpf, setCns] = useState(paciente.cpf ?? '');
+  const [cpf, setCpf] = useState(paciente.cpf ?? '');
   const [status, setAtivo] = useState(paciente.status ?? true);
 
   const salvar = () => {
@@ -190,8 +190,8 @@ function ModalPaciente({ paciente, onSalvar, onCancelar }: { paciente: Partial<P
         <label className={modalStyles.modalLabel}>Email</label>
         <input className={modalStyles.modalInput} type="email" value={email} onChange={e => setEmail(e.target.value)} />
 
-        <label className={modalStyles.modalLabel}>CNS</label>
-        <input className={modalStyles.modalInput} value={cpf} onChange={e => setCns(e.target.value)} />
+        <label className={modalStyles.modalLabel}>Cpf</label>
+        <input className={modalStyles.modalInput} value={cpf} onChange={e => setCpf(e.target.value)} />
 
         <label className={modalStyles.modalLabel}>Ativo</label>
         <input type="checkbox" checked={status} onChange={e => setAtivo(e.target.checked)} />
