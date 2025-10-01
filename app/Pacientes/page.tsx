@@ -44,22 +44,36 @@ export default function Pacientes() {
   const toggleAtivo = async (paciente: Paciente) => {
     try {
       const token = localStorage.getItem('token');
+
+      const pacienteAtualizado = {
+        name: paciente.name,
+        email: paciente.email,
+        cpf: paciente.cpf,
+        status: !paciente.status,
+      };
+
       const res = await fetch(`${API_URL}/${paciente.id}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ status: !paciente.status }),
+        body: JSON.stringify(pacienteAtualizado),
       });
-      if (!res.ok) throw new Error(`Erro ao atualizar status: ${res.status}`);
+
       const data = await res.json();
+
+      if (!res.ok) {
+        const errorMessage = data.message || 'Erro ao atualizar status.';
+        throw new Error(errorMessage);
+      }
       setPacientes(prev => prev.map(p => p.id === data.id ? data : p));
     } catch (err) {
       console.error(err);
-      alert(err);
+      alert('Erro ao atualizar o status do paciente.');
     }
   };
+
 
   const salvarPaciente = async (pacienteAtualizado: Partial<Paciente> & { id?: number }) => {
     try {
