@@ -1,0 +1,214 @@
+:root {
+  --primary-green: #22c55e;
+  --primary-green-dark: #15803d;
+  --primary-blue: #0ea5e9;
+  --primary-blue-dark: #0369a1;
+  --secondary-red: #f91616;
+  --secondary-red-dark: #c20c0c;
+  --danger-red: #ef4444;
+  --light-gray: #f3f4f6;
+  --white: #ffffff;
+  --text-dark: #1a1a1a;
+  --text-light: #f9fafb;
+}
+
+.mainContent {
+  width: calc(100% - 250px);
+  max-width: 1200px;
+  margin-left: 250px;
+  padding: 2rem;
+  background-color: var(--light-gray);
+  min-height: 100vh;
+  transition: all 0.3s ease;
+}
+
+@media (min-width: 1920px) {
+  .mainContent {
+    width: calc(100% - 250px);
+    margin-left: 250px;
+    max-width: 100%;
+    background-color: var(--white);
+    padding: 3rem;
+  }
+}
+
+.header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+
+.searchBar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.searchBar input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--white);
+}
+
+.searchBar button {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+  color: var(--white);
+  border: none;
+  cursor: pointer;
+}
+
+/* Lista de Tipos de Consulta */
+.card {
+  background-color: var(--white);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.ativo {
+  color: var(--primary-green);
+  font-weight: 700;
+}
+
+.inativo {
+  color: var(--danger-red);
+  font-weight: 700;
+}
+
+.botoes {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btnDetails,
+.btnToggle,
+.floatingBtn,
+.buttonSubmit,
+.buttonClose {
+  font-weight: 700;
+  border-radius: 14px;
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease, transform 0.2s;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  outline: none;
+  border: none;
+}
+
+.btnDetails {
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+  color: var(--white);
+}
+.btnDetails:hover { transform: scale(1.08); }
+
+.btnToggle {
+  background: linear-gradient(135deg, var(--secondary-red), var(--secondary-red-dark));
+  color: var(--white);
+}
+.btnToggle:hover { transform: scale(1.08); }
+
+.floatingBtn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+  color: var(--white);
+  font-size: 1.1rem;
+  border-radius: 50px;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: var(--white);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.modalInput {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #dcdcdc;
+  border-radius: 10px;
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.modalButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.buttonSubmit {
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+  color: var(--white);
+}
+
+.buttonClose {
+  background: linear-gradient(135deg, var(--secondary-red), var(--secondary-red-dark));
+  color: var(--white);
+}
+
+.buttonClose:hover {
+  transform: scale(1.08);
+  color: var(--white);
+}
+
+@media (max-width: 1200px) {
+  .mainContent {
+    width: 100%;
+    margin-left: 0;
+    padding: 2rem 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .searchBar { flex-direction: column; gap: 0.5rem; }
+  .mainContent { padding: 1rem; }
+  .btnDetails, .btnToggle, .floatingBtn { width: 100%; text-align: center; }
+}
+
+@media (max-width: 480px) {
+  .modalContent { padding: 1rem; }
+  .modalButtons { flex-direction: column; gap: 10px; }
+}
+
+body {
+  color: var(--text-dark);
+  background-color: var(--light-gray);
+  font-family: Arial, Helvetica, sans-serif;
+}

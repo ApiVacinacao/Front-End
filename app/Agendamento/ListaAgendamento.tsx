@@ -11,14 +11,15 @@ export interface Appointment {
   tipo_consulta_id: number;
   data: string;
   hora: string;
-  
+  status?: boolean;
+
   user?: { id: number; name: string };
   medico?: { id: number; nome: string };
   local_atendimento?: { id: number; nome: string };
   tipo_consulta?: { id: number; descricao: string };
 }
 
-const API_URL = 'http://localhost:8000/api/agendamentos';
+const API_URL = 'http://localhost:8001/api/agendamentos';
 
 const AgendamentosList: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -78,6 +79,27 @@ const AgendamentosList: React.FC = () => {
     );
   };
 
+  const toggleStatus = async (appointment: Appointment) => {
+    if (!appointment.id) return;
+
+    try {
+      const res = await fetch(`${API_URL}/${appointment.id}/toggle-status`, {
+        method: 'PATCH',
+        headers: authHeaders(),
+      });
+
+      if (!res.ok) throw new Error('Erro ao alterar status do agendamento.');
+
+      const updated: Appointment = await res.json();
+      setAppointments(prev =>
+        prev.map(a => (a.id === updated.id ? updated : a))
+      );
+    } catch (err) {
+      console.error('Erro ao alterar status:', err);
+      alert('Não foi possível alterar status do agendamento.');
+    }
+  };
+
   return (
     <main className={styles.mainContent}>
       <h2 className={styles.title}>Agendamentos</h2>
@@ -99,6 +121,7 @@ const AgendamentosList: React.FC = () => {
                 <th>Profissional</th>
                 <th>Local</th>
                 <th>Tipo Consulta</th>
+                <th>Status</th>
                 <th>Ações</th>
               </tr>
             </thead>
@@ -111,12 +134,19 @@ const AgendamentosList: React.FC = () => {
                   <td>{a.medico?.nome ?? 'Desconhecido'}</td>
                   <td>{a.local_atendimento?.nome ?? 'Desconhecido'}</td>
                   <td>{a.tipo_consulta?.descricao ?? 'Desconhecido'}</td>
+                  <td>{a.status ? 'Ativo' : 'Inativo'}</td>
                   <td>
                     <button
                       className={styles.btnDetails}
                       onClick={() => openModal(a)}
                     >
                       Editar
+                    </button>
+                    <button
+                      className={`${styles.btnToggle} ${a.status ? styles.btnAtivo : styles.btnInativo}`}
+                      onClick={() => toggleStatus(a)}
+                    >
+                      {a.status ? 'Inativar' : 'Ativar'}
                     </button>
                   </td>
                 </tr>

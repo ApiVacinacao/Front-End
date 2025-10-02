@@ -4,10 +4,13 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import styles from "../navbar/navbar.module.css";
+import { MdLocalHospital } from "react-icons/md";
+import { FaUserMd, FaStethoscope, FaClinicMedical } from "react-icons/fa";
+import { GiMedicines } from "react-icons/gi";
+
 
 import {
   MdEditNote,
-  MdLocalHospital,
   MdPerson,
   MdEvent,
   MdLocationOn,
@@ -31,7 +34,7 @@ const Navbar = () => {
   const isActive = (link: string) => pathname === link || pathname.startsWith(link + "/");
 
   const handleLogout = () => {
-    localStorage.clear(); // substitua pelo seu método real de logout
+    localStorage.clear();
     window.location.href = "/";
   };
 
@@ -78,7 +81,7 @@ const Navbar = () => {
                 </li>
                 <li>
                   <Link href="/Cadastro/especialidade" className={`${styles.subLink} ${isActive("/Cadastro/especialidade") ? styles.activeSubLink : ""}`}>
-                    <MdLocationOn size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                    <FaStethoscope size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
                     Cadastro de Especialidade
                   </Link>
                 </li>
@@ -111,7 +114,12 @@ const Navbar = () => {
               <span className={styles.navText}>Locais</span>
             </Link>
           </li>
-
+          <li className={styles.navItem}>
+            <Link href="/Especialidade" className={`${styles.navLink} ${isActive("/Especialidade") ? styles.active : ""}`}>
+              <FaStethoscope size={24} className={styles.icon} />
+              <span className={styles.navText}>Especialidade</span>
+            </Link>
+          </li>
           <li className={styles.navItem}>
             <Link href="/Medicos" className={`${styles.navLink} ${isActive("/Medicos") ? styles.active : ""}`}>
               <MdLocalHospital size={24} className={styles.icon} />

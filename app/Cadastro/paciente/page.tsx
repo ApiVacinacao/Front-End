@@ -77,7 +77,7 @@ const CadastroPaciente: React.FC = () => {
       // Exibir os dados no console antes de enviar
       console.log('Dados enviados:', payload);
 
-      const res = await fetch('http://localhost:8000/api/register', {
+      const res = await fetch('http://localhost:8001/api/register', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json', 

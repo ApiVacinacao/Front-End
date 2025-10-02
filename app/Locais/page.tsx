@@ -9,10 +9,11 @@ interface Local {
   id: number;
   nome: string;
   endereco: string;
-  telefone: string; // adicionado telefone
+  telefone: string;
+  status: boolean;
 }
 
-const API_URL = 'http://localhost:8000/api/localAtendimentos';
+const API_URL = 'http://localhost:8001/api/localAtendimentos';
 
 const Locais: React.FC = () => {
   const [locais, setLocais] = useState<Local[]>([]);
@@ -20,7 +21,7 @@ const Locais: React.FC = () => {
   const [error, setError] = useState('');
   const [localEditando, setLocalEditando] = useState<Local | null>(null);
 
-  // Fetch dos locais
+  // Buscar locais
   const fetchLocais = async () => {
     setLoading(true);
     setError('');
@@ -34,11 +35,10 @@ const Locais: React.FC = () => {
       });
 
       if (!res.ok) {
-        if (res.status === 401 || res.status === 403) {
-          setError('Você não tem permissão para acessar essa informação.');
-        } else {
-          setError(`Erro ao carregar locais: ${res.status}`);
-        }
+        setError(res.status === 401 || res.status === 403
+          ? 'Você não tem permissão para acessar essa informação.'
+          : `Erro ao carregar locais: ${res.status}`
+        );
         return;
       }
 
@@ -56,6 +56,7 @@ const Locais: React.FC = () => {
     fetchLocais();
   }, []);
 
+  // Editar local
   const editarLocal = (id: number) => {
     const local = locais.find(l => l.id === id);
     if (local) setLocalEditando(local);
@@ -92,6 +93,28 @@ const Locais: React.FC = () => {
     }
   };
 
+  // Alternar status
+  const toggleStatus = async (id: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/${id}/toggle-status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      });
+
+      if (!res.ok) throw new Error('Erro ao alterar status');
+
+      const updatedLocal: Local = await res.json();
+      setLocais(prev => prev.map(l => l.id === updatedLocal.id ? updatedLocal : l));
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao alterar status');
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -110,9 +133,18 @@ const Locais: React.FC = () => {
                   <strong>{local.nome}</strong>
                   <p>Endereço: {local.endereco}</p>
                   <p>Telefone: {local.telefone}</p>
+                  <p>Status: <span className={local.status ? styles.ativo : styles.inativo}>
+                    {local.status ? 'Ativo' : 'Inativo'}
+                  </span></p>
                 </div>
                 <div className={styles.botoes}>
                   <button className={styles.editButton} onClick={() => editarLocal(local.id)}>Editar</button>
+                  <button
+                    className={`${styles.statusButton} ${local.status ? styles.ativo : styles.inativo}`}
+                    onClick={() => toggleStatus(local.id)}
+                  >
+                    {local.status ? 'Inativar' : 'Ativar'}
+                  </button>
                 </div>
               </div>
             ))}
@@ -120,8 +152,8 @@ const Locais: React.FC = () => {
         </div>
 
         {localEditando && (
-          <div className={modalStyles.modalOverlay}>
-            <div className={modalStyles.modalContent}>
+          <div className={modalStyles.modalOverlay} onClick={() => setLocalEditando(null)}>
+            <div className={modalStyles.modalContent} onClick={e => e.stopPropagation()}>
               <h2>Editar Local</h2>
 
               <label>Nome</label>

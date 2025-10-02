@@ -17,8 +17,8 @@ type Medico = {
   especialidade: Especialidade | null;
 };
 
-const API_URL = 'http://localhost:8000/api/medicos';
-const API_ESPECIALIDADES = 'http://localhost:8000/api/especialidades';
+const API_URL = 'http://localhost:8001/api/medicos';
+const API_ESPECIALIDADES = 'http://localhost:8001/api/especialidades';
 
 export default function MedicosList() {
   const [medicos, setMedicos] = useState<Medico[]>([]);
@@ -66,10 +66,11 @@ export default function MedicosList() {
     }
   };
 
+  /** NOVO: atualizar apenas status */
   const toggleStatus = async (medico: Medico) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/${medico.id}`, {
+      const res = await fetch(`${API_URL}/${medico.id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -78,8 +79,16 @@ export default function MedicosList() {
         body: JSON.stringify({ status: !medico.status }),
       });
       if (!res.ok) throw new Error(`Erro ao atualizar status: ${res.status}`);
-      const data = await res.json();
-      setMedicos(prev => prev.map(m => m.id === data.id ? data : m));
+      const data: Medico = await res.json();
+
+      // Atualiza apenas o status, mantendo especialidade
+      setMedicos(prev =>
+        prev.map(m =>
+          m.id === data.id
+            ? { ...m, status: data.status } // só altera status
+            : m
+        )
+      );
     } catch (err) {
       console.error(err);
       alert(err);
@@ -92,7 +101,7 @@ export default function MedicosList() {
       let res: Response;
 
       if (medicoAtualizado.id) {
-        // Atualizar
+        // Atualizar médico completo (nome, CRM, especialidade)
         res = await fetch(`${API_URL}/${medicoAtualizado.id}`, {
           method: 'PUT',
           headers: {
@@ -102,12 +111,11 @@ export default function MedicosList() {
           body: JSON.stringify({
             nome: medicoAtualizado.nome,
             CRM: medicoAtualizado.CRM,
-            status: medicoAtualizado.status,
             especialidade_id: medicoAtualizado.especialidade?.id,
           }),
         });
       } else {
-        // Criar
+        // Criar novo médico
         res = await fetch(API_URL, {
           method: 'POST',
           headers: {
@@ -184,8 +192,6 @@ export default function MedicosList() {
             </tbody>
           </table>
         )}
-
-        <button className={styles.floatingBtn} onClick={() => setOpenNew(true)}>➕ Novo</button>
 
         {(openNew || openDetail) && selected !== null && (
           <ModalMedico

@@ -9,7 +9,7 @@ type TipoConsulta = {
   status: boolean;
 };
 
-const API_URL = 'http://localhost:8000/api/tipoConsultas';
+const API_URL = 'http://localhost:8001/api/tipoConsultas';
 
 export default function TipoConsultaPage() {
   const [tipos, setTipos] = useState<TipoConsulta[]>([]);
@@ -17,18 +17,22 @@ export default function TipoConsultaPage() {
   const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Buscar do backend
   useEffect(() => {
     fetchTipos();
   }, []);
 
+  const getHeaders = () => {
+    const token = localStorage.getItem('token');
+    return token
+      ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+      : { 'Content-Type': 'application/json' };
+  };
+
+  // Buscar todos os tipos
   const fetchTipos = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(API_URL, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const res = await fetch(API_URL, { headers: getHeaders() });
       if (!res.ok) throw new Error('Erro ao buscar tipos de consulta');
       const data = await res.json();
       setTipos(data);
@@ -40,11 +44,13 @@ export default function TipoConsultaPage() {
     }
   };
 
-  const abrirModal = (tipo?: TipoConsulta) => {
-    setSelected(tipo || { id: 0, descricao: '', status: true });
+  // Abrir modal para edição
+  const abrirModal = (tipo: TipoConsulta) => {
+    setSelected(tipo);
     setOpenModal(true);
   };
 
+  // Salvar edição
   const salvarTipo = async (tipo: TipoConsulta) => {
     if (!tipo.descricao.trim()) {
       alert('Preencha a descrição.');
@@ -52,35 +58,16 @@ export default function TipoConsultaPage() {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      let res: Response;
-
-      if (tipo.id === 0) {
-        // Criar novo sempre como ativo
-        res = await fetch(API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({ descricao: tipo.descricao, status: true }),
-        });
-      } else {
-        // Atualizar existente mantendo o status
-        res = await fetch(`${API_URL}/${tipo.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({ descricao: tipo.descricao, status: tipo.status }),
-        });
-      }
+      const res = await fetch(`${API_URL}/${tipo.id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(tipo),
+      });
 
       if (!res.ok) throw new Error('Erro ao salvar tipo de consulta');
 
       await res.json();
-      fetchTipos(); // atualizar lista
+      fetchTipos();
       setOpenModal(false);
       setSelected(null);
     } catch (err) {
@@ -89,21 +76,15 @@ export default function TipoConsultaPage() {
     }
   };
 
+  // Ativar/Inativar tipo
   const toggleStatus = async (tipo: TipoConsulta) => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/${tipo.id}`, {
+      const res = await fetch(`${API_URL}/${tipo.id}/toggle-status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ status: !tipo.status }),
+        headers: getHeaders(),
       });
-
       if (!res.ok) throw new Error('Erro ao alterar status');
-
-      fetchTipos(); // atualizar lista
+      fetchTipos();
     } catch (err) {
       console.error(err);
       alert('Erro ao alterar status');
@@ -118,7 +99,9 @@ export default function TipoConsultaPage() {
           <h2>Tipos de Consulta</h2>
         </div>
 
-        {loading ? <p>Carregando...</p> : (
+        {loading ? (
+          <p>Carregando...</p>
+        ) : (
           <div>
             {tipos.map(tipo => (
               <div key={tipo.id} className={styles.card}>
@@ -139,8 +122,6 @@ export default function TipoConsultaPage() {
           </div>
         )}
 
-        <button className={styles.floatingBtn} onClick={() => abrirModal()}>➕ Novo</button>
-
         {openModal && selected && (
           <ModalTipoConsulta
             tipo={selected}
@@ -153,7 +134,12 @@ export default function TipoConsultaPage() {
   );
 }
 
-function ModalTipoConsulta({ tipo, onSalvar, onCancelar }: {
+// Modal para editar Tipo de Consulta
+function ModalTipoConsulta({
+  tipo,
+  onSalvar,
+  onCancelar,
+}: {
   tipo: TipoConsulta;
   onSalvar: (tipo: TipoConsulta) => void;
   onCancelar: () => void;
@@ -165,7 +151,7 @@ function ModalTipoConsulta({ tipo, onSalvar, onCancelar }: {
   return (
     <div className={styles.modalOverlay} onClick={onCancelar}>
       <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-        <h2>{tipo.id === 0 ? 'Novo Tipo de Consulta' : 'Editar Tipo de Consulta'}</h2>
+        <h2>Editar Tipo de Consulta</h2>
 
         <label className={styles.modalLabel}>Descrição</label>
         <input

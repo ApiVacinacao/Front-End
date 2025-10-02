@@ -32,7 +32,7 @@ const DetalheAgendamento: React.FC<Props> = ({ appointment, onClose }) => {
     setSaving(true);
     const getToken = () => localStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:8000/api/agendamentos/${appointment.id}`, {
+      const res = await fetch(`http://localhost:8001/api/agendamentos/${appointment.id}`, {
         method: 'PUT',
         headers: {
            'Content-Type': 'application/json' ,
