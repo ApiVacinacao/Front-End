@@ -13,7 +13,7 @@ interface Local {
   status: boolean;
 }
 
-const API_URL = 'http://localhost:8001/api/localAtendimentos';
+const API_URL = 'http://localhost:8000/api/localAtendimentos';
 
 const Locais: React.FC = () => {
   const [locais, setLocais] = useState<Local[]>([]);

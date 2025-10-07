@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Navbar from '../../components/navbar/page';
 import styles from './consulta.module.css';
 
-const API_URL = 'http://localhost:8001/api/tipoConsultas';
+const API_URL = 'http://localhost:8000/api/tipoConsultas';
 
 const CadastroTipoConsulta: React.FC = () => {
   const [descricao, setDescricao] = useState('');
