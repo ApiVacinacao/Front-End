@@ -90,7 +90,7 @@ const LoginPage: React.FC = () => {
             />
             <label htmlFor="remember">Lembrar-me</label>
           </div>
-          <a href="/senha" className={styles.forgotLink}>
+          <a href="/Senha" className={styles.forgotLink}>
             Esqueci minha senha
           </a>
         </div>
