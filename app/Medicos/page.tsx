@@ -1,168 +1,170 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import Navbar from '../components/navbar/page';
-import styles from './medico.module.css';
-import { TableList } from '../components/tables/TableList';
+import Navbar from '../components/navbar/navbar.module.css';
+import styles from './agendamento.module.css';
 
-type Especialidade = { id: number; nome: string; };
-type Medico = { id: number; nome: string; CRM: string; status: boolean; especialidade: Especialidade | null; };
+type Especialidade = { id: number; nome: string };
+type Medico = { id: number; nome: string; CRM: string; status: boolean; especialidade: Especialidade | null };
 
-const API_URL = 'http://localhost:8000/api/medicos';
-const API_ESPECIALIDADES = 'http://localhost:8000/api/especialidades';
-
-export default function MedicosList() {
-  const [medicos, setMedicos] = useState<Medico[]>([]);
+export default function CadastroAgendamento() {
   const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
-  const [selected, setSelected] = useState<Medico | null>(null);
-  const [openDetail, setOpenDetail] = useState(false);
-  const [openNew, setOpenNew] = useState(false);
+  const [medicos, setMedicos] = useState<Medico[]>([]);
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    nome_paciente: '',
+    data: '',
+    horario: '',
+    especialidade_id: '',
+    medico_id: '',
+  });
 
+  // 🔹 Carregar especialidades
   useEffect(() => {
+    const fetchEspecialidades = async () => {
+      try {
+        const response = await fetch('http://localhost:8001/api/especialidades');
+        const json = await response.json();
+
+        const lista = Array.isArray(json.data) ? json.data : [];
+        setEspecialidades(lista);
+      } catch (error) {
+        console.error('Erro ao carregar especialidades:', error);
+        setEspecialidades([]);
+      }
+    };
+
     fetchEspecialidades();
+  }, []);
+
+  // 🔹 Carregar médicos
+  useEffect(() => {
+    const fetchMedicos = async () => {
+      try {
+        const response = await fetch('http://localhost:8001/api/medicos');
+        const json = await response.json();
+
+        const lista = Array.isArray(json.data) ? json.data : [];
+        setMedicos(lista);
+      } catch (error) {
+        console.error('Erro ao carregar médicos:', error);
+        setMedicos([]);
+      }
+    };
+
     fetchMedicos();
   }, []);
 
-  const fetchEspecialidades = async () => {
+  // 🔹 Enviar formulário
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(API_ESPECIALIDADES, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-      if (!res.ok) throw new Error('Erro ao carregar especialidades');
-      const data = await res.json();
-      setEspecialidades(data);
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao carregar especialidades');
+      const response = await fetch('http://localhost:8001/api/agendamentos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert('Agendamento cadastrado com sucesso!');
+        setFormData({
+          nome_paciente: '',
+          data: '',
+          horario: '',
+          especialidade_id: '',
+          medico_id: '',
+        });
+      } else {
+        alert(result.message || 'Falha ao cadastrar agendamento');
+      }
+    } catch (error) {
+      console.error('Erro ao cadastrar agendamento:', error);
+      alert('Erro ao cadastrar agendamento');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchMedicos = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(API_URL, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-      if (!res.ok) throw new Error('Erro ao carregar médicos');
-      const data = await res.json();
-      setMedicos(data);
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao carregar médicos');
-    } finally { setLoading(false); }
-  };
-
-  const toggleStatus = async (medico: Medico) => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/${medico.id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ status: !medico.status }),
-      });
-      if (!res.ok) throw new Error('Erro ao atualizar status');
-      const data: Medico = await res.json();
-      setMedicos(prev => prev.map(m => (m.id === data.id ? { ...m, status: data.status } : m)));
-    } catch (err) { console.error(err); alert('Erro ao atualizar status'); }
-  };
-
-  const salvarMedico = async (medicoAtualizado: Partial<Medico> & { id?: number }) => {
-    try {
-      const token = localStorage.getItem('token');
-      let res: Response;
-
-      if (medicoAtualizado.id) {
-        res = await fetch(`${API_URL}/${medicoAtualizado.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-          body: JSON.stringify({ nome: medicoAtualizado.nome, CRM: medicoAtualizado.CRM, especialidade_id: medicoAtualizado.especialidade?.id }),
-        });
-      } else {
-        res = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-          body: JSON.stringify({ nome: medicoAtualizado.nome, CRM: medicoAtualizado.CRM, status: medicoAtualizado.status ?? true, especialidade_id: medicoAtualizado.especialidade?.id }),
-        });
-      }
-
-      if (!res.ok) throw new Error('Erro ao salvar médico');
-      const data = await res.json();
-      setMedicos(prev => medicoAtualizado.id ? prev.map(m => (m.id === data.id ? data : m)) : [...prev, data]);
-      setOpenDetail(false); setOpenNew(false); setSelected(null);
-    } catch (err) { console.error(err); alert('Erro ao salvar médico'); }
-  };
-
   return (
-    <>
+    <div className={styles.pageContainer}>
       <Navbar />
-      <main className={styles.mainContent}>
-        <h2>Médicos Cadastrados</h2>
+      <div className={styles.container}>
+        <h2>Cadastro de Agendamento</h2>
 
-        <TableList
-          data={medicos}
-          loading={loading}
-          columns={[
-            { title: 'Nome', key: 'nome' },
-            { title: 'CRM', key: 'CRM' },
-            { title: 'Especialidade', key: 'especialidade', render: m => m.especialidade?.nome || '-' },
-            { title: 'Status', key: 'status', render: m => <span className={m.status ? styles.status : styles.instatus}>{m.status ? 'Ativo' : 'Inativo'}</span> },
-          ]}
-          actions={[
-            { label: 'Ver', onClick: (m) => { setSelected(m); setOpenDetail(true); }, className: styles.btnDetails },
-            { label: (m: any) => m.status ? 'Inativar' : 'Ativar', onClick: toggleStatus, className: styles.btnToggle },
-          ]}
-        />
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.formGroup}>
+            <label>Nome do Paciente</label>
+            <input
+              type="text"
+              value={formData.nome_paciente}
+              onChange={(e) => setFormData({ ...formData, nome_paciente: e.target.value })}
+              required
+            />
+          </div>
 
-        {(openNew || openDetail) && (
-          <ModalMedico
-            medico={selected ?? { nome: '', CRM: '', status: true, especialidade: null }}
-            especialidades={especialidades}
-            onSalvar={salvarMedico}
-            onCancelar={() => { setOpenDetail(false); setOpenNew(false); setSelected(null); }}
-          />
-        )}
-      </main>
-    </>
-  );
-}
+          <div className={styles.formGroup}>
+            <label>Data</label>
+            <input
+              type="date"
+              value={formData.data}
+              onChange={(e) => setFormData({ ...formData, data: e.target.value })}
+              required
+            />
+          </div>
 
-function ModalMedico({ medico, especialidades, onSalvar, onCancelar }: { medico: Partial<Medico>; especialidades: Especialidade[]; onSalvar: (m: Partial<Medico>) => void; onCancelar: () => void }) {
-  const [nome, setNome] = useState(medico.nome ?? '');
-  const [crm, setCrm] = useState(medico.CRM ?? '');
-  const [status, setStatus] = useState(medico.status ?? true);
-  const [especialidadeId, setEspecialidadeId] = useState<number | ''>(medico.especialidade?.id ?? '');
+          <div className={styles.formGroup}>
+            <label>Horário</label>
+            <input
+              type="time"
+              value={formData.horario}
+              onChange={(e) => setFormData({ ...formData, horario: e.target.value })}
+              required
+            />
+          </div>
 
-  const handleCrmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.toUpperCase().replace(/[^A-Z0-9/ ]/g, '');
-    const parts = value.split(' ');
-    if (parts.length > 1) parts[1] = parts[1].slice(0, 6);
-    setCrm(parts.join(' '));
-  };
+          <div className={styles.formGroup}>
+            <label>Especialidade</label>
+            <select
+              value={formData.especialidade_id}
+              onChange={(e) => setFormData({ ...formData, especialidade_id: e.target.value })}
+              required
+            >
+              <option value="">Selecione a especialidade</option>
+              {especialidades.length > 0 &&
+                especialidades.map((esp) => (
+                  <option key={esp.id} value={esp.id}>
+                    {esp.nome}
+                  </option>
+                ))}
+            </select>
+          </div>
 
-  const salvar = () => {
-    if (!nome.trim() || !crm.trim() || !especialidadeId) return alert('Preencha todos os campos.');
-    const espSelecionada = especialidades.find(e => e.id === Number(especialidadeId)) || null;
-    onSalvar({ ...medico, nome, CRM: crm, status, especialidade: espSelecionada });
-  };
+          <div className={styles.formGroup}>
+            <label>Médico</label>
+            <select
+              value={formData.medico_id}
+              onChange={(e) => setFormData({ ...formData, medico_id: e.target.value })}
+              required
+            >
+              <option value="">Selecione o médico</option>
+              {medicos.length > 0 &&
+                medicos
+                  .filter((m) => m.status) // mostra apenas médicos ativos
+                  .map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.nome} ({m.especialidade?.nome || 'Sem especialidade'})
+                    </option>
+                  ))}
+            </select>
+          </div>
 
-  return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
-        <h2>{medico.id ? 'Editar Médico' : 'Novo Médico'}</h2>
-        <label>Nome</label>
-        <input value={nome} onChange={e => setNome(e.target.value)} />
-        <label>CRM</label>
-        <input value={crm} onChange={handleCrmChange} placeholder="CRM/SP 123456" />
-        <label>Especialidade</label>
-        <select value={especialidadeId} onChange={e => setEspecialidadeId(Number(e.target.value))}>
-          <option value="">Selecione</option>
-          {especialidades.map(e => <option key={e.id} value={e.id}>{e.nome}</option>)}
-        </select>
-        <label>
-          <input type="checkbox" checked={status} onChange={e => setStatus(e.target.checked)} /> Ativo
-        </label>
-        <div className={styles.modalButtons}>
-          <button onClick={onCancelar}>Cancelar</button>
-          <button onClick={salvar}>Salvar</button>
-        </div>
+          <button type="submit" disabled={loading}>
+            {loading ? 'Salvando...' : 'Cadastrar'}
+          </button>
+        </form>
       </div>
     </div>
   );
