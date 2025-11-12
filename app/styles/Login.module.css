@@ -1,22 +1,22 @@
 :root {
-  --primary: #2d34b7;
-  --primary-dark: #1f2591;
-  --gradient: linear-gradient(135deg, #2d34b7, #1f2591);
+  --primary: #4f46e5;
+  --primary-dark: #3730a3;
+  --gradient: linear-gradient(135deg, #4f46e5, #3730a3);
   --bg: linear-gradient(135deg, #0f172a, #1e293b);
-  --text-dark: #2c2c2c;
-  --text-muted: #6f6f6f;
+  --text-dark: #111827;
+  --text-muted: #6b7280;
   --white: #ffffff;
-  --shadow: rgba(0,0,0,0.18);
-  --hover-glow: rgba(45, 52, 183, 0.3);
+  --shadow: rgba(0,0,0,0.2);
+  --hover-glow: rgba(79,70,229,0.3);
 }
 
+/* BODY E WRAPPER */
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
   background: var(--bg);
 }
 
-/* Wrapper centralizado */
 .loginWrapper {
   display: flex;
   justify-content: center;
@@ -25,13 +25,13 @@ body {
   padding: 20px;
 }
 
-/* Card principal */
+/* CARD */
 .loginContainer {
   width: 100%;
   max-width: 450px;
-  background: rgba(255,255,255,0.92);
+  background: rgba(255,255,255,0.95);
   border-radius: 20px;
-  box-shadow: 0 16px 50px var(--shadow);
+  box-shadow: 0 20px 50px var(--shadow);
   padding: 50px 35px;
   text-align: center;
   backdrop-filter: blur(18px);
@@ -54,54 +54,79 @@ body {
   color: var(--primary-dark);
   margin-bottom: 35px;
   font-weight: 700;
-  font-size: 24px;
+  font-size: 26px;
   line-height: 1.2;
 }
 
-/* Inputs flutuantes */
+/* INPUTS E LABELS */
 .inputGroup {
   position: relative;
-  margin-bottom: 25px;
+  margin-bottom: 32px;
 }
 
+/* Input */
 .inputGroup input {
   width: 100%;
-  padding: 16px 12px;
-  border: 1px solid #dcdcdc;
-  border-radius: 12px;
+  padding: 16px 12px 16px 12px;
+  border: none;
+  border-bottom: 2px solid #d1d5db; /* linha elegante */
+  background: transparent;
   font-size: 16px;
-  background: var(--white);
+  color: var(--text-dark);
   transition: all 0.3s ease;
+  outline: none;
 }
 
+.inputGroup input:hover {
+  border-color: var(--primary);
+}
+
+.inputGroup input:focus {
+  border-color: var(--primary);
+}
+
+/* Label */
 .inputGroup label {
   position: absolute;
   top: 50%;
   left: 12px;
   transform: translateY(-50%);
-  background: var(--white);
-  padding: 0 6px;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--text-muted);
   pointer-events: none;
   transition: all 0.3s ease;
+  background: transparent; /* remove quadrado branco */
+  padding: 0;
 }
 
+/* Label flutuante */
 .inputGroup input:focus + label,
 .inputGroup input:not(:placeholder-shown) + label {
-  top: -8px;
-  left: 10px;
-  font-size: 12px;
+  top: -10px;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--primary);
+  transform: translateY(0);
 }
 
-.inputGroup input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4px var(--hover-glow);
-  outline: none;
+/* Linha animada de foco */
+.inputGroup::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 0;
+  background: var(--primary);
+  transition: width 0.3s ease;
 }
 
-/* Lembrar-me + Esqueci senha */
+.inputGroup input:focus ~ ::after,
+.inputGroup input:not(:placeholder-shown) ~ ::after {
+  width: 100%;
+}
+
+/* LEMBRAR-ME E ESQUECI SENHA */
 .rememberForgot {
   display: flex;
   justify-content: space-between;
@@ -130,7 +155,6 @@ body {
   cursor: pointer;
 }
 
-/* Link esqueci senha */
 .forgotLink {
   color: var(--primary);
   font-size: 14px;
@@ -142,7 +166,7 @@ body {
   text-decoration: underline;
 }
 
-/* Botão login */
+/* BOTÃO LOGIN */
 .btnLogin {
   width: 100%;
   padding: 16px;
@@ -161,13 +185,13 @@ body {
   box-shadow: 0 8px 18px var(--hover-glow);
 }
 
-/* RESPONSIVO TOTAL */
+/* RESPONSIVO */
 @media (max-width: 768px) {
   .loginContainer {
     padding: 40px 25px;
   }
   .title { font-size: 22px; }
-  .inputGroup input { font-size: 15px; padding: 14px 10px; }
+  .inputGroup input { font-size: 15px; padding: 14px 12px; }
   .btnLogin { font-size: 15px; padding: 14px; }
 }
 

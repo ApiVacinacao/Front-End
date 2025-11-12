@@ -1,32 +1,29 @@
 :root {
   --primary-blue: #0ea5e9;
   --primary-blue-dark: #0369a1;
-
-  --secondary-gradient: linear-gradient(135deg, #ff1717, #ff1428);
-  --secondary-gradient-hover: linear-gradient(135deg, #ff2929, #ff3030);
-
+  --secondary-red: #ef4444;
+  --secondary-red-dark: #dc2626;
   --bg-light: #ffffff;
   --bg-lighter: #f9fafb;
   --text-primary: #1a1a1a;
   --text-secondary: #374151;
   --text-label: #555;
-  --shadow-light: rgba(0,0,0,0.06);
-  --shadow-medium: rgba(0,0,0,0.15);
-
   --border-color: #e5e7eb;
+  --shadow-light: rgba(0,0,0,0.06);
 }
 
-/* Conteúdo principal considerando navbar lateral fixa */
+/* =========================
+   Background e conteúdo
+   ========================= */
 .content {
   margin-left: 250px;
   padding: 2rem;
-  background-color: var(--bg-lighter);
   min-height: 100vh;
+  background-color: var(--bg-lighter);
   font-family: 'Inter', sans-serif;
   transition: margin 0.3s ease;
 }
 
-/* Container centralizado */
 .container {
   max-width: 1200px;
   margin: auto;
@@ -36,15 +33,14 @@
   box-shadow: 0 6px 20px var(--shadow-light);
 }
 
-/* Título com linha abaixo */
 .title {
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 2rem;
-  color: var(--text-primary);
   text-align: center;
   position: relative;
   padding-bottom: 0.5rem;
+  color: var(--text-primary);
 }
 
 .title::after {
@@ -59,7 +55,7 @@
 }
 
 /* =========================
-   Tabela de pacientes
+   Tabela
    ========================= */
 .lista {
   width: 100%;
@@ -69,13 +65,12 @@
   overflow: hidden;
 }
 
-/* Cabeçalho */
 .lista thead th {
   text-align: left;
   padding: 1rem 1.2rem;
   font-weight: 600;
-  color: var(--text-label);
   font-size: 1rem;
+  color: var(--text-label);
   background-color: var(--bg-lighter);
   border-bottom: 2px solid var(--border-color);
   border-right: 1px solid var(--border-color);
@@ -83,11 +78,6 @@
 
 .lista thead th:last-child {
   border-right: none;
-}
-
-/* Linhas do corpo */
-.lista tbody tr {
-  transition: background-color 0.2s ease;
 }
 
 .lista tbody tr:nth-child(even) {
@@ -98,7 +88,6 @@
   background-color: #f0f9ff;
 }
 
-/* Células */
 .lista tbody td {
   padding: 1rem 1.2rem;
   font-size: 0.95rem;
@@ -112,7 +101,7 @@
 }
 
 /* =========================
-   Status Badge
+   Status
    ========================= */
 .status {
   font-weight: 600;
@@ -133,7 +122,7 @@
 }
 
 /* =========================
-   Botões de ação
+   Botões
    ========================= */
 td .editButton,
 td .deleteButton {
@@ -158,31 +147,28 @@ td .editButton:hover {
 }
 
 td .deleteButton {
-  background: #ef4444;
+  background: var(--secondary-red);
   color: #fff;
 }
 td .deleteButton:hover {
-  background: #dc2626;
+  background: var(--secondary-red-dark);
   transform: translateY(-2px);
 }
 
 /* =========================
    Responsividade
    ========================= */
-@media (max-width: 1280px) {
-  .content { margin-left: 220px; padding: 2rem; }
-}
-
 @media (max-width: 1024px) {
   .content { margin-left: 0; padding: 1.5rem; }
   .container { padding: 2rem; }
+
   .lista thead { display: none; }
   
   .lista, .lista tbody, .lista tr, .lista td {
     display: block;
     width: 100%;
   }
-  
+
   .lista tr {
     margin-bottom: 1rem;
     border: 1px solid var(--border-color);
@@ -190,7 +176,7 @@ td .deleteButton:hover {
     padding: 0.8rem;
     background-color: var(--bg-light);
   }
-  
+
   .lista td {
     border: none;
     display: flex;
@@ -198,7 +184,7 @@ td .deleteButton:hover {
     padding: 0.6rem 0.8rem;
     font-size: 0.95rem;
   }
-  
+
   .lista td::before {
     content: attr(data-label);
     font-weight: 600;

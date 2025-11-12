@@ -1,53 +1,86 @@
 'use client';
 
 import React, { useState } from 'react';
-import styles from '../styles/Login.module.css'; // mesmo estilo do login
+import Swal from 'sweetalert2';
+import styles from '../styles/Login.module.css';
 
 const ForgotPasswordSMSPage: React.FC = () => {
-  const [phone, setPhone] = useState('');
-  const [sent, setSent] = useState(false);
+  const [cpf, setCpf] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' | '' }>({ text: '', type: '' });
+
+  // Função para formatar o CPF visualmente (com pontuação)
+  const formatCPF = (value: string) => {
+    return value
+      .replace(/\D/g, '')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage({ text: '', type: '' });
+    const cpfLimpo = cpf.replace(/\D/g, '');
 
-    const phoneRegex = /^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/; // formato BR básico
-
-    if (!phone.trim()) {
-      setMessage({ text: 'Por favor, informe seu número de telefone.', type: 'error' });
-      return;
-    }
-
-    if (!phoneRegex.test(phone)) {
-      setMessage({ text: 'Número de telefone inválido.', type: 'error' });
+    if (cpfLimpo.length !== 11) {
+      Swal.fire({
+        icon: 'error',
+        title: 'CPF inválido 😕',
+        text: 'Por favor, insira um CPF com 11 dígitos válidos.',
+        confirmButtonColor: '#d33',
+        iconColor: '#d33',
+      });
       return;
     }
 
     try {
       setLoading(true);
 
-      // Aqui você integraria com sua API para envio de SMS
-      // await fetch('/api/auth/send-sms-reset', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ phone }),
-      // });
+      const response = await fetch('http://localhost:8000/api/esquecisenha', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cpf: cpfLimpo }),
+      });
 
-      // Simulação de envio
-      setTimeout(() => {
-        setLoading(false);
-        setSent(true);
-        setMessage({
-          text: 'Um SMS com as instruções para redefinição foi enviado para seu número.',
-          type: 'success',
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // ✅ CPF existe e senha foi alterada
+        Swal.fire({
+          icon: 'success',
+          title: 'Tudo certo! ✅',
+          text: data.message || 'A nova senha foi enviada por SMS para o número cadastrado.',
+          confirmButtonColor: '#28a745',
+          background: '#f0fff4',
+          color: '#155724',
+          iconColor: '#28a745',
+          showConfirmButton: true,
         });
-        setPhone('');
-      }, 1200);
-    } catch {
+        setCpf('');
+      } else {
+        // ❌ CPF não encontrado ou outro erro
+        Swal.fire({
+          icon: 'error',
+          title: 'CPF não encontrado ❌',
+          text: data.message || 'Nenhum usuário com este CPF foi localizado.',
+          confirmButtonColor: '#d33',
+          background: '#fff5f5',
+          color: '#721c24',
+          iconColor: '#d33',
+          showConfirmButton: true,
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro de conexão ❌',
+        text: 'Não foi possível se conectar ao servidor. Tente novamente.',
+        confirmButtonColor: '#d33',
+        background: '#fff5f5',
+        color: '#721c24',
+        iconColor: '#d33',
+      });
+    } finally {
       setLoading(false);
-      setMessage({ text: 'Erro ao enviar o SMS. Tente novamente mais tarde.', type: 'error' });
     }
   };
 
@@ -56,61 +89,29 @@ const ForgotPasswordSMSPage: React.FC = () => {
       <div className={styles.loginContainer}>
         <img src="/aa.png" alt="Logo" className={styles.logo} />
 
-        <h1 className={styles.title}>Recuperar Acesso via SMS</h1>
+        <h1 className={styles.title}>Recuperar Acesso</h1>
+        <p style={{ color: '#6c757d', marginBottom: '20px' }}>
+          Informe seu CPF para receber uma nova senha por SMS.
+        </p>
 
-        {!sent ? (
-          <form onSubmit={handleSubmit}>
-            <div className={styles.inputGroup}>
-              <input
-                type="text"
-                id="phone"
-                placeholder=" "
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                disabled={loading}
-              />
-              <label htmlFor="phone">Telefone cadastrado</label>
-            </div>
-
-            <button type="submit" className={styles.btnLogin} disabled={loading}>
-              {loading ? 'Enviando...' : 'Enviar SMS'}
-            </button>
-
-            {message.text && (
-              <p
-                style={{
-                  color: message.type === 'error' ? '#dc3545' : '#28a745',
-                  marginTop: '15px',
-                  fontSize: '0.9rem',
-                }}
-              >
-                {message.text}
-              </p>
-            )}
-          </form>
-        ) : (
-          <div style={{ animation: 'fadeIn 0.5s ease', textAlign: 'center' }}>
-            <i
-              className="bx bx-message-check"
-              style={{ fontSize: '3rem', color: '#28a745', marginBottom: '10px' }}
-            ></i>
-            <p style={{ fontSize: '1rem', color: '#2c2c2c', marginBottom: '8px' }}>
-              SMS enviado com sucesso!
-            </p>
-            <p style={{ fontSize: '0.9rem', color: '#6f6f6f', marginBottom: '20px' }}>
-              Verifique sua caixa de mensagens e siga as instruções recebidas.
-            </p>
-            <button
-              className={styles.btnLogin}
-              onClick={() => {
-                setSent(false);
-                setMessage({ text: '', type: '' });
-              }}
-            >
-              Enviar novamente
-            </button>
+        <form onSubmit={handleSubmit}>
+          <div className={styles.inputGroup}>
+            <input
+              type="text"
+              id="cpf"
+              placeholder=" "
+              value={cpf}
+              onChange={(e) => setCpf(formatCPF(e.target.value))}
+              maxLength={14}
+              disabled={loading}
+            />
+            <label htmlFor="cpf">CPF cadastrado</label>
           </div>
-        )}
+
+          <button type="submit" className={styles.btnLogin} disabled={loading}>
+            {loading ? 'Enviando...' : 'Enviar SMS'}
+          </button>
+        </form>
 
         <a href="/" className={styles.forgotLink} style={{ display: 'block', marginTop: '25px' }}>
           Voltar para o login
