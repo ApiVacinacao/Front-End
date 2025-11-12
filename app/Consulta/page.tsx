@@ -1,170 +1,170 @@
 'use client';
+
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navbar/page';
 import styles from './tipoConsulta.module.css';
 
-type TipoConsulta = {
+interface TipoConsulta {
   id: number;
   descricao: string;
   status: boolean;
-};
+}
 
-const API_URL = 'http://localhost:8000/api/tipoConsultas';
+const API_URL = 'http://localhost:8001/api/tipoConsultas';
 
 export default function TipoConsultaPage() {
   const [tipos, setTipos] = useState<TipoConsulta[]>([]);
-  const [selected, setSelected] = useState<TipoConsulta | null>(null);
-  const [openModal, setOpenModal] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [tipoEditando, setTipoEditando] = useState<TipoConsulta | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState('');
 
   useEffect(() => {
     fetchTipos();
   }, []);
 
-  const getHeaders = () => {
-    const token = localStorage.getItem('token');
-    return token
-      ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-      : { 'Content-Type': 'application/json' };
-  };
-
-  // Buscar todos os tipos
   const fetchTipos = async () => {
-    setLoading(true);
     try {
-      const res = await fetch(API_URL, { headers: getHeaders() });
-      if (!res.ok) throw new Error('Erro ao buscar tipos de consulta');
+      const token = localStorage.getItem('token');
+      const res = await fetch(API_URL, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error('Erro: ' + res.status);
       const data = await res.json();
       setTipos(data);
     } catch (err) {
       console.error(err);
-      alert('Erro ao carregar tipos de consulta');
+      setErro('Erro ao carregar tipos de consulta');
     } finally {
       setLoading(false);
     }
   };
 
-  // Abrir modal para edição
-  const abrirModal = (tipo: TipoConsulta) => {
-    setSelected(tipo);
-    setOpenModal(true);
-  };
-
-  // Salvar edição
-  const salvarTipo = async (tipo: TipoConsulta) => {
-    if (!tipo.descricao.trim()) {
-      alert('Preencha a descrição.');
-      return;
-    }
-
+  const toggleStatus = async (id: number) => {
     try {
-      const res = await fetch(`${API_URL}/${tipo.id}`, {
-        method: 'PUT',
-        headers: getHeaders(),
-        body: JSON.stringify(tipo),
-      });
-
-      if (!res.ok) throw new Error('Erro ao salvar tipo de consulta');
-
-      await res.json();
-      fetchTipos();
-      setOpenModal(false);
-      setSelected(null);
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao salvar tipo de consulta');
-    }
-  };
-
-  // Ativar/Inativar tipo
-  const toggleStatus = async (tipo: TipoConsulta) => {
-    try {
-      const res = await fetch(`${API_URL}/${tipo.id}/toggle-status`, {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/${id}/toggle-status`, {
         method: 'PATCH',
-        headers: getHeaders(),
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error('Erro ao alterar status');
-      fetchTipos();
+      const atualizado = await res.json();
+      setTipos(prev => prev.map(t => (t.id === atualizado.id ? atualizado : t)));
     } catch (err) {
       console.error(err);
       alert('Erro ao alterar status');
     }
   };
 
+  const salvarEdicao = async (tipo: TipoConsulta) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/${tipo.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(tipo),
+      });
+      if (!res.ok) throw new Error('Erro ao salvar tipo');
+      const atualizado = await res.json();
+      setTipos(prev => prev.map(t => (t.id === atualizado.id ? atualizado : t)));
+      setTipoEditando(null);
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao salvar tipo de consulta');
+    }
+  };
+
   return (
-    <>
+    <div className={styles.page}>
       <Navbar />
-      <main className={styles.mainContent}>
+      <main className={styles.content}>
         <div className={styles.header}>
-          <h2>Tipos de Consulta</h2>
+          <h2 className={styles.title}>🩺 Tipos de Consulta</h2>
         </div>
 
-        {loading ? (
-          <p>Carregando...</p>
-        ) : (
-          <div>
-            {tipos.map(tipo => (
-              <div key={tipo.id} className={styles.card}>
-                <div>
-                  <strong>{tipo.descricao}</strong>
-                  <p>Status: <span className={tipo.status ? styles.ativo : styles.inativo}>
-                    {tipo.status ? 'Ativo' : 'Inativo'}
-                  </span></p>
-                </div>
-                <div className={styles.botoes}>
-                  <button className={styles.btnDetails} onClick={() => abrirModal(tipo)}>Editar</button>
-                  <button className={styles.btnToggle} onClick={() => toggleStatus(tipo)}>
-                    {tipo.status ? 'Inativar' : 'Ativar'}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {loading && <p className={styles.loading}>Carregando tipos...</p>}
+        {erro && <p className={styles.error}>{erro}</p>}
 
-        {openModal && selected && (
-          <ModalTipoConsulta
-            tipo={selected}
-            onSalvar={salvarTipo}
-            onCancelar={() => setOpenModal(false)}
+        <div className={styles.tableWrapper}>
+          {tipos.map(tipo => (
+            <div key={tipo.id} className={styles.card}>
+              <div>
+                <p className={styles.cardTitle}>{tipo.descricao}</p>
+                <p className={styles.statusText}>
+                  Status:{' '}
+                  <span
+                    className={
+                      tipo.status ? styles.statusAtivo : styles.statusInativo
+                    }
+                  >
+                    {tipo.status ? 'Ativo' : 'Inativo'}
+                  </span>
+                </p>
+              </div>
+              <div className={styles.actions}>
+                <button
+                  className={`${styles.actionButton} ${styles.primary}`}
+                  onClick={() => setTipoEditando(tipo)}
+                >
+                  Editar
+                </button>
+                <button
+                  className={`${styles.actionButton} ${styles.secondary}`}
+                  onClick={() => toggleStatus(tipo.id)}
+                >
+                  {tipo.status ? 'Inativar' : 'Ativar'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {tipoEditando && (
+          <ModalEditarTipo
+            tipo={tipoEditando}
+            onClose={() => setTipoEditando(null)}
+            onSave={salvarEdicao}
           />
         )}
       </main>
-    </>
+    </div>
   );
 }
 
-// Modal para editar Tipo de Consulta
-function ModalTipoConsulta({
-  tipo,
-  onSalvar,
-  onCancelar,
-}: {
+interface ModalProps {
   tipo: TipoConsulta;
-  onSalvar: (tipo: TipoConsulta) => void;
-  onCancelar: () => void;
-}) {
+  onClose: () => void;
+  onSave: (tipo: TipoConsulta) => void;
+}
+
+function ModalEditarTipo({ tipo, onClose, onSave }: ModalProps) {
   const [descricao, setDescricao] = useState(tipo.descricao);
 
-  const salvar = () => onSalvar({ ...tipo, descricao });
-
   return (
-    <div className={styles.modalOverlay} onClick={onCancelar}>
-      <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-        <h2>Editar Tipo de Consulta</h2>
-
-        <label className={styles.modalLabel}>Descrição</label>
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div
+        className={styles.modalContent}
+        onClick={e => e.stopPropagation()}
+      >
+        <h3 className={styles.modalTitle}>Editar Tipo de Consulta</h3>
         <input
-          className={styles.modalInput}
           type="text"
           value={descricao}
           onChange={e => setDescricao(e.target.value)}
-          autoFocus
+          className={styles.modalInput}
         />
-
         <div className={styles.modalButtons}>
-          <button className={styles.buttonClose} onClick={onCancelar}>Cancelar</button>
-          <button className={styles.buttonSubmit} onClick={salvar}>Salvar</button>
+          <button className={`${styles.actionButton} ${styles.secondary}`} onClick={onClose}>
+            Cancelar
+          </button>
+          <button
+            className={`${styles.actionButton} ${styles.primary}`}
+            onClick={() => onSave({ ...tipo, descricao })}
+          >
+            Salvar
+          </button>
         </div>
       </div>
     </div>

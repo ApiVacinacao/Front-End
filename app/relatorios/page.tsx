@@ -15,7 +15,7 @@ interface Appointment {
   local_atendimento?: { nome?: string };
 }
 
-const API_URL = 'http://localhost:8000/api/relatorios/agendamentos';
+const API_URL = 'http://localhost:8001/api/relatorios/agendamentos';
 
 const RelatoriosPage = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);

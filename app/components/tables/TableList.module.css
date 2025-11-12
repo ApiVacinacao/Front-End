@@ -1,129 +1,167 @@
-/* Container geral da tabela */
-.tableContainer {
+.tableWrapper {
   width: 100%;
-  overflow-x: auto;
-  margin: 30px 0;
-  font-family: 'Inter', sans-serif;
-}
-
-/* Tabela estilizada */
-.table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  border-radius: 12px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  background-color: #fff;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-  min-width: 700px;
   transition: all 0.3s ease;
 }
 
-/* Cabeçalho */
+.titleBar {
+  background: linear-gradient(135deg, #2d34b7, #1f2591);
+  color: #fff;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-weight: 600;
+  font-size: 1.25rem;
+  border-bottom: 3px solid rgba(0, 0, 0, 0.05);
+}
+
+.tableContainer {
+  overflow-x: auto;
+  padding: 1rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
 .table th {
-  background: linear-gradient(135deg, #4969f7, #4969f7);
-  color: #fff;
-  font-weight: 600;
-  font-size: 15px;
-  padding: 14px 20px;
-  text-align: left;
-  letter-spacing: 0.5px;
-}
-
-/* Linhas da tabela */
-.table td {
-  padding: 14px 20px;
-  border-bottom: 1px solid #f0f0f0;
-  vertical-align: middle;
-  font-size: 14px;
+  background: #f4f5fc;
   color: #333;
-  transition: background 0.2s;
-}
-
-.table tr:hover td {
-  background-color: #f9f9f9;
-}
-
-/* Última linha sem border */
-.table tr:last-child td {
-  border-bottom: none;
-}
-
-/* Status */
-.status {
-  color: #2ecc71;
   font-weight: 600;
-  background: #e6f4ea;
-  padding: 4px 10px;
-  border-radius: 20px;
-  display: inline-block;
-  font-size: 13px;
+  padding: 0.75rem;
+  text-align: left;
+  font-size: 0.9rem;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.05);
 }
 
-.instatus {
-  color: #e74c3c;
-  font-weight: 600;
-  background: #fceaea;
-  padding: 4px 10px;
-  border-radius: 20px;
-  display: inline-block;
-  font-size: 13px;
+.table td {
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  color: #333;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  vertical-align: middle;
 }
 
-/* Botões estilizados */
-.button {
-  padding: 6px 14px;
-  margin-right: 6px;
+.table tr:hover {
+  background: rgba(45, 52, 183, 0.05);
+  transition: background 0.3s ease;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
   font-weight: 500;
-  transition: all 0.2s ease;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  white-space: nowrap;
 }
 
-/* Botão editar / ver */
-.editButton,
-.btnDetails {
-  background-color: #5a67f2;
-  color: #fff;
+.icon {
+  font-size: 1rem;
 }
 
-.editButton:hover,
-.btnDetails:hover {
-  background-color: #434190;
-  transform: translateY(-2px);
+.primary {
+  background: #2d34b7;
+  color: white;
+}
+.primary:hover {
+  background: #1f2591;
 }
 
-/* Botão ativar / inativar */
-.deleteButton,
-.btnToggle {
-  background-color: #f56565;
-  color: #fff;
+.secondary {
+  background: #ff1919;
+  color: white;
+}
+.secondary:hover {
+  background: #dfe2fb;
 }
 
-.deleteButton:hover,
-.btnToggle:hover {
-  background-color: #c53030;
-  transform: translateY(-2px);
+.danger {
+  background: #e74c3c;
+  color: white;
+}
+.danger:hover {
+  background: #c0392b;
 }
 
-/* Responsividade */
-@media (max-width: 1024px) {
-  .table th, .table td {
-    padding: 12px 16px;
-    font-size: 13px;
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+.loadingWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2d34b7;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
-
-  .button {
-    font-size: 12px;
-    padding: 5px 10px;
-  }
 }
 
+/* ===== Responsividade ===== */
 @media (max-width: 768px) {
+  .titleBar {
+    font-size: 1.1rem;
+    padding: 0.8rem 1rem;
+  }
+
+  .tableContainer {
+    padding: 0.5rem;
+  }
+
   .table {
-    min-width: 100%;
+    font-size: 0.85rem;
+  }
+
+  .actionButton {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .actions {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .actionButton {
+    width: 100%;
+    justify-content: center;
   }
 }

@@ -35,7 +35,7 @@ const ForgotPasswordSMSPage: React.FC = () => {
     try {
       setLoading(true);
 
-      const response = await fetch('http://localhost:8000/api/esquecisenha', {
+      const response = await fetch('http://localhost:8001/api/esquecisenha', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cpf: cpfLimpo }),

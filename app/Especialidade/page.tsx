@@ -12,7 +12,7 @@ type Especialidade = {
   status: boolean;
 };
 
-const API_URL = 'http://localhost:8000/api/especialidades';
+const API_URL = 'http://localhost:8001/api/especialidades';
 
 export default function EspecialidadePage() {
   const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
@@ -103,23 +103,27 @@ export default function EspecialidadePage() {
       <Navbar />
       <main className={styles.mainContent}>
         <div className={styles.header}>
-          <h2>Especialidades</h2>
+          <h2>Listagem de Especialidades</h2>
         </div>
 
-        {loading ? <p>Carregando...</p> : (
-          <div>
+        {loading ? (
+          <p>Carregando...</p>
+        ) : (
+          <div className={styles.listagem}>
             {especialidades.map(esp => (
               <div key={esp.id} className={styles.card}>
-                <div>
-                  <strong>{esp.nome}</strong>
-                  <p>{esp.descricao}</p>
+                <div className={styles.info}>
+                  <p><b>Descrição:</b> {esp.descricao}</p>
                   <p><b>Área:</b> {esp.area}</p>
-                  <p>Status: <span className={esp.status ? styles.ativo : styles.inativo}>
-                    {esp.status ? 'Ativo' : 'Inativo'}
-                  </span></p>
+                  <p>
+                    <b>Status:</b>{' '}
+                    <span className={esp.status ? styles.ativo : styles.inativo}>
+                      {esp.status ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </p>
                 </div>
                 <div className={styles.botoes}>
-                  <button className={styles.btnDetails} onClick={() => abrirModal(esp)}>Editar</button>
+                  <button className={styles.btnEdit} onClick={() => abrirModal(esp)}>Editar</button>
                   <button className={styles.btnToggle} onClick={() => toggleStatus(esp)}>
                     {esp.status ? 'Inativar' : 'Ativar'}
                   </button>
@@ -157,16 +161,16 @@ function ModalEspecialidade({ especialidade, onSalvar, onCancelar }: {
       <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
         <h2>{especialidade.id === 0 ? 'Nova Especialidade' : 'Editar Especialidade'}</h2>
 
-        <label className={styles.modalLabel}>Nome*</label>
-        <input className={styles.modalInput} value={nome} onChange={e => setNome(e.target.value)} />
+        <label>Nome*</label>
+        <input value={nome} onChange={e => setNome(e.target.value)} />
 
-        <label className={styles.modalLabel}>Descrição</label>
-        <input className={styles.modalInput} value={descricao} onChange={e => setDescricao(e.target.value)} />
+        <label>Descrição</label>
+        <input value={descricao} onChange={e => setDescricao(e.target.value)} />
 
-        <label className={styles.modalLabel}>Área*</label>
-        <select className={styles.modalInput} value={area} onChange={e => setArea(e.target.value)}>
+        <label>Área*</label>
+        <select value={area} onChange={e => setArea(e.target.value)}>
           <option value="">Selecione...</option>
-          <option value="Medica">Médica</option>
+          <option value="Médica">Médica</option>
           <option value="Enfermagem">Enfermagem</option>
           <option value="Odontologia">Odontologia</option>
           <option value="Fisioterapia">Fisioterapia</option>
@@ -174,9 +178,9 @@ function ModalEspecialidade({ especialidade, onSalvar, onCancelar }: {
           <option value="Outros">Outros</option>
         </select>
 
-        <div className={styles.modalButtons}>
-          <button className={styles.buttonClose} onClick={onCancelar}>Cancelar</button>
-          <button className={styles.buttonSubmit} onClick={salvar}>Salvar</button>
+        <div className={styles.modalActions}>
+          <button className={styles.cancelBtn} onClick={onCancelar}>Cancelar</button>
+          <button className={styles.saveBtn} onClick={salvar}>Salvar</button>
         </div>
       </div>
     </div>
