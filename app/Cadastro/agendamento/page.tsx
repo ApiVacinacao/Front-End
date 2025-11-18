@@ -36,10 +36,10 @@ const CadastroAgendamento: React.FC = () => {
     const fetchData = async () => {
       try {
         const [locaisRes, medicosRes, pacRes, tiposRes] = await Promise.all([
-          fetch('http://localhost:8001/api/localAtendimentos', { headers }),
-          fetch('http://localhost:8001/api/medicos', { headers }),
-          fetch('http://localhost:8001/api/users', { headers }),
-          fetch('http://localhost:8001/api/tipoConsultas', { headers }),
+          fetch('http://localhost:8000/api/localAtendimentos', { headers }),
+          fetch('http://localhost:8000/api/medicos', { headers }),
+          fetch('http://localhost:8000/api/users', { headers }),
+          fetch('http://localhost:8000/api/tipoConsultas', { headers }),
         ]);
         if (!locaisRes.ok || !medicosRes.ok || !pacRes.ok || !tiposRes.ok) {
           throw new Error('Erro ao buscar dados');
@@ -85,7 +85,7 @@ const CadastroAgendamento: React.FC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8001/api/agendamentos', {
+      const response = await fetch('http://localhost:8000/api/agendamentos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
