@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
 import styles from '../../styles/Relatorios.module.css';
 import Navbar from '@/app/components/navbar/page';
 
@@ -11,20 +10,46 @@ interface Appointment {
   hora?: string;
   status?: 'Agendado' | 'Realizado' | 'Cancelado';
   user?: { id: number; name?: string };
-  medico?: { nome?: string; CRM?: string };
+  medico?: { id?: number; nome?: string; CRM?: string };
   tipo_consulta?: { descricao?: string };
   local_atendimento?: { nome?: string };
 }
 
+interface Medico {
+  id: number;
+  nome: string;
+}
+
 const API_URL = 'http://localhost:8000/api/relatorios/agendamentos';
+const API_MEDICOS = 'http://localhost:8000/api/medicos';
 
 const RelatoriosPage = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(false);
+
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [medicoId, setMedicoId] = useState('');
+
+  const [medicos, setMedicos] = useState<Medico[]>([]);
 
   const getToken = () => localStorage.getItem('token');
+
+  // 🔹 Carregar médicos para o select
+  const fetchMedicos = async () => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const res = await fetch(API_MEDICOS, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setMedicos(data);
+    } catch {
+      console.log('Erro ao carregar médicos');
+    }
+  };
 
   const fetchAppointments = async () => {
     const token = getToken();
@@ -32,7 +57,9 @@ const RelatoriosPage = () => {
       alert('Você precisa estar logado.');
       return;
     }
+
     setLoading(true);
+
     try {
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -43,14 +70,17 @@ const RelatoriosPage = () => {
         body: JSON.stringify({
           data_inicial: startDate || null,
           data_final: endDate || null,
+          medico_id: medicoId || null,
           user_id: null,
-          medico_id: null,
           local_atendimento_id: null,
           tipo_consulta_id: null,
         }),
       });
+
       if (!res.ok) throw new Error('Erro ao carregar agendamentos');
+
       const data: Appointment[] = await res.json();
+
       setAppointments(data);
     } catch (err) {
       console.error(err);
@@ -61,6 +91,7 @@ const RelatoriosPage = () => {
   };
 
   useEffect(() => {
+    fetchMedicos();
     fetchAppointments();
   }, []);
 
@@ -75,7 +106,7 @@ const RelatoriosPage = () => {
     const img = new Image();
     img.src = logoUrl;
     img.onload = () => {
-      const width = 25; // largura fixa
+      const width = 25;
       const aspectRatio = img.height / img.width;
       const height = width * aspectRatio;
 
@@ -97,7 +128,7 @@ const RelatoriosPage = () => {
           a.medico?.CRM || '-',
           a.tipo_consulta?.descricao || '-',
           a.local_atendimento?.nome || '-',
-          a.status || 'Agendado'
+          a.status || 'Agendado',
         ]),
         styles: { fontSize: 10, cellPadding: 2 },
         headStyles: { fillColor: [41, 128, 185], textColor: 255, halign: 'center' },
@@ -113,34 +144,42 @@ const RelatoriosPage = () => {
     <>
       <Navbar />
       <main className={styles.mainContent}>
-        <h1>Relatórios de Agendamentos</h1>
-        <div className={styles.cards}>
-          <div className={styles.card}>
-            <p>Total de Agendamentos</p>
-            <h2>{appointments.length}</h2>
-          </div>
-          <div className={styles.card}>
-            <p>Comparecimento</p>
-            <h2>{appointments.filter(a => a.status === 'Realizado').length}</h2>
-          </div>
-          <div className={styles.card}>
-            <p>Cancelamentos</p>
-            <h2>{appointments.filter(a => a.status === 'Cancelado').length}</h2>
-          </div>
-        </div>
+        <h1>Relatórios de Medicos</h1>
+
         <section className={styles.filterSection}>
           <h3>Filtros</h3>
+
           <div className={styles.filterGrid}>
             <div>
-              <label>Data de Agendamento</label>
+              <label>Data Inicial</label>
               <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
             </div>
+
+            <div>
+              <label>Data Final</label>
+              <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+            </div>
+
+            <div>
+              <label>Profissional</label>
+              <select value={medicoId} onChange={e => setMedicoId(e.target.value)}>
+                <option value="">Todos</option>
+                {medicos.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {m.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
+
           <button className={styles.btnFilter} onClick={handleFilter}>Aplicar Filtro</button>
           <button className={styles.btnFilter} style={{ marginLeft: '10px' }} onClick={exportPDF}>Exportar PDF</button>
         </section>
+
         <section className={styles.reportPreview}>
           <h3>Prévia do Relatório</h3>
+
           {loading ? (
             <p>Carregando...</p>
           ) : appointments.length === 0 ? (
@@ -169,13 +208,15 @@ const RelatoriosPage = () => {
                     <td>{a.medico?.CRM || '-'}</td>
                     <td>{a.tipo_consulta?.descricao || '-'}</td>
                     <td>{a.local_atendimento?.nome || '-'}</td>
-                    <td className={
-                      a.status === 'Realizado'
-                        ? styles.statusRealizado
-                        : a.status === 'Cancelado'
-                        ? styles.statusCancelado
-                        : ''
-                    }>
+                    <td
+                      className={
+                        a.status === 'Realizado'
+                          ? styles.statusRealizado
+                          : a.status === 'Cancelado'
+                          ? styles.statusCancelado
+                          : ''
+                      }
+                    >
                       {a.status || 'Agendado'}
                     </td>
                   </tr>

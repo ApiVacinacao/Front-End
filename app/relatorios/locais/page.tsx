@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';import styles from '../../styles/Relatorios.module.css';
+import { useState, useEffect } from 'react';
+import styles from '../../styles/Relatorios.module.css';
 import Navbar from '@/app/components/navbar/page';
 
 interface Appointment {
@@ -11,18 +12,45 @@ interface Appointment {
   user?: { id: number; name?: string };
   medico?: { nome?: string; CRM?: string };
   tipo_consulta?: { descricao?: string };
-  local_atendimento?: { nome?: string };
+  local_atendimento?: { id?: number; nome?: string };
+}
+
+interface LocalAtendimento {
+  id: number;
+  nome: string;
 }
 
 const API_URL = 'http://localhost:8000/api/relatorios/agendamentos';
+const API_LOCAIS = 'http://localhost:8000/api/localAtendimentos';
 
 const RelatoriosPage = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(false);
+
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [localId, setLocalId] = useState('');
+
+  const [locais, setLocais] = useState<LocalAtendimento[]>([]);
 
   const getToken = () => localStorage.getItem('token');
+
+  // 🔹 Carregar locais de atendimento
+  const fetchLocais = async () => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const res = await fetch(API_LOCAIS, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+      setLocais(data);
+    } catch {
+      console.log('Erro ao carregar locais de atendimento');
+    }
+  };
 
   const fetchAppointments = async () => {
     const token = getToken();
@@ -31,6 +59,7 @@ const RelatoriosPage = () => {
       return;
     }
     setLoading(true);
+
     try {
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -43,13 +72,16 @@ const RelatoriosPage = () => {
           data_final: endDate || null,
           user_id: null,
           medico_id: null,
-          local_atendimento_id: null,
+          local_atendimento_id: localId || null,
           tipo_consulta_id: null,
         }),
       });
+
       if (!res.ok) throw new Error('Erro ao carregar agendamentos');
+
       const data: Appointment[] = await res.json();
       setAppointments(data);
+
     } catch (err) {
       console.error(err);
       alert('Erro ao carregar os agendamentos.');
@@ -59,6 +91,7 @@ const RelatoriosPage = () => {
   };
 
   useEffect(() => {
+    fetchLocais();
     fetchAppointments();
   }, []);
 
@@ -73,7 +106,7 @@ const RelatoriosPage = () => {
     const img = new Image();
     img.src = logoUrl;
     img.onload = () => {
-      const width = 25; // largura fixa
+      const width = 25;
       const aspectRatio = img.height / img.width;
       const height = width * aspectRatio;
 
@@ -111,34 +144,51 @@ const RelatoriosPage = () => {
     <>
       <Navbar />
       <main className={styles.mainContent}>
-        <h1>Relatórios de Agendamentos</h1>
-        <div className={styles.cards}>
-          <div className={styles.card}>
-            <p>Total de Agendamentos</p>
-            <h2>{appointments.length}</h2>
-          </div>
-          <div className={styles.card}>
-            <p>Comparecimento</p>
-            <h2>{appointments.filter(a => a.status === 'Realizado').length}</h2>
-          </div>
-          <div className={styles.card}>
-            <p>Cancelamentos</p>
-            <h2>{appointments.filter(a => a.status === 'Cancelado').length}</h2>
-          </div>
-        </div>
+        <h1>Relatórios de Locais de atendimento</h1>
+
         <section className={styles.filterSection}>
           <h3>Filtros</h3>
+
           <div className={styles.filterGrid}>
+            {/* Data inicial */}
             <div>
-              <label>Data de Agendamento</label>
-              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+              <label>Data Inicial</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={e => setStartDate(e.target.value)}
+              />
+            </div>
+
+            {/* Data final */}
+            <div>
+              <label>Data Final</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={e => setEndDate(e.target.value)}
+              />
+            </div>
+
+            {/* Local de atendimento */}
+            <div>
+              <label>Local de Atendimento</label>
+              <select value={localId} onChange={e => setLocalId(e.target.value)}>
+                <option value="">Todos</option>
+                {locais.map(l => (
+                  <option key={l.id} value={l.id}>{l.nome}</option>
+                ))}
+              </select>
             </div>
           </div>
+
           <button className={styles.btnFilter} onClick={handleFilter}>Aplicar Filtro</button>
           <button className={styles.btnFilter} style={{ marginLeft: '10px' }} onClick={exportPDF}>Exportar PDF</button>
         </section>
+
         <section className={styles.reportPreview}>
           <h3>Prévia do Relatório</h3>
+
           {loading ? (
             <p>Carregando...</p>
           ) : appointments.length === 0 ? (

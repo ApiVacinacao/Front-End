@@ -44,7 +44,7 @@ export default function Pacientes() {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_URL}/${paciente.id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -66,7 +66,7 @@ export default function Pacientes() {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_URL}/${pacienteAtualizado.id}`, {
-        method: 'PUT',
+        method: 'PATH',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -100,8 +100,8 @@ export default function Pacientes() {
               { title: 'Status', key: 'status', render: (p) => <span className={p.status ? styles.status : styles.instatus}>{p.status ? 'Ativo' : 'Inativo'}</span> },
             ]}
             actions={[
-              { label: 'Editar', onClick: setPacienteEditando, className: styles.editButton },
-              { label: (p: any) => p.status ? 'Inativar' : 'Ativar', onClick: toggleAtivo, className: styles.deleteButton },
+              { label: 'Editar', onClick: setPacienteEditando},
+              { label: (p: any) => p.status ? 'Inativar' : 'Ativar', onClick: toggleAtivo },
             ]}
           />
         </div>

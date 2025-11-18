@@ -180,9 +180,9 @@ const Navbar = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/relatorios/consultas" className={`${styles.subLink} ${isActive("/Relatorios/consultas") ? styles.activeSubLink : ""}`}>
+                  <Link href="/relatorios/locais" className={`${styles.subLink} ${isActive("/Relatorios/locais") ? styles.activeSubLink : ""}`}>
                     <MdAnalytics size={18} style={{ marginRight: 6 }} />
-                    Consultas
+                    Locais Atendimento
                   </Link>
                 </li>
               </ul>
