@@ -168,21 +168,21 @@ const Navbar = () => {
             {relatoriosOpen && (
               <ul className={styles.subList}>
                 <li>
-                  <Link href="/relatorios/medicos" className={`${styles.subLink} ${isActive("/Relatorios/medicos") ? styles.activeSubLink : ""}`}>
+                  <Link href="/Relatorios/medicos" className={`${styles.subLink} ${isActive("/Relatorios/medicos") ? styles.activeSubLink : ""}`}>
                     <MdLocalHospital size={18} style={{ marginRight: 6 }} />
                     Médicos
                   </Link>
                 </li>
                 <li>
-                  <Link href="/relatorios/pacientes" className={`${styles.subLink} ${isActive("/Relatorios/pacientes") ? styles.activeSubLink : ""}`}>
+                  <Link href="/Relatorios/pacientes" className={`${styles.subLink} ${isActive("/Relatorios/pacientes") ? styles.activeSubLink : ""}`}>
                     <MdPerson size={18} style={{ marginRight: 6 }} />
                     Pacientes
                   </Link>
                 </li>
                 <li>
-                  <Link href="/relatorios/locais" className={`${styles.subLink} ${isActive("/Relatorios/locais") ? styles.activeSubLink : ""}`}>
+                  <Link href="/Relatorios/consultas" className={`${styles.subLink} ${isActive("/Relatorios/consultas") ? styles.activeSubLink : ""}`}>
                     <MdAnalytics size={18} style={{ marginRight: 6 }} />
-                    Locais Atendimento
+                    Consultas
                   </Link>
                 </li>
               </ul>

@@ -188,9 +188,6 @@ export default function MedicosPage() {
       <main className={styles.mainContent}>
         <div className={styles.header}>
           <h2>Listagem de Médicos</h2>
-          <button className={styles.addBtn} onClick={() => abrirModal()}>
-            Novo Médico
-          </button>
         </div>
 
         {loading ? (

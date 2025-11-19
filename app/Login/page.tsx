@@ -41,14 +41,17 @@ const LoginPage: React.FC = () => {
       const data = await res.json();
 
       if (res.ok && data.token) {
-        // salva token
         localStorage.setItem('token', data.token);
+        localStorage.setItem('role', data.user.role);
+        localStorage.setItem('user_id', String(data.user.id));
         if (remember) localStorage.setItem('rememberMe', 'true');
-        router.replace('/'); // redireciona pra listagem
+        router.replace('/');
       } else {
         alert(data.error || 'CPF ou senha inválidos!');
       }
     } catch (error) {
+      alert('Erro na conexão com o servidor.');
+      console.error(error);
     }
   };
 
@@ -90,14 +93,10 @@ const LoginPage: React.FC = () => {
             />
             <label htmlFor="remember">Lembrar-me</label>
           </div>
-          <a href="/Senha" className={styles.forgotLink}>
-            Esqueci minha senha
-          </a>
+          <a href="/Senha" className={styles.forgotLink}>Esqueci minha senha</a>
         </div>
 
-        <button className={styles.btnLogin} onClick={handleLogin}>
-          Acessar
-        </button>
+        <button className={styles.btnLogin} onClick={handleLogin}>Acessar</button>
       </div>
     </div>
   );

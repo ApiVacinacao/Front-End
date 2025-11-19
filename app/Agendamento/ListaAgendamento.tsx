@@ -53,7 +53,7 @@ const AgendamentosList: React.FC = () => {
       }
 
       if (res.status === 403 || res.status === 404) {
-        res = await fetch(`${API_URL}/myAppointments`, { headers: authHeaders() });
+        res = await fetch(`${API_URL}/`, { headers: authHeaders() });
       }
 
       const data = await res.json();
