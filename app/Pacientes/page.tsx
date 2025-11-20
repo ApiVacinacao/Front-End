@@ -1,24 +1,32 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import Navbar from '../components/navbar/page';
-import styles from './paciente.module.css';
-import modalStyles from './EditModal.module.css';
-import { TableList } from '../components/tables/TableList';
 
-interface Paciente {
+import React, { useEffect, useState } from 'react';
+import Navbar from '../components/navbar/page';
+import styles from '../styles/Especialidade.module.css';
+
+type Paciente = {
   id: number;
-  name: string;
+  nome: string;
   email: string;
   cpf: string;
   status: boolean;
-}
+};
 
 const API_URL = 'http://localhost:8000/api/users';
 
-export default function Pacientes() {
+export default function PacientesPage() {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
-  const [pacienteEditando, setPacienteEditando] = useState<Paciente | null>(null);
+  const [selected, setSelected] = useState<Paciente | null>(null);
+  const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const getHeaders = () => {
+    const token = localStorage.getItem('token');
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    if (token) headers.append('Authorization', `Bearer ${token}`);
+    return headers;
+  };
 
   useEffect(() => {
     fetchPacientes();
@@ -27,123 +35,176 @@ export default function Pacientes() {
   const fetchPacientes = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(API_URL, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-      if (!res.ok) throw new Error(`Erro ao carregar pacientes: ${res.status}`);
-      const data = await res.json();
-      setPacientes(data);
+      const res = await fetch(API_URL, { headers: getHeaders() });
+      if (!res.ok) throw new Error('Erro ao carregar pacientes');
+      setPacientes(await res.json());
     } catch (err) {
       console.error(err);
-      alert(err);
+      alert('Erro ao carregar pacientes');
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleAtivo = async (paciente: Paciente) => {
+  // =============================
+  // ABRIR MODAL
+  // =============================
+  const abrirModal = (paciente?: Paciente) => {
+    setSelected(
+      paciente || { id: 0, nome: '', email: '', cpf: '', status: true }
+    );
+    setOpenModal(true);
+  };
+
+  // =============================
+  // SALVAR (PUT)
+  // =============================
+  const salvarPaciente = async (paciente: Paciente) => {
+    if (!paciente.nome.trim() || !paciente.email.trim() || !paciente.cpf.trim()) {
+      alert('Preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    const payload = {
+      nome: paciente.nome,
+      email: paciente.email,
+      cpf: paciente.cpf,
+      status: paciente.status,
+    };
+
+    const token = localStorage.getItem('token');
+
     try {
-      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/${paciente.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error('Erro ao salvar paciente');
+      await res.json();
+      fetchPacientes();
+      setOpenModal(false);
+      setSelected(null);
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao salvar paciente');
+    }
+  };
+
+  // =============================
+  // ALTERAR STATUS
+  // =============================
+  const toggleStatus = async (paciente: Paciente) => {
+    const token = localStorage.getItem('token');
+    try {
       const res = await fetch(`${API_URL}/${paciente.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ ...paciente, status: !paciente.status }),
+        body: JSON.stringify({ status: !paciente.status }),
       });
-      if (!res.ok) throw new Error('Erro ao atualizar status');
-      const data = await res.json();
-      setPacientes(prev => prev.map(p => (p.id === data.id ? data : p)));
+      if (!res.ok) throw new Error('Erro ao alterar status');
+      fetchPacientes();
     } catch (err) {
       console.error(err);
-      alert('Erro ao atualizar o status do paciente.');
-    }
-  };
-
-  const salvarPaciente = async (pacienteAtualizado: Partial<Paciente> & { id?: number }) => {
-    if (!pacienteAtualizado.id) return alert('Não é permitido adicionar novos pacientes.');
-
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/${pacienteAtualizado.id}`, {
-        method: 'PATH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(pacienteAtualizado),
-      });
-      if (!res.ok) throw new Error('Erro ao salvar paciente');
-      const data = await res.json();
-      setPacientes(prev => prev.map(p => (p.id === data.id ? data : p)));
-      setPacienteEditando(null);
-    } catch (err) {
-      console.error(err);
-      alert(err);
+      alert('Erro ao alterar status');
     }
   };
 
   return (
     <>
       <Navbar />
-      <main className={styles.content}>
-        <div className={styles.container}>
-          <h1 className={styles.title}>Lista de Pacientes</h1>
-
-          <TableList
-            data={pacientes}
-            loading={loading}
-            columns={[
-              { title: 'Nome', key: 'name' },
-              { title: 'Email', key: 'email' },
-              { title: 'CPF', key: 'cpf' },
-              { title: 'Status', key: 'status', render: (p) => <span className={p.status ? styles.status : styles.instatus}>{p.status ? 'Ativo' : 'Inativo'}</span> },
-            ]}
-            actions={[
-              { label: 'Editar', onClick: setPacienteEditando},
-              { label: (p: any) => p.status ? 'Inativar' : 'Ativar', onClick: toggleAtivo },
-            ]}
-          />
+      <main className={styles.mainContent}>
+        <div className={styles.header}>
+          <h2>Listagem de Pacientes</h2>
         </div>
-      </main>
 
-      {pacienteEditando && (
-        <ModalPaciente
-          paciente={pacienteEditando}
-          onSalvar={salvarPaciente}
-          onCancelar={() => setPacienteEditando(null)}
-        />
-      )}
+        {loading ? (
+          <p>Carregando...</p>
+        ) : (
+          <div className={styles.listagem}>
+            {pacientes.map(p => (
+              <div key={p.id} className={styles.card}>
+                <div className={styles.info}>
+                  <p><b>Nome:</b> {p.nome}</p>
+                  <p><b>Email:</b> {p.email}</p>
+                  <p><b>CPF:</b> {p.cpf}</p>
+                  <p>
+                    <b>Status:</b>{' '}
+                    <span className={p.status ? styles.ativo : styles.inativo}>
+                      {p.status ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </p>
+                </div>
+
+                <div className={styles.botoes}>
+                  <button className={styles.btnEdit} onClick={() => abrirModal(p)}>Editar</button>
+                  <button className={styles.btnToggle} onClick={() => toggleStatus(p)}>
+                    {p.status ? 'Inativar' : 'Ativar'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {openModal && selected && (
+          <ModalPaciente
+            paciente={selected}
+            onSalvar={salvarPaciente}
+            onCancelar={() => setOpenModal(false)}
+          />
+        )}
+      </main>
     </>
   );
 }
 
-function ModalPaciente({ paciente, onSalvar, onCancelar }: { paciente: Partial<Paciente>; onSalvar: (p: Partial<Paciente>) => void; onCancelar: () => void }) {
-  const [name, setNome] = useState(paciente.name ?? '');
-  const [email, setEmail] = useState(paciente.email ?? '');
-  const [cpf, setCpf] = useState(paciente.cpf ?? '');
-  const [status, setAtivo] = useState(paciente.status ?? true);
+// =============================
+// MODAL PACIENTE
+// =============================
+function ModalPaciente({
+  paciente,
+  onSalvar,
+  onCancelar
+}: {
+  paciente: Paciente;
+  onSalvar: (p: Paciente) => void;
+  onCancelar: () => void;
+}) {
+  const [nome, setNome] = useState(paciente.nome);
+  const [email, setEmail] = useState(paciente.email);
+  const [cpf, setCpf] = useState(paciente.cpf);
+  const [status, setStatus] = useState(paciente.status);
 
-  const salvar = () => {
-    if (!name.trim() || !email.trim() || !cpf.trim()) return alert('Preencha todos os campos.');
-    onSalvar({ ...paciente, name, email, cpf, status });
-  };
+  const salvar = () => onSalvar({ ...paciente, nome, email, cpf, status });
 
   return (
-    <div className={modalStyles.modalOverlay}>
-      <div className={modalStyles.modalContent}>
-        <h2 className={modalStyles.modalTitle}>Editar Paciente</h2>
-        <label className={modalStyles.modalLabel}>Nome</label>
-        <input className={modalStyles.modalInput} value={name} onChange={e => setNome(e.target.value)} />
-        <label className={modalStyles.modalLabel}>Email</label>
-        <input className={modalStyles.modalInput} type="email" value={email} onChange={e => setEmail(e.target.value)} />
-        <label className={modalStyles.modalLabel}>CPF</label>
-        <input className={modalStyles.modalInput} value={cpf} onChange={e => setCpf(e.target.value)} />
-        <label className={modalStyles.modalLabel}>Ativo</label>
-        <input type="checkbox" checked={status} onChange={e => setAtivo(e.target.checked)} />
-        <div className={modalStyles.actions}>
-          <button onClick={onCancelar}>Cancelar</button>
-          <button className={modalStyles.saveButton} onClick={salvar}>Salvar</button>
+    <div className={styles.modalOverlay} onClick={onCancelar}>
+      <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+        <h2>{paciente.id === 0 ? 'Novo Paciente' : 'Editar Paciente'}</h2>
+
+        <label>Nome*</label>
+        <input value={nome} onChange={e => setNome(e.target.value)} />
+
+        <label>Email*</label>
+        <input type="email" value={email} onChange={e => setEmail(e.target.value)} />
+
+        <label>CPF*</label>
+        <input value={cpf} onChange={e => setCpf(e.target.value)} />
+
+        <label>Status</label>
+        <input type="checkbox" checked={status} onChange={e => setStatus(e.target.checked)} />
+
+        <div className={styles.modalActions}>
+          <button className={styles.cancelBtn} onClick={onCancelar}>Cancelar</button>
+          <button className={styles.saveBtn} onClick={salvar}>Salvar</button>
         </div>
       </div>
     </div>

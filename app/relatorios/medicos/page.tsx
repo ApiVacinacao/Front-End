@@ -173,57 +173,61 @@ const RelatoriosPage = () => {
             </div>
           </div>
 
-          <button className={styles.btnFilter} onClick={handleFilter}>Aplicar Filtro</button>
-          <button className={styles.btnFilter} style={{ marginLeft: '10px' }} onClick={exportPDF}>Exportar PDF</button>
+          <div className={styles.filterButtons}>
+            <button className={styles.btnFilter} onClick={handleFilter}>Aplicar Filtro</button>
+            <button className={styles.btnFilter} onClick={exportPDF}>Exportar PDF</button>
+          </div>
+
         </section>
+   <section className={styles.reportPreview}>
+          <div className={styles.reportCard}>
+            <h3>Prévia do Relatório</h3>
 
-        <section className={styles.reportPreview}>
-          <h3>Prévia do Relatório</h3>
-
-          {loading ? (
-            <p>Carregando...</p>
-          ) : appointments.length === 0 ? (
-            <p>Nenhum agendamento encontrado.</p>
-          ) : (
-            <table className={styles.reportTable}>
-              <thead>
-                <tr>
-                  <th>Data</th>
-                  <th>Hora</th>
-                  <th>Paciente</th>
-                  <th>Profissional</th>
-                  <th>CRM</th>
-                  <th>Tipo Consulta</th>
-                  <th>Local Atendimento</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {appointments.map(a => (
-                  <tr key={a.id}>
-                    <td>{a.data}</td>
-                    <td>{a.hora || '-'}</td>
-                    <td>{a.user?.name || '-'}</td>
-                    <td>{a.medico?.nome || '-'}</td>
-                    <td>{a.medico?.CRM || '-'}</td>
-                    <td>{a.tipo_consulta?.descricao || '-'}</td>
-                    <td>{a.local_atendimento?.nome || '-'}</td>
-                    <td
-                      className={
-                        a.status === 'Realizado'
-                          ? styles.statusRealizado
-                          : a.status === 'Cancelado'
-                          ? styles.statusCancelado
-                          : ''
-                      }
-                    >
-                      {a.status || 'Agendado'}
-                    </td>
+            {loading ? (
+              <p>Carregando...</p>
+            ) : appointments.length === 0 ? (
+              <p>Nenhum agendamento encontrado.</p>
+            ) : (
+              <table className={styles.reportTable}>
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Hora</th>
+                    <th>Paciente</th>
+                    <th>Profissional</th>
+                    <th>CRM</th>
+                    <th>Tipo Consulta</th>
+                    <th>Local Atendimento</th>
+                    <th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+                </thead>
+                <tbody>
+                  {appointments.map(a => (
+                    <tr key={a.id}>
+                      <td>{a.data}</td>
+                      <td>{a.hora || '-'}</td>
+                      <td>{a.user?.name || '-'}</td>
+                      <td>{a.medico?.nome || '-'}</td>
+                      <td>{a.medico?.CRM || '-'}</td>
+                      <td>{a.tipo_consulta?.descricao || '-'}</td>
+                      <td>{a.local_atendimento?.nome || '-'}</td>
+                      <td
+                        className={
+                          a.status === 'Realizado'
+                            ? styles.statusRealizado
+                            : a.status === 'Cancelado'
+                              ? styles.statusCancelado
+                              : ''
+                        }
+                      >
+                        {a.status || 'Agendado'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </section>
       </main>
     </>

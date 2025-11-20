@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../../components/navbar/page';
 import styles from './agendamento.module.css';
 
-interface LocalAtendimento { id: number; nome: string; }
-interface Medico { id: number; nome: string; }
-interface Paciente { id: number; name: string; }
-interface TipoAgendamento { id: number; descricao: string; }
+interface LocalAtendimento { id: number; nome: string; status: boolean; }
+interface Medico { id: number; nome: string; status: boolean; }
+interface Paciente { id: number; name: string; status: boolean; }
+interface TipoAgendamento { id: number; descricao: string; status: boolean; }
 
 const CadastroAgendamento: React.FC = () => {
   const [data, setData] = useState('');
@@ -51,10 +51,11 @@ const CadastroAgendamento: React.FC = () => {
           tiposRes.json(),
         ]);
 
-        setLocais(locaisData);
-        setMedicos(medicosData);
-        setPacientes(pacData);
-        setTiposAgendamento(tiposData);
+        // Filtra apenas os ativos
+        setLocais(locaisData.filter((l: LocalAtendimento) => l.status));
+        setMedicos(medicosData.filter((m: Medico) => m.status));
+        setPacientes(pacData.filter((p: Paciente) => p.status));
+        setTiposAgendamento(tiposData.filter((t: TipoAgendamento) => t.status));
       } catch (err) {
         console.error('Erro ao buscar dados:', err);
         alert('Erro ao carregar dados. Tente novamente mais tarde.');
@@ -80,8 +81,6 @@ const CadastroAgendamento: React.FC = () => {
       tipo_consulta_id: Number(tipoAgendamento),
       user_id: Number(userId),
     };
-
-    console.log('📦 Dados enviados para o backend (POST /agendamentos):', agendamentoData);
 
     try {
       const token = localStorage.getItem('token');
@@ -112,21 +111,8 @@ const CadastroAgendamento: React.FC = () => {
       <Navbar />
       <main className={styles.mainContent}>
         {loading ? (
-          <div className="loadingWrapper" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh' }}>
-            <div className="spinner" style={{
-              width: 60,
-              height: 60,
-              border: '6px solid #e0e0e0',
-              borderTopColor: '#3b82f6',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }} />
-            <style>{`
-              @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-              }
-            `}</style>
+          <div className="loadingWrapper">
+            <div className="spinner" />
           </div>
         ) : (
           <div className={styles.container}>

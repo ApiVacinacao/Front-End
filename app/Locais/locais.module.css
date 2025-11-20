@@ -39,6 +39,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.2rem;
+  flex-wrap: wrap;
 }
 
 .title {
@@ -65,7 +66,7 @@
   background: var(--table-bg);
   border-radius: 0.75rem;
   box-shadow: 0 4px 10px var(--shadow);
-  overflow-x: auto;
+  overflow: hidden;
   transition: all 0.3s ease;
 }
 
@@ -86,6 +87,7 @@
 .table td {
   padding: 0.8rem;
   border-bottom: 1px solid var(--border);
+  word-break: break-word;
 }
 
 .table tr:nth-child(even) {
@@ -142,12 +144,6 @@
 }
 
 /* ====== RESPONSIVIDADE ====== */
-@media (max-width: 1200px) {
-  .content {
-    margin-left: 220px;
-  }
-}
-
 @media (max-width: 992px) {
   .content {
     margin-left: 0;
@@ -176,46 +172,57 @@
   }
 }
 
+/* Mobile: transformar cada linha da tabela em card */
 @media (max-width: 768px) {
-  .content {
-    padding: 1rem;
-  }
-
-  .title {
-    font-size: 1.1rem;
-    padding: 0.4rem 0.6rem;
-  }
-
+  .table,
+  .table thead,
+  .table tbody,
   .table th,
+  .table td,
+  .table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tr {
+    margin-bottom: 1rem;
+    background: var(--table-bg);
+    border-radius: 0.6rem;
+    box-shadow: 0 2px 6px var(--shadow);
+    padding: 0.8rem;
+  }
+
   .table td {
-    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0.8rem;
+    border: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
   }
 
   .actions {
-    justify-content: center;
-  }
-
-  .actionButton {
-    font-size: 0.8rem;
-    padding: 0.35rem 0.6rem;
+    justify-content: flex-start;
+    margin-top: 0.5rem;
   }
 }
 
+/* Mobile pequeno */
 @media (max-width: 480px) {
   .title {
     font-size: 1rem;
     padding: 0.4rem 0.5rem;
     border-left-width: 3px;
-  }
-
-  .table th,
-  .table td {
-    font-size: 0.8rem;
-    padding: 0.4rem;
-  }
-
-  .tableWrapper {
-    border-radius: 0.5rem;
   }
 
   .actionButton {

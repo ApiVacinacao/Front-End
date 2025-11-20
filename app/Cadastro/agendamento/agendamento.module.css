@@ -1,5 +1,9 @@
+/* =======================
+   Layout principal
+======================= */
 .pageWrapper {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background: linear-gradient(135deg, #e0efff, #c4dbf7);
 }
@@ -9,10 +13,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
   padding: 2rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #1e293b;
+  width: 100%;
 }
 
 .container {
@@ -24,6 +28,7 @@
   max-width: 600px;
   animation: fadeInUp 0.8s ease forwards;
   text-align: center;
+  transition: all 0.3s ease;
 }
 
 .title {
@@ -33,7 +38,9 @@
   font-weight: 700;
 }
 
-/* Linhas e colunas para responsividade */
+/* =======================
+   Linhas e colunas
+======================= */
 .row {
   display: flex;
   gap: 1rem;
@@ -56,7 +63,13 @@
   color: #4b5563;
 }
 
-.input {
+/* =======================
+   Inputs e Selects
+======================= */
+.input, select.input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   padding: 0.75rem 1rem;
   border-radius: 10px;
   border: 1.8px solid #cbd5e1;
@@ -65,19 +78,37 @@
   font-size: 1rem;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   outline: none;
+  cursor: pointer;
+  width: 100%;
 }
 
-.input::placeholder {
+/* Placeholder para selects */
+select.input option[value=""] {
   color: #94a3b8;
 }
 
+/* Hover e Focus */
 .input:hover,
-.input:focus {
+.input:focus,
+select.input:hover,
+select.input:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 6px rgba(59, 130, 246, 0.3);
   background-color: #f0f9ff;
 }
 
+/* Seta customizada para selects */
+select.input {
+  background-image: url("data:image/svg+xml,%3Csvg fill='none' stroke='%2394a3b8' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+/* =======================
+   Botão
+======================= */
 .button {
   margin-top: 1.8rem;
   width: 100%;
@@ -99,26 +130,61 @@
   transform: translateY(-2px);
 }
 
+/* =======================
+   Animação
+======================= */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsividade */
+/* =======================
+   Responsividade Mobile
+======================= */
 @media (max-width: 520px) {
   .container {
-    padding: 2rem 1.5rem;
+    padding: 1.5rem 1rem;
+  }
+  .title {
+    font-size: 1.8rem;
+  }
+  .input, select.input, .button {
+    font-size: 1rem;
+    padding: 0.9rem 1rem;
+  }
+  .row {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  .col {
+    min-width: 100%;
+  }
+}
+
+/* =======================
+   Responsividade Tablet
+======================= */
+@media (max-width: 768px) {
+  .container {
+    padding: 2rem 2rem;
   }
   .title {
     font-size: 2rem;
   }
-  .input, .button {
-    font-size: 1rem;
+  .input, select.input, .button {
+    font-size: 1.05rem;
+    padding: 0.8rem 1rem;
   }
   .row {
-    flex-direction: column;
+    gap: 0.9rem;
   }
-  .col {
-    min-width: 100%;
+}
+
+/* =======================
+   Telas grandes
+======================= */
+@media (min-width: 1200px) {
+  .container {
+    max-width: 700px;
   }
 }

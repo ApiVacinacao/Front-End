@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/navbar/page';
-import styles from '../styles/Especialidade.module.css'; // reaproveitando o mesmo CSS
+import styles from '../styles/Especialidade.module.css';
 
 type Especialidade = {
   id: number;

@@ -8,7 +8,6 @@ const CadastroEspecialidade: React.FC = () => {
     const [nome, setNome] = useState('');
     const [descricao, setDescricao] = useState('');
     const [area, setArea] = useState('');
-    const [status, setStatus] = useState(true); // true = ativo, false = inativo
     const [mensagem, setMensagem] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -42,7 +41,7 @@ const CadastroEspecialidade: React.FC = () => {
                     nome, 
                     descricao, 
                     area, 
-                    status 
+                    status: true // sempre ativo
                 }),
             });
 
@@ -58,7 +57,6 @@ const CadastroEspecialidade: React.FC = () => {
             setNome('');
             setDescricao('');
             setArea('');
-            setStatus(true);
         } catch (error) {
             console.error('Erro ao enviar dados:', error);
             setMensagem('Erro ao cadastrar especialidade.');
@@ -112,18 +110,6 @@ const CadastroEspecialidade: React.FC = () => {
                                     <option value="Fisioterapia">Fisioterapia</option>
                                     <option value="Psicologia">Psicologia</option>
                                     <option value="Outros">Outros</option>
-                                </select>
-                            </div>
-
-                            <div className={styles.col}>
-                                <label>Status</label>
-                                <select
-                                    value={status ? 'true' : 'false'}
-                                    onChange={(e) => setStatus(e.target.value === 'true')}
-                                    className={styles.input}
-                                >
-                                    <option value="true">Ativo</option>
-                                    <option value="false">Inativo</option>
                                 </select>
                             </div>
                         </div>

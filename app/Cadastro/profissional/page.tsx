@@ -7,6 +7,7 @@ import styles from './medico.module.css';
 interface Especialidade {
   id: number;
   nome: string;
+  status: number; // 0 ou 1
 }
 
 const CadastroMedico: React.FC = () => {
@@ -14,13 +15,11 @@ const CadastroMedico: React.FC = () => {
     nome: '',
     cpf: '',
     crm: '',
-    especialidade_id: '', // guarda o ID da especialidade
+    especialidade_id: '',
   });
-
   const [mensagem, setMensagem] = useState('');
   const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
 
-  // Buscar especialidades do backend
   useEffect(() => {
     const fetchEspecialidades = async () => {
       try {
@@ -29,7 +28,10 @@ const CadastroMedico: React.FC = () => {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
         const data = await res.json();
-        if (res.ok) setEspecialidades(data);
+        if (res.ok) {
+          const ativas = data.filter((esp: Especialidade) => esp.status === 1);
+          setEspecialidades(ativas);
+        }
       } catch (err) {
         console.error('Erro ao conectar à API de especialidades', err);
       }
@@ -37,48 +39,39 @@ const CadastroMedico: React.FC = () => {
     fetchEspecialidades();
   }, []);
 
-  // Atualiza campos genéricos
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Formata CPF: 000.000.000-00, mas envia sem formatação
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/\D/g, '').slice(0, 11);
-    value = value
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2')
+                 .replace(/(\d{3})(\d)/, '$1.$2')
+                 .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
     setFormData({ ...formData, cpf: value });
   };
 
-  // Formata CRM em maiúsculo, aceita letras e números
   const handleCrmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toUpperCase().replace(/[^A-Z0-9/ ]/g, '');
     setFormData({ ...formData, crm: value });
   };
 
-  // Submissão do formulário
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMensagem('');
 
     const { nome, cpf, crm, especialidade_id } = formData;
-    if (!nome || !cpf || !crm || !especialidade_id) {
-      setMensagem('Preencha todos os campos obrigatórios.');
-      return;
-    }
+    if (!nome || !cpf || !crm || !especialidade_id) return setMensagem('Preencha todos os campos obrigatórios.');
 
     try {
       const token = localStorage.getItem('token');
-
       const payload = {
         nome,
-        cpf: cpf.replace(/\D/g, ''), // envia apenas números
+        cpf: cpf.replace(/\D/g, ''),
         CRM: crm.toUpperCase(),
         especialidade_id: Number(especialidade_id),
-        status: true, // sempre ativo
+        status: 1, // sempre ativo
       };
 
       const res = await fetch('http://localhost:8000/api/medicos', {
@@ -91,7 +84,6 @@ const CadastroMedico: React.FC = () => {
       });
 
       const data = await res.json();
-
       if (res.ok) {
         setMensagem(`Médico ${data.nome} cadastrado com sucesso!`);
         setFormData({ nome: '', cpf: '', crm: '', especialidade_id: '' });
@@ -155,16 +147,21 @@ const CadastroMedico: React.FC = () => {
                   value={formData.especialidade_id}
                   onChange={handleChange}
                   required
+                  disabled={especialidades.length === 0}
                 >
-                  <option value="">Selecione a especialidade</option>
+                  <option value="">
+                    {especialidades.length === 0 ? 'Carregando...' : 'Selecione a especialidade'}
+                  </option>
                   {especialidades.map((esp) => (
-                    <option key={esp.id} value={esp.id}>{esp.nome}</option>
+                    <option key={esp.id} value={esp.id}>
+                      {esp.nome}
+                    </option>
                   ))}
                 </select>
               </div>
             </div>
 
-            <button type="submit" className={styles.button}>Cadastrar</button>
+            <button type="submit">Cadastrar</button>
             {mensagem && <p className={styles.mensagem}>{mensagem}</p>}
           </form>
         </div>
