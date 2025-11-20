@@ -12,19 +12,27 @@ export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Garantir que só execute no cliente
-    if (typeof window === "undefined") return;
+  if (typeof window === "undefined") return;
 
-    const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
 
-    if (!token) {
-      router.replace("/Login");
-    } else {
-      setIsAuthenticated(true);
-    }
+  if (!token) {
+    router.replace("/Login");
+    return;
+  }
 
-    setIsChecking(false);
-  }, []); // <- sem router aqui
+  // Usuário comum → vai direto pra agendamentos
+  if (role !== "admin") {
+    router.replace("/Agendamento");
+    return;
+  }
+
+  // Admin → mostra dashboard normal
+  setIsAuthenticated(true);
+  setIsChecking(false);
+}, []);
+ // <- sem router aqui
 
   if (isChecking) {
     return (

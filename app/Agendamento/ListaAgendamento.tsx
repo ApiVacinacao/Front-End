@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useEffect, useState } from 'react';
 import styles from '../styles/ListaAgendamento.module.css';
 import DetalheAgendamento from './AgendamentoDetalhe';
@@ -12,7 +13,6 @@ export interface Appointment {
   data: string;
   hora: string;
   status?: boolean;
-
   user?: { id: number; name: string };
   medico?: { id: number; nome: string };
   local_atendimento?: { id: number; nome: string };
@@ -44,7 +44,7 @@ const AgendamentosList: React.FC = () => {
     }
 
     try {
-      let res = await fetch(`${API_URL}`, { headers: authHeaders() });
+      let res = await fetch(API_URL, { headers: authHeaders() });
 
       if (res.status === 401) {
         localStorage.removeItem('token');
@@ -74,8 +74,8 @@ const AgendamentosList: React.FC = () => {
   const closeModal = () => setSelectedAppointment(null);
 
   const handleUpdate = (updated: Appointment) => {
-    setAppointments((prev) =>
-      prev.map((a) => (a.id === updated.id ? updated : a))
+    setAppointments(prev =>
+      prev.map(a => (a.id === updated.id ? updated : a))
     );
   };
 
@@ -90,9 +90,12 @@ const AgendamentosList: React.FC = () => {
 
       if (!res.ok) throw new Error('Erro ao alterar status do agendamento.');
 
-      const updated: Appointment = await res.json();
+      // Pega só o status atualizado do backend
+      const { status } = await res.json();
+
+      // Atualiza apenas o status, mantendo o restante do objeto
       setAppointments(prev =>
-        prev.map(a => (a.id === updated.id ? updated : a))
+        prev.map(a => (a.id === appointment.id ? { ...a, status } : a))
       );
     } catch (err) {
       console.error('Erro ao alterar status:', err);
@@ -106,7 +109,7 @@ const AgendamentosList: React.FC = () => {
 
       {loading && <p className={styles.loading}>Carregando agendamentos...</p>}
 
-      {!loading && (!appointments || appointments.length === 0) && (
+      {!loading && appointments.length === 0 && (
         <p className={styles.empty}>Nenhum agendamento encontrado.</p>
       )}
 
@@ -125,33 +128,31 @@ const AgendamentosList: React.FC = () => {
                 <th>Ações</th>
               </tr>
             </thead>
+
             <tbody>
-              {appointments.map((a) => (
+              {appointments.map(a => (
                 <tr key={a.id}>
-                  <td>{a.user?.name ?? 'Desconhecido'}</td>
-                  <td>{a.data}</td>
-                  <td>{a.hora}</td>
-                  <td>{a.medico?.nome ?? 'Desconhecido'}</td>
-                  <td>{a.local_atendimento?.nome ?? 'Desconhecido'}</td>
-                  <td>{a.tipo_consulta?.descricao ?? 'Desconhecido'}</td>
-                  <td>{a.status ? 'Ativo' : 'Inativo'}</td>
-                  <td>
+                  <td data-label="Paciente">{a.user?.name ?? 'Desconhecido'}</td>
+                  <td data-label="Data">{a.data}</td>
+                  <td data-label="Hora">{a.hora}</td>
+                  <td data-label="Profissional">{a.medico?.nome ?? 'Desconhecido'}</td>
+                  <td data-label="Local">{a.local_atendimento?.nome ?? 'Desconhecido'}</td>
+                  <td data-label="Tipo Consulta">{a.tipo_consulta?.descricao ?? 'Desconhecido'}</td>
+                  <td data-label="Status">{a.status ? 'Ativo' : 'Inativo'}</td>
+                  <td className="actionsCell">
+                    <button className={styles.btnDetails} onClick={() => openModal(a)}>Editar</button>
                     <button
-                      className={styles.btnDetails}
-                      onClick={() => openModal(a)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className={`${styles.btnToggle} ${a.status ? styles.btnAtivo : styles.btnInativo}`}
+                      className={`${styles.btnToggle} ${a.status ? styles.btnInativar : styles.btnAtivar}`}
                       onClick={() => toggleStatus(a)}
                     >
                       {a.status ? 'Inativar' : 'Ativar'}
                     </button>
                   </td>
+
                 </tr>
               ))}
             </tbody>
+
           </table>
         </div>
       )}

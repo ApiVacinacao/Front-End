@@ -6,7 +6,7 @@ import Sidebar from '../components/navbar/page';
 const AgendamentosPage: React.FC = () => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f3f4f6' }}>
-      <div style={{ width: '240px', boxShadow: '2px 0 8px rgba(0,0,0,0.05)', zIndex: 10 }}>
+      <div style={{boxShadow: '2px 0 8px rgba(0,0,0,0.05)', zIndex: 10 }}>
         <Sidebar />
       </div>
 
