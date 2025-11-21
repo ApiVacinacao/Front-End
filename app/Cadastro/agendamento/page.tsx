@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../../components/navbar/page';
 import styles from './agendamento.module.css';
 
-interface LocalAtendimento { id: number; nome: string; }
-interface Medico { id: number; nome: string; }
-interface Paciente { id: number; name: string; }
-interface TipoAgendamento { id: number; descricao: string; }
+interface LocalAtendimento { id: number; nome: string; status: boolean; }
+interface Medico { id: number; nome: string; status: boolean; }
+interface Paciente { id: number; name: string; status: boolean; }
+interface TipoAgendamento { id: number; descricao: string; status: boolean; }
 
 const CadastroAgendamento: React.FC = () => {
   const [data, setData] = useState('');
@@ -36,10 +36,10 @@ const CadastroAgendamento: React.FC = () => {
     const fetchData = async () => {
       try {
         const [locaisRes, medicosRes, pacRes, tiposRes] = await Promise.all([
-          fetch('http://localhost:8001/api/localAtendimentos', { headers }),
-          fetch('http://localhost:8001/api/medicos', { headers }),
-          fetch('http://localhost:8001/api/users', { headers }),
-          fetch('http://localhost:8001/api/tipoConsultas', { headers }),
+          fetch('http://localhost:8000/api/localAtendimentos', { headers }),
+          fetch('http://localhost:8000/api/medicos', { headers }),
+          fetch('http://localhost:8000/api/users', { headers }),
+          fetch('http://localhost:8000/api/tipoConsultas', { headers }),
         ]);
         if (!locaisRes.ok || !medicosRes.ok || !pacRes.ok || !tiposRes.ok) {
           throw new Error('Erro ao buscar dados');
@@ -51,10 +51,11 @@ const CadastroAgendamento: React.FC = () => {
           tiposRes.json(),
         ]);
 
-        setLocais(locaisData);
-        setMedicos(medicosData);
-        setPacientes(pacData);
-        setTiposAgendamento(tiposData);
+        // Filtra apenas os ativos
+        setLocais(locaisData.filter((l: LocalAtendimento) => l.status));
+        setMedicos(medicosData.filter((m: Medico) => m.status));
+        setPacientes(pacData.filter((p: Paciente) => p.status));
+        setTiposAgendamento(tiposData.filter((t: TipoAgendamento) => t.status));
       } catch (err) {
         console.error('Erro ao buscar dados:', err);
         alert('Erro ao carregar dados. Tente novamente mais tarde.');
@@ -73,19 +74,16 @@ const CadastroAgendamento: React.FC = () => {
     }
 
     const agendamentoData = {
-      data,
-      hora,
+      dataHora: `${data} ${hora}:00`,
       local_atendimento_id: Number(localAtendimentoId),
       medico_id: Number(medicoId),
       tipo_consulta_id: Number(tipoAgendamento),
       user_id: Number(userId),
     };
 
-    console.log('📦 Dados enviados para o backend (POST /agendamentos):', agendamentoData);
-
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8001/api/agendamentos', {
+      const response = await fetch('http://localhost:8000/api/agendamentos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -99,7 +97,16 @@ const CadastroAgendamento: React.FC = () => {
         router.push('/');
       } else {
         const errorData = await response.json();
-        alert(errorData.message || 'Erro ao cadastrar agendamento!');
+
+        if (errorData?.errors) {
+          const mensagens = Object.values(errorData.errors)
+            .flat()
+            .join(' | ');
+
+          alert(mensagens);
+        } else {
+          alert(errorData.message || 'Erro ao cadastrar agendamento!');
+        }
       }
     } catch (err) {
       console.error('Erro ao cadastrar agendamento:', err);
@@ -107,26 +114,14 @@ const CadastroAgendamento: React.FC = () => {
     }
   };
 
+
   return (
     <div className={styles.pageWrapper}>
       <Navbar />
       <main className={styles.mainContent}>
         {loading ? (
-          <div className="loadingWrapper" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh' }}>
-            <div className="spinner" style={{
-              width: 60,
-              height: 60,
-              border: '6px solid #e0e0e0',
-              borderTopColor: '#3b82f6',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }} />
-            <style>{`
-              @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-              }
-            `}</style>
+          <div className="loadingWrapper">
+            <div className="spinner" />
           </div>
         ) : (
           <div className={styles.container}>

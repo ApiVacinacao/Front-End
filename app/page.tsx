@@ -1,66 +1,60 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-import './globals.css'; // seu CSS com :root e variáveis
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import "./globals.css";
 
 export default function Home() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [isChecking, setIsChecking] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.replace('/Login');
-    } else {
-      setLoading(false);
-    }
-  }, [router]);
+  if (typeof window === "undefined") return;
 
-  if (loading)
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+
+  if (!token) {
+    router.replace("/Login");
+    return;
+  }
+
+  // Usuário comum → vai direto pra agendamentos
+  if (role !== "admin") {
+    router.replace("/Agendamento");
+    return;
+  }
+
+  // Admin → mostra dashboard normal
+  setIsAuthenticated(true);
+  setIsChecking(false);
+}, []);
+ // <- sem router aqui
+
+  if (isChecking) {
     return (
       <div className="loadingWrapper">
         <div className="spinner"></div>
-        <style jsx>{`
-          .loadingWrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
-            font-family: 'Segoe UI', sans-serif;
-          }
-
-          .spinner {
-            width: 60px;
-            height: 60px;
-            border: 6px solid #e0e0e0;
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-          }
-
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
       </div>
     );
+  }
+
+  if (!isAuthenticated) return null; // evita renderização duplicada
 
   const options = [
-    { title: 'Agendamentos', description: 'Gerencie todos os agendamentos do sistema.', path: '/Cadastro/agendamento', icon: '📅' },
-    { title: 'Relatórios', description: 'Visualize e gere relatórios completos.', path: '/relatorios', icon: '📊' },
-    { title: 'Locais', description: 'Gerencie os locais cadastrados no sistema.', path: '/Locais', icon: '📍' },
-    { title: 'Tipos de Consulta', description: 'Configure os tipos de consulta disponíveis.', path: '/Cadastro/consulta', icon: '🩺' },
+    { title: "Agendamentos", description: "Gerencie todos os agendamentos do sistema.", path: "/Cadastro/agendamento", icon: "📅" },
+    { title: "Relatórios", description: "Visualize relatórios completos.", path: "/relatorios", icon: "📊" },
+    { title: "Locais", description: "Gerencie locais do sistema.", path: "/Locais", icon: "📍" },
+    { title: "Tipos de Consulta", description: "Configure tipos de consulta.", path: "/Cadastro/consulta", icon: "🩺" },
   ];
 
   return (
     <div className="bgContainer">
       <main className="homePage">
+
         <header className="header">
           <Image src="/aa.png" alt="Logo IAITEA" width={80} height={80} />
           <h1 className="title">Sistema IAITEA</h1>
@@ -75,7 +69,7 @@ export default function Home() {
               className="optionCard floating"
               style={{
                 animation: `fadeUp 0.5s ease forwards`,
-                animationDelay: `${index * 0.1}s`
+                animationDelay: `${index * 0.1}s`,
               }}
             >
               <div className="icon">{item.icon}</div>
@@ -85,6 +79,7 @@ export default function Home() {
             </Link>
           ))}
         </section>
+
       </main>
     </div>
   );

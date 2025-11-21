@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navbar/page';
-import { TableList } from '../components/tables/TableList';
-import styles from './locais.module.css';
-import modalStyles from './EditModal.module.css';
+import styles from '../styles/Especialidade.module.css'; // reaproveitando CSS dos médicos
 
 interface Local {
   id: number;
@@ -14,192 +12,171 @@ interface Local {
   status: boolean;
 }
 
-const API_URL = 'http://localhost:8001/api/localAtendimentos';
+const API_URL = 'http://localhost:8000/api/localAtendimentos';
 
-export default function Locais() {
+export default function LocaisPage() {
   const [locais, setLocais] = useState<Local[]>([]);
-  const [localEditando, setLocalEditando] = useState<Local | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState('');
+  const [selected, setSelected] = useState<Local | null>(null);
+  const [openModal, setOpenModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const getHeaders = () => {
+    const token = localStorage.getItem('token');
+    const headers = new Headers();
+    headers.append("Content-Type", "application/json");
+    if (token) headers.append("Authorization", `Bearer ${token}`);
+    return headers;
+  };
 
   useEffect(() => {
     fetchLocais();
   }, []);
 
   const fetchLocais = async () => {
+    setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(API_URL, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!res.ok) throw new Error(`Erro: ${res.status}`);
-      const data = await res.json();
-      setLocais(data);
+      const res = await fetch(API_URL, { headers: getHeaders() });
+      if (!res.ok) throw new Error('Erro ao buscar locais');
+      setLocais(await res.json());
     } catch (err) {
       console.error(err);
-      setErro('Erro ao carregar locais');
+      alert('Erro ao carregar locais');
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleStatus = async (id: number) => {
+  const toggleStatus = async (local: Local) => {
+    const token = localStorage.getItem('token');
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/${id}/toggle-status`, {
+      const res = await fetch(`${API_URL}/${local.id}`, {
         method: 'PATCH',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: !local.status })
       });
       if (!res.ok) throw new Error('Erro ao alterar status');
-      const atualizado = await res.json();
-      setLocais(prev => prev.map(l => (l.id === atualizado.id ? atualizado : l)));
+      fetchLocais();
     } catch (err) {
       console.error(err);
       alert('Erro ao alterar status');
     }
   };
 
-  const salvarEdicao = async (local: Local) => {
+  const salvarLocal = async (local: Local) => {
+    if (!local.nome.trim() || !local.endereco.trim() || !local.telefone.trim()) {
+      alert('Preencha todos os campos.');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
     try {
-      const token = localStorage.getItem('token');
       const res = await fetch(`${API_URL}/${local.id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify(local),
+        body: JSON.stringify(local)
       });
       if (!res.ok) throw new Error('Erro ao salvar local');
-      const atualizado = await res.json();
-      setLocais(prev => prev.map(l => (l.id === atualizado.id ? atualizado : l)));
-      setLocalEditando(null);
+      fetchLocais();
+      setOpenModal(false);
+      setSelected(null);
     } catch (err) {
       console.error(err);
       alert('Erro ao salvar local');
     }
   };
 
-  const columns = [
-    { title: 'Nome', key: 'nome' },
-    { title: 'Endereço', key: 'endereco' },
-    { title: 'Telefone', key: 'telefone' },
-    {
-      title: 'Status',
-      key: 'status',
-      render: (item: Local) => (
-        <span className={item.status ? styles.statusAtivo : styles.statusInativo}>
-          {item.status ? 'Ativo' : 'Inativo'}
-        </span>
-      ),
-    },
-  ];
-
-  const actions = [
-    {
-      label: 'Editar',
-      type: 'primary' as const,
-      onClick: (local: Local) => setLocalEditando(local),
-    },
-    {
-      label: (local: Local) => (local.status ? 'Inativar' : 'Ativar'),
-      type: 'secondary' as const,
-      onClick: (local: Local) => toggleStatus(local.id),
-    },
-  ];
+  const abrirModal = (local?: Local) => {
+    setSelected(local || { id: 0, nome: '', endereco: '', telefone: '', status: true });
+    setOpenModal(true);
+  };
 
   return (
-    <div className={styles.page}>
+    <>
       <Navbar />
-      <main className={styles.content}>
+      <main className={styles.mainContent}>
         <div className={styles.header}>
-          <h2 className={styles.title}>📍 Locais de Atendimento</h2>
+          <h2 style={{ textAlign: 'center', width: '100%' }}>📍 Locais de Atendimento</h2>
         </div>
 
-        {loading && <p className={styles.loading}>Carregando locais...</p>}
-        {erro && <p className={styles.error}>{erro}</p>}
+        {loading ? (
+          <p>Carregando...</p>
+        ) : (
+          <div className={styles.listagem} style={{ overflowX: 'auto' }}>
+            {locais.map(local => (
+              <div key={local.id} className={styles.card}>
+                <div className={styles.info}>
+                  <p><b>Nome:</b> {local.nome}</p>
+                  <p><b>Endereço:</b> {local.endereco}</p>
+                  <p><b>Telefone:</b> {local.telefone}</p>
+                  <p>
+                    <b>Status:</b>{' '}
+                    <span className={local.status ? styles.ativo : styles.inativo}>
+                      {local.status ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </p>
+                </div>
 
-        {!loading && (
-          <div className={styles.tableWrapper}>
-            <TableList<Local>
-              data={locais}
-              columns={columns}
-              actions={actions}
-              title=""
-              loading={loading}
-            />
+                <div className={styles.botoes}>
+                  <button className={styles.btnEdit} onClick={() => abrirModal(local)}>Editar</button>
+                  <button className={styles.btnToggle} onClick={() => toggleStatus(local)}>
+                    {local.status ? 'Inativar' : 'Ativar'}
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
-      </main>
 
-      {localEditando && (
-        <ModalEditarLocal
-          local={localEditando}
-          onSalvar={salvarEdicao}
-          onCancelar={() => setLocalEditando(null)}
-        />
-      )}
-    </div>
+        {openModal && selected && (
+          <ModalLocal
+            local={selected}
+            onSalvar={salvarLocal}
+            onCancelar={() => setOpenModal(false)}
+          />
+        )}
+      </main>
+    </>
   );
 }
 
-function ModalEditarLocal({
+function ModalLocal({
   local,
   onSalvar,
-  onCancelar,
+  onCancelar
 }: {
   local: Local;
   onSalvar: (local: Local) => void;
   onCancelar: () => void;
 }) {
-  const [form, setForm] = useState(local);
+  const [nome, setNome] = useState(local.nome);
+  const [endereco, setEndereco] = useState(local.endereco);
+  const [telefone, setTelefone] = useState(local.telefone);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const salvar = () => onSalvar({ ...local, nome, endereco, telefone });
 
   return (
-    <div className={modalStyles.overlay} onClick={onCancelar}>
-      <div className={modalStyles.modal} onClick={e => e.stopPropagation()}>
-        <h3 className={modalStyles.title}>Editar Local</h3>
+    <div className={styles.modalOverlay} onClick={onCancelar}>
+      <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+        <h2>{local.id === 0 ? 'Novo Local' : 'Editar Local'}</h2>
 
-        <div className={modalStyles.formGroup}>
-          <label>Nome</label>
-          <input
-            name="nome"
-            value={form.nome}
-            onChange={handleChange}
-            placeholder="Digite o nome do local"
-          />
-        </div>
+        <label>Nome*</label>
+        <input value={nome} onChange={e => setNome(e.target.value)} />
 
-        <div className={modalStyles.formGroup}>
-          <label>Endereço</label>
-          <input
-            name="endereco"
-            value={form.endereco}
-            onChange={handleChange}
-            placeholder="Digite o endereço"
-          />
-        </div>
+        <label>Endereço*</label>
+        <input value={endereco} onChange={e => setEndereco(e.target.value)} />
 
-        <div className={modalStyles.formGroup}>
-          <label>Telefone</label>
-          <input
-            name="telefone"
-            value={form.telefone}
-            onChange={handleChange}
-            placeholder="(xx) xxxx-xxxx"
-          />
-        </div>
+        <label>Telefone*</label>
+        <input value={telefone} onChange={e => setTelefone(e.target.value)} />
 
-        <div className={modalStyles.buttons}>
-          <button className={modalStyles.cancel} onClick={onCancelar}>
-            Cancelar
-          </button>
-          <button className={modalStyles.save} onClick={() => onSalvar(form)}>
-            Salvar
-          </button>
+        <div className={styles.modalActions}>
+          <button className={styles.cancelBtn} onClick={onCancelar}>Cancelar</button>
+          <button className={styles.saveBtn} onClick={salvar}>Salvar</button>
         </div>
       </div>
     </div>

@@ -13,96 +13,57 @@
 }
 
 /* =========================
-   Background e conteúdo
+   Conteúdo principal
    ========================= */
-.content {
+.mainContent {
+  width: calc(100% - 250px);
+  max-width: 1400px;
   margin-left: 250px;
   padding: 2rem;
-  min-height: 100vh;
   background-color: var(--bg-lighter);
+  min-height: 100vh;
   font-family: 'Inter', sans-serif;
-  transition: margin 0.3s ease;
+  transition: all 0.3s ease;
 }
 
-.container {
-  max-width: 1200px;
-  margin: auto;
-  padding: 3rem;
-  background-color: var(--bg-light);
-  border-radius: 16px;
-  box-shadow: 0 6px 20px var(--shadow-light);
-}
-
-.title {
-  font-size: 2.5rem;
+.header h2 {
+  font-size: 2rem;
   font-weight: 700;
   margin-bottom: 2rem;
-  text-align: center;
-  position: relative;
-  padding-bottom: 0.5rem;
   color: var(--text-primary);
-}
-
-.title::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: 2px;
-  background-color: var(--border-color);
-  border-radius: 1px;
+  text-align: center;
 }
 
 /* =========================
-   Tabela
+   Lista de Cards
    ========================= */
-.lista {
-  width: 100%;
-  border-collapse: collapse;
-  border: 1px solid var(--border-color);
+.listagem {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  background-color: var(--bg-light);
   border-radius: 12px;
-  overflow: hidden;
+  padding: 1.5rem;
+  box-shadow: 0 6px 20px var(--shadow-light);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.lista thead th {
-  text-align: left;
-  padding: 1rem 1.2rem;
-  font-weight: 600;
-  font-size: 1rem;
-  color: var(--text-label);
-  background-color: var(--bg-lighter);
-  border-bottom: 2px solid var(--border-color);
-  border-right: 1px solid var(--border-color);
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
-.lista thead th:last-child {
-  border-right: none;
-}
-
-.lista tbody tr:nth-child(even) {
-  background-color: #f9fafb;
-}
-
-.lista tbody tr:hover {
-  background-color: #f0f9ff;
-}
-
-.lista tbody td {
-  padding: 1rem 1.2rem;
-  font-size: 0.95rem;
+.info p {
+  margin: 0.5rem 0;
   color: var(--text-secondary);
-  border-top: 1px solid var(--border-color);
-  border-right: 1px solid var(--border-color);
 }
 
-.lista tbody td:last-child {
-  border-right: none;
-}
-
-/* =========================
-   Status
-   ========================= */
 .status {
   font-weight: 600;
   padding: 0.35rem 0.75rem;
@@ -111,92 +72,149 @@
   display: inline-block;
 }
 
-.ativo { 
-  color: #16a34a;
-  background: rgba(22,163,74,0.1);
+.ativo {
+  color: #22c55e;
+  background: rgba(34,197,94,0.1);
 }
 
-.inativo { 
-  color: #dc2626;
-  background: rgba(220,38,38,0.1);
+.inativo {
+  color: #ef4444;
+  background: rgba(239,68,68,0.1);
 }
 
 /* =========================
    Botões
    ========================= */
-td .editButton,
-td .deleteButton {
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  border: none;
-  transition: all 0.25s ease, transform 0.2s;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  margin-right: 0.4rem;
+.botoes {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
-td .editButton {
+.btnEdit,
+.btnToggle {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.btnEdit {
+  background-color: var(--primary-blue);
+  color: #fff;
+}
+.btnEdit:hover {
+  background-color: var(--primary-blue-dark);
+  transform: translateY(-2px);
+}
+
+.btnToggle {
+  background-color: var(--secondary-red);
+  color: #fff;
+}
+.btnToggle:hover {
+  background-color: var(--secondary-red-dark);
+  transform: translateY(-2px);
+}
+
+/* =========================
+   Modal
+   ========================= */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modalContent {
+  background: var(--bg-light);
+  padding: 2rem;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modalContent h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.modalContent label {
+  display: block;
+  margin-top: 1rem;
+  margin-bottom: 0.3rem;
+  color: var(--text-label);
+}
+
+.modalContent input[type="text"],
+.modalContent input[type="email"] {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  gap: 0.5rem;
+}
+
+.cancelBtn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: #ccc;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.cancelBtn:hover {
+  background: #999;
+}
+
+.saveBtn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
   background: var(--primary-blue);
   color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
-td .editButton:hover {
+.saveBtn:hover {
   background: var(--primary-blue-dark);
-  transform: translateY(-2px);
-}
-
-td .deleteButton {
-  background: var(--secondary-red);
-  color: #fff;
-}
-td .deleteButton:hover {
-  background: var(--secondary-red-dark);
-  transform: translateY(-2px);
 }
 
 /* =========================
    Responsividade
    ========================= */
 @media (max-width: 1024px) {
-  .content { margin-left: 0; padding: 1.5rem; }
-  .container { padding: 2rem; }
-
-  .lista thead { display: none; }
-  
-  .lista, .lista tbody, .lista tr, .lista td {
-    display: block;
-    width: 100%;
-  }
-
-  .lista tr {
-    margin-bottom: 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 0.8rem;
-    background-color: var(--bg-light);
-  }
-
-  .lista td {
-    border: none;
-    display: flex;
-    justify-content: space-between;
-    padding: 0.6rem 0.8rem;
-    font-size: 0.95rem;
-  }
-
-  .lista td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: var(--text-label);
-  }
+  .mainContent { width: 100%; margin-left: 0; padding: 1.5rem; }
+  .listagem { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
-  .container { padding: 1.5rem 1rem; }
-  td .editButton, td .deleteButton { 
-    width: 100%; 
-    margin-right: 0; 
-    margin-bottom: 0.5rem; 
-  }
+  .modalContent { padding: 1.5rem; }
+  .botoes { flex-direction: column; }
 }

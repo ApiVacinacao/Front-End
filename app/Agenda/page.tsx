@@ -1,104 +1,184 @@
 "use client";
-import React, { useState } from 'react';
-import styles from './AgendaConsulta.module.css';
-import Sidebar from '../components/navbar/page';
+import React, { useEffect, useState } from "react";
+import Sidebar from "../components/navbar/page";
+import styles from "./AgendaConsulta.module.css";
+import axios from "axios";
 
-interface Consulta {
-  nome: string;
-  especialidade: string;
+interface Agendamento {
+  id: number;
   data: string;
   hora: string;
+  status: boolean;
 }
 
-const AgendaConsulta: React.FC = () => {
-  const [nome, setNome] = useState('');
-  const [especialidade, setEspecialidade] = useState('Clínico Geral');
-  const [data, setData] = useState('');
-  const [hora, setHora] = useState('');
-  const [consultas, setConsultas] = useState<Consulta[]>([]);
+export default function AgendaConsulta() {
+  const [consultas, setConsultas] = useState<Agendamento[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
 
-  const agendarConsulta = () => {
-    if (!nome || !data || !hora) {
-      alert('Preencha todos os campos!');
+  // Campos do formulário
+  const [idEdicao, setIdEdicao] = useState<number | null>(null);
+  const [data, setData] = useState("");
+  const [hora, setHora] = useState("");
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : "";
+
+  const api = axios.create({
+    baseURL: "http://localhost:8000/api",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  // CARREGA LISTA DE AGENDAMENTOS
+  useEffect(() => {
+    listarConsultas();
+  }, []);
+
+  const listarConsultas = async () => {
+    try {
+      const r = await api.get("/agendamentos");
+      setConsultas(r.data);
+    } catch (err) {
+      alert("Erro ao carregar agendamentos.");
+    }
+  };
+
+  // CRIAR AGENDAMENTO
+  const criarAgendamento = async () => {
+    if (!data || !hora) {
+      alert("Preencha data e hora!");
       return;
     }
 
-    const novaConsulta: Consulta = { nome, especialidade, data, hora };
-    setConsultas([...consultas, novaConsulta]);
+    try {
+      await api.post("/agendamentos", {
+        data,
+        hora,
+        user_id: 1,
+        medico_id: 1,
+        local_atendimento_id: 1,
+        tipo_consulta_id: 1,
+      });
 
-    setNome('');
-    setData('');
-    setHora('');
+      alert("Agendamento criado!");
+      limparFormulario();
+      listarConsultas();
+    } catch (err) {
+      alert("Erro ao criar agendamento");
+    }
+  };
+
+  // ABRIR MODAL DE EDIÇÃO
+  const abrirEdicao = (c: Agendamento) => {
+    setIdEdicao(c.id);
+    setData(c.data);
+    setHora(c.hora);
+    setModalOpen(true);
+  };
+
+  // SALVAR EDIÇÃO
+  const salvarEdicao = async () => {
+    if (!idEdicao) return;
+
+    try {
+      await api.put(`/agendamentos/${idEdicao}`, {
+        data,
+        hora,
+        user_id: 1,
+        medico_id: 1,
+        local_atendimento_id: 1,
+        tipo_consulta_id: 1,
+      });
+
+      alert("Consulta atualizada!");
+      setModalOpen(false);
+      limparFormulario();
+      listarConsultas();
+    } catch (err) {
+      alert("Erro ao atualizar agendamento");
+    }
+  };
+
+  // TROCAR STATUS (ATIVAR / INATIVAR)
+  const trocarStatus = async (id: number) => {
+    try {
+      await api.patch(`/agendamentos/${id}/toggle-status`);
+      listarConsultas();
+    } catch (err) {
+      alert("Erro ao trocar status");
+    }
+  };
+
+  const limparFormulario = () => {
+    setData("");
+    setHora("");
+    setIdEdicao(null);
   };
 
   return (
     <div className="flex">
       <Sidebar />
+
       <div className={styles.container}>
         <h1 className={styles.header}>Agendar Consulta</h1>
 
+        {/* Formulário */}
         <div className={styles.formGrid}>
           <div className={styles.formGroup}>
-            <label className={styles.label}>Nome do Paciente</label>
-            <input 
-              className={styles.input}
-              value={nome} 
-              onChange={(e) => setNome(e.target.value)} 
-            />
+            <label>Data</label>
+            <input type="date" value={data} onChange={(e) => setData(e.target.value)} className={styles.input} />
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>Especialidade</label>
-            <select 
-              className={styles.select}
-              value={especialidade} 
-              onChange={(e) => setEspecialidade(e.target.value)}
-            >
-              <option>Clínico Geral</option>
-              <option>Pediatria</option>
-              <option>Cardiologia</option>
-              <option>Dermatologia</option>
-            </select>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Data</label>
-            <input 
-              type="date" 
-              className={styles.input}
-              value={data} 
-              onChange={(e) => setData(e.target.value)} 
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Hora</label>
-            <input 
-              type="time" 
-              className={styles.input}
-              value={hora} 
-              onChange={(e) => setHora(e.target.value)} 
-            />
+            <label>Hora</label>
+            <input type="time" value={hora} onChange={(e) => setHora(e.target.value)} className={styles.input} />
           </div>
         </div>
 
-        <button className={styles.button} onClick={agendarConsulta}>
-          Agendar Consulta
+        <button className={styles.button} onClick={criarAgendamento}>
+          Criar Agendamento
         </button>
 
+        {/* Lista */}
+        <h2 className={styles.header}>Consultas Agendadas</h2>
+
         <div className={styles.consultasList}>
-          <h2 className={styles.header}>Consultas Agendadas</h2>
-          {consultas.map((c, index) => (
-            <div key={index} className={styles.consultaCard}>
-              <p><strong>Paciente:</strong> {c.nome}</p>
-              <p><strong>Especialidade:</strong> {c.especialidade}</p>
-              <p><strong>Data:</strong> {c.data} às {c.hora}</p>
+          {consultas.map((c) => (
+            <div key={c.id} className={styles.consultaCard}>
+              <p><strong>Data:</strong> {c.data}</p>
+              <p><strong>Hora:</strong> {c.hora}</p>
+              <p><strong>Status:</strong> {c.status ? "Ativo" : "Inativo"}</p>
+
+              <div className={styles.actions}>
+                <button className={styles.btnEdit} onClick={() => abrirEdicao(c)}>✏️ Editar</button>
+                <button className={styles.btnToggle} onClick={() => trocarStatus(c.id)}>
+                  🔄 Trocar Status
+                </button>
+              </div>
             </div>
           ))}
         </div>
+
+        {/* Modal de edição */}
+        {modalOpen && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <h3>Editar Agendamento</h3>
+
+              <div className={styles.formGroup}>
+                <label>Data</label>
+                <input type="date" value={data} onChange={(e) => setData(e.target.value)} className={styles.input} />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Hora</label>
+                <input type="time" value={hora} onChange={(e) => setHora(e.target.value)} className={styles.input} />
+              </div>
+
+              <button className={styles.button} onClick={salvarEdicao}>Salvar</button>
+              <button className={styles.btnCancel} onClick={() => setModalOpen(false)}>Cancelar</button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default AgendaConsulta;
+}

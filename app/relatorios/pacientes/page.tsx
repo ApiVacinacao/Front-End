@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Navbar from '../components/navbar/page';
-import styles from '../styles/Relatorios.module.css';
+import styles from '../../styles/Relatorios.module.css';
+import Navbar from '@/app/components/navbar/page';
 
 interface Appointment {
   id: number;
@@ -20,17 +20,23 @@ const API_URL = 'http://localhost:8000/api/relatorios/agendamentos';
 const RelatoriosPage = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(false);
+
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [userId, setUserId] = useState<string>('');
+
+  const [users, setUsers] = useState<{ id: number; name: string }[]>([]);
 
   const getToken = () => localStorage.getItem('token');
 
+  // 🔵 BUSCAR AGENDAMENTOS
   const fetchAppointments = async () => {
     const token = getToken();
     if (!token) {
       alert('Você precisa estar logado.');
       return;
     }
+
     setLoading(true);
     try {
       const res = await fetch(API_URL, {
@@ -42,15 +48,18 @@ const RelatoriosPage = () => {
         body: JSON.stringify({
           data_inicial: startDate || null,
           data_final: endDate || null,
-          user_id: null,
+          user_id: userId || null,
           medico_id: null,
           local_atendimento_id: null,
           tipo_consulta_id: null,
         }),
       });
+
       if (!res.ok) throw new Error('Erro ao carregar agendamentos');
+
       const data: Appointment[] = await res.json();
       setAppointments(data);
+
     } catch (err) {
       console.error(err);
       alert('Erro ao carregar os agendamentos.');
@@ -59,12 +68,36 @@ const RelatoriosPage = () => {
     }
   };
 
+  // 🔵 BUSCAR USUÁRIOS
+  const fetchUsers = async () => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const res = await fetch('http://localhost:8000/api/users', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error('Erro ao carregar usuários');
+
+      const data = await res.json();
+      setUsers(data);
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchAppointments();
+    fetchUsers();
   }, []);
 
   const handleFilter = () => fetchAppointments();
 
+  // 🔵 EXPORTAR PDF
   const exportPDF = async () => {
     const { jsPDF } = await import('jspdf');
     const autoTableModule = await import('jspdf-autotable');
@@ -73,8 +106,9 @@ const RelatoriosPage = () => {
     const logoUrl = '/aa.png';
     const img = new Image();
     img.src = logoUrl;
+
     img.onload = () => {
-      const width = 25; // largura fixa
+      const width = 25;
       const aspectRatio = img.height / img.width;
       const height = width * aspectRatio;
 
@@ -112,76 +146,90 @@ const RelatoriosPage = () => {
     <>
       <Navbar />
       <main className={styles.mainContent}>
-        <h1>Relatórios de Agendamentos</h1>
-        <div className={styles.cards}>
-          <div className={styles.card}>
-            <p>Total de Agendamentos</p>
-            <h2>{appointments.length}</h2>
-          </div>
-          <div className={styles.card}>
-            <p>Comparecimento</p>
-            <h2>{appointments.filter(a => a.status === 'Realizado').length}</h2>
-          </div>
-          <div className={styles.card}>
-            <p>Cancelamentos</p>
-            <h2>{appointments.filter(a => a.status === 'Cancelado').length}</h2>
-          </div>
-        </div>
+        <h1>Relatórios de Pacientes</h1>
+
         <section className={styles.filterSection}>
           <h3>Filtros</h3>
+
           <div className={styles.filterGrid}>
             <div>
-              <label>Data de Agendamento</label>
+              <label>Data Inicial</label>
               <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
             </div>
-          </div>
-          <button className={styles.btnFilter} onClick={handleFilter}>Aplicar Filtro</button>
-          <button className={styles.btnFilter} style={{ marginLeft: '10px' }} onClick={exportPDF}>Exportar PDF</button>
-        </section>
-        <section className={styles.reportPreview}>
-          <h3>Prévia do Relatório</h3>
-          {loading ? (
-            <p>Carregando...</p>
-          ) : appointments.length === 0 ? (
-            <p>Nenhum agendamento encontrado.</p>
-          ) : (
-            <table className={styles.reportTable}>
-              <thead>
-                <tr>
-                  <th>Data</th>
-                  <th>Hora</th>
-                  <th>Paciente</th>
-                  <th>Profissional</th>
-                  <th>CRM</th>
-                  <th>Tipo Consulta</th>
-                  <th>Local Atendimento</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {appointments.map(a => (
-                  <tr key={a.id}>
-                    <td>{a.data}</td>
-                    <td>{a.hora || '-'}</td>
-                    <td>{a.user?.name || '-'}</td>
-                    <td>{a.medico?.nome || '-'}</td>
-                    <td>{a.medico?.CRM || '-'}</td>
-                    <td>{a.tipo_consulta?.descricao || '-'}</td>
-                    <td>{a.local_atendimento?.nome || '-'}</td>
-                    <td className={
-                      a.status === 'Realizado'
-                        ? styles.statusRealizado
-                        : a.status === 'Cancelado'
-                        ? styles.statusCancelado
-                        : ''
-                    }>
-                      {a.status || 'Agendado'}
-                    </td>
-                  </tr>
+
+            <div>
+              <label>Data Final</label>
+              <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+            </div>
+
+            <div>
+              <label>Paciente</label>
+              <select value={userId} onChange={e => setUserId(e.target.value)}>
+                <option value="">Todos</option>
+                {users.map(user => (
+                  <option key={user.id} value={user.id}>
+                    {user.name} (ID: {user.id})
+                  </option>
                 ))}
-              </tbody>
-            </table>
-          )}
+              </select>
+            </div>
+          </div>
+
+           <div className={styles.filterButtons}>
+            <button className={styles.btnFilter} onClick={handleFilter}>Aplicar Filtro</button>
+            <button className={styles.btnFilter} onClick={exportPDF}>Exportar PDF</button>
+          </div>
+
+        </section>
+   <section className={styles.reportPreview}>
+          <div className={styles.reportCard}>
+            <h3>Prévia do Relatório</h3>
+
+            {loading ? (
+              <p>Carregando...</p>
+            ) : appointments.length === 0 ? (
+              <p>Nenhum agendamento encontrado.</p>
+            ) : (
+              <table className={styles.reportTable}>
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Hora</th>
+                    <th>Paciente</th>
+                    <th>Profissional</th>
+                    <th>CRM</th>
+                    <th>Tipo Consulta</th>
+                    <th>Local Atendimento</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {appointments.map(a => (
+                    <tr key={a.id}>
+                      <td>{a.data}</td>
+                      <td>{a.hora || '-'}</td>
+                      <td>{a.user?.name || '-'}</td>
+                      <td>{a.medico?.nome || '-'}</td>
+                      <td>{a.medico?.CRM || '-'}</td>
+                      <td>{a.tipo_consulta?.descricao || '-'}</td>
+                      <td>{a.local_atendimento?.nome || '-'}</td>
+                      <td
+                        className={
+                          a.status === 'Realizado'
+                            ? styles.statusRealizado
+                            : a.status === 'Cancelado'
+                              ? styles.statusCancelado
+                              : ''
+                        }
+                      >
+                        {a.status || 'Agendado'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </section>
       </main>
     </>
