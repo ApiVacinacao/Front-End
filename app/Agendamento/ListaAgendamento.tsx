@@ -17,6 +17,7 @@ export interface Appointment {
   medico?: { id: number; nome: string };
   local_atendimento?: { id: number; nome: string };
   tipo_consulta?: { id: number; descricao: string };
+  dataHora?: string; // backend novo
 }
 
 const API_URL = 'http://localhost:8000/api/agendamentos';
@@ -57,7 +58,29 @@ const AgendamentosList: React.FC = () => {
       }
 
       const data = await res.json();
-      setAppointments(Array.isArray(data) ? data : []);
+
+      // 🔥 AQUI É A PARTE QUE FAZ A CONVERSÃO DATAHORA → DATA e HORA
+      const formatted = Array.isArray(data)
+        ? data.map((item: any) => {
+            // Se o backend ANTIGO ainda envia separado, mantém
+            if (item.data && item.hora) return item;
+
+            // Se o backend NOVO envia "dataHora": "2025-11-21 13:26:44"
+            if (item.dataHora) {
+              const [dataPart, horaPart] = item.dataHora.split(' ');
+
+              return {
+                ...item,
+                data: dataPart,
+                hora: horaPart?.slice(0, 5), // HH:mm
+              };
+            }
+
+            return item;
+          })
+        : [];
+
+      setAppointments(formatted);
     } catch (err) {
       console.error('Erro ao carregar agendamentos:', err);
       setAppointments([]);
@@ -90,10 +113,8 @@ const AgendamentosList: React.FC = () => {
 
       if (!res.ok) throw new Error('Erro ao alterar status do agendamento.');
 
-      // Pega só o status atualizado do backend
       const { status } = await res.json();
 
-      // Atualiza apenas o status, mantendo o restante do objeto
       setAppointments(prev =>
         prev.map(a => (a.id === appointment.id ? { ...a, status } : a))
       );
@@ -148,7 +169,6 @@ const AgendamentosList: React.FC = () => {
                       {a.status ? 'Inativar' : 'Ativar'}
                     </button>
                   </td>
-
                 </tr>
               ))}
             </tbody>

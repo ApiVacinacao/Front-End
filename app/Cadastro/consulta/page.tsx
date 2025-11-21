@@ -11,6 +11,8 @@ const CadastroTipoConsulta: React.FC = () => {
   const [mensagem, setMensagem] = useState('');
 
   const handleSubmit = async () => {
+    setMensagem('');
+
     if (!descricao.trim()) {
       setMensagem('Preencha a descrição!');
       return;
@@ -27,7 +29,20 @@ const CadastroTipoConsulta: React.FC = () => {
         body: JSON.stringify({ descricao, status: true }),
       });
 
-      if (!res.ok) throw new Error('Erro ao cadastrar tipo de consulta');
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+
+        if (data?.errors) {
+          const mensagens = Object.values(data.errors)
+            .flat()
+            .join(' | ');
+          setMensagem(mensagens);
+        } else {
+          setMensagem(data?.message || 'Erro ao cadastrar tipo de consulta');
+        }
+
+        return;
+      }
 
       setMensagem('Tipo de consulta cadastrado com sucesso!');
       setDescricao('');
@@ -36,6 +51,7 @@ const CadastroTipoConsulta: React.FC = () => {
       setMensagem('Erro ao cadastrar tipo de consulta');
     }
   };
+
 
   return (
     <div className={styles.pageWrapper}>

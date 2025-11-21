@@ -74,8 +74,7 @@ const CadastroAgendamento: React.FC = () => {
     }
 
     const agendamentoData = {
-      data,
-      hora,
+      dataHora: `${data} ${hora}:00`,
       local_atendimento_id: Number(localAtendimentoId),
       medico_id: Number(medicoId),
       tipo_consulta_id: Number(tipoAgendamento),
@@ -98,13 +97,23 @@ const CadastroAgendamento: React.FC = () => {
         router.push('/');
       } else {
         const errorData = await response.json();
-        alert(errorData.message || 'Erro ao cadastrar agendamento!');
+
+        if (errorData?.errors) {
+          const mensagens = Object.values(errorData.errors)
+            .flat()
+            .join(' | ');
+
+          alert(mensagens);
+        } else {
+          alert(errorData.message || 'Erro ao cadastrar agendamento!');
+        }
       }
     } catch (err) {
       console.error('Erro ao cadastrar agendamento:', err);
       alert('Erro ao cadastrar agendamento!');
     }
   };
+
 
   return (
     <div className={styles.pageWrapper}>

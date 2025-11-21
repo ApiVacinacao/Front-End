@@ -37,18 +37,27 @@ const CadastroEspecialidade: React.FC = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify({ 
-                    nome, 
-                    descricao, 
-                    area, 
-                    status: true // sempre ativo
+                body: JSON.stringify({
+                    nome,
+                    descricao,
+                    area,
+                    status: true
                 }),
             });
 
             if (!res.ok) {
-                const text = await res.text();
-                console.error('Erro da API:', text);
-                setMensagem('Erro ao cadastrar especialidade.');
+                const data = await res.json().catch(() => null);
+
+                if (data?.errors) {
+                    const mensagens = Object.values(data.errors)
+                        .flat()
+                        .join(' | ');
+
+                    setMensagem(mensagens);
+                } else {
+                    setMensagem(data?.message || 'Erro ao cadastrar especialidade.');
+                }
+
                 return;
             }
 

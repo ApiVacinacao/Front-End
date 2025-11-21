@@ -62,7 +62,8 @@ const CadastroMedico: React.FC = () => {
     setMensagem('');
 
     const { nome, cpf, crm, especialidade_id } = formData;
-    if (!nome || !cpf || !crm || !especialidade_id) return setMensagem('Preencha todos os campos obrigatórios.');
+    if (!nome || !cpf || !crm || !especialidade_id)
+      return setMensagem('Preencha todos os campos obrigatórios.');
 
     try {
       const token = localStorage.getItem('token');
@@ -71,7 +72,7 @@ const CadastroMedico: React.FC = () => {
         cpf: cpf.replace(/\D/g, ''),
         CRM: crm.toUpperCase(),
         especialidade_id: Number(especialidade_id),
-        status: 1, // sempre ativo
+        status: 1,
       };
 
       const res = await fetch('http://localhost:8000/api/medicos', {
@@ -84,17 +85,28 @@ const CadastroMedico: React.FC = () => {
       });
 
       const data = await res.json();
+
       if (res.ok) {
         setMensagem(`Médico ${data.nome} cadastrado com sucesso!`);
         setFormData({ nome: '', cpf: '', crm: '', especialidade_id: '' });
       } else {
-        setMensagem(data.error || 'Erro ao cadastrar médico.');
+        if (data.errors) {
+          // Trata erros da validação do Laravel (422)
+          const mensagens = Object.values(data.errors)
+            .flat()
+            .join(' | ');
+
+          setMensagem(mensagens);
+        } else {
+          setMensagem(data.message || 'Erro ao cadastrar médico.');
+        }
       }
     } catch (err) {
       console.error('Erro:', err);
       setMensagem('Erro ao cadastrar médico.');
     }
   };
+
 
   return (
     <>

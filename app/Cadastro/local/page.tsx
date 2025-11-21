@@ -29,6 +29,8 @@ const CadastroLocalAtendimento: React.FC = () => {
     setLoading(true);
     setMensagem('');
 
+    const telefoneNome = telefone.replace(/\D/g, "")
+
     try {
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -36,19 +38,28 @@ const CadastroLocalAtendimento: React.FC = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ nome, endereco, telefone }),
+        body: JSON.stringify({ nome, endereco, telefone:telefoneNome }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setMensagem(data.error || 'Erro ao cadastrar local');
-      } else {
-        setMensagem('Local de Atendimento cadastrado com sucesso!');
-        setNome('');
-        setEndereco('');
-        setTelefone('');
+        if (data?.errors) {
+          const mensagens = Object.values(data.errors)
+            .flat()
+            .join(' | ');
+
+          setMensagem(mensagens);
+        } else {
+          setMensagem(data.message || data.error || 'Erro ao cadastrar local');
+        }
+        return;
       }
+
+      setMensagem('Local de Atendimento cadastrado com sucesso!');
+      setNome('');
+      setEndereco('');
+      setTelefone('');
     } catch (err) {
       console.error(err);
       setMensagem('Erro ao conectar com o servidor');
@@ -56,6 +67,7 @@ const CadastroLocalAtendimento: React.FC = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div className={styles.pageWrapper}>

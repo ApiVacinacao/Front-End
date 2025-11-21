@@ -78,7 +78,7 @@ const CadastroPaciente: React.FC = () => {
         name,
         email,
         cpf: cpf.replace(/\D/g, ''),
-        telefone: telefone.replace(/\D/g, ''), // remove máscara
+        telefone: telefone.replace(/\D/g, ''),
         password,
         password_confirmation,
       };
@@ -90,11 +90,9 @@ const CadastroPaciente: React.FC = () => {
         return;
       }
 
-      console.log('Dados enviados:', payload);
-
       const res = await fetch('http://localhost:8000/api/register', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
@@ -103,16 +101,32 @@ const CadastroPaciente: React.FC = () => {
 
       if (res.ok) {
         setMensagem('Paciente cadastrado com sucesso!');
-        setFormData({ name: '', email: '', cpf: '', password: '', password_confirmation: '', telefone: '' });
+        setFormData({
+          name: '',
+          email: '',
+          cpf: '',
+          password: '',
+          password_confirmation: '',
+          telefone: '',
+        });
       } else {
         const data = await res.json();
-        setMensagem(data.message || 'Erro ao cadastrar paciente.');
+
+        if (data.errors) {
+          const mensagens = Object.values(data.errors)
+            .flat()
+            .join(' | ');
+          setMensagem(mensagens);
+        } else {
+          setMensagem(data.message || 'Erro ao cadastrar paciente.');
+        }
       }
     } catch (err) {
       console.error(err);
       setMensagem('Erro ao cadastrar paciente.');
     }
   };
+
 
   return (
     <>
