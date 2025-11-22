@@ -7,7 +7,7 @@ import ProtectedRoute from '../components/auth/protecetroute';
 
 type Paciente = {
   id: number;
-  nome: string;
+  name: string;
   email: string;
   cpf: string;
   status: boolean;
@@ -52,7 +52,7 @@ export default function PacientesPage() {
   // =============================
   const abrirModal = (paciente?: Paciente) => {
     setSelected(
-      paciente || { id: 0, nome: '', email: '', cpf: '', status: true }
+      paciente || { id: 0, name: '', email: '', cpf: '', status: true }
     );
     setOpenModal(true);
   };
@@ -61,13 +61,13 @@ export default function PacientesPage() {
   // SALVAR (PUT)
   // =============================
   const salvarPaciente = async (paciente: Paciente) => {
-    if (!paciente.nome.trim() || !paciente.email.trim() || !paciente.cpf.trim()) {
+    if (!paciente.name.trim() || !paciente.email.trim() || !paciente.cpf.trim()) {
       alert('Preencha todos os campos obrigatórios.');
       return;
     }
 
     const payload = {
-      nome: paciente.nome,
+      name: paciente.name,
       email: paciente.email,
       cpf: paciente.cpf,
       status: paciente.status,
@@ -134,7 +134,7 @@ export default function PacientesPage() {
             {pacientes.map(p => (
               <div key={p.id} className={styles.card}>
                 <div className={styles.info}>
-                  <p><b>Nome:</b> {p.nome}</p>
+                  <p><b>Nome:</b> {p.name}</p>
                   <p><b>Email:</b> {p.email}</p>
                   <p><b>CPF:</b> {p.cpf}</p>
                   <p>
@@ -182,12 +182,12 @@ function ModalPaciente({
   onSalvar: (p: Paciente) => void;
   onCancelar: () => void;
 }) {
-  const [nome, setNome] = useState(paciente.nome);
+  const [name, setNome] = useState(paciente.name);
   const [email, setEmail] = useState(paciente.email);
   const [cpf, setCpf] = useState(paciente.cpf);
   const [status, setStatus] = useState(paciente.status);
 
-  const salvar = () => onSalvar({ ...paciente, nome, email, cpf, status });
+  const salvar = () => onSalvar({ ...paciente, name, email, cpf, status });
 
   return (
     <div className={styles.modalOverlay} onClick={onCancelar}>
@@ -195,7 +195,7 @@ function ModalPaciente({
         <h2>{paciente.id === 0 ? 'Novo Paciente' : 'Editar Paciente'}</h2>
 
         <label>Nome*</label>
-        <input value={nome} onChange={e => setNome(e.target.value)} />
+        <input value={name} onChange={e => setNome(e.target.value)} />
 
         <label>Email*</label>
         <input type="email" value={email} onChange={e => setEmail(e.target.value)} />
