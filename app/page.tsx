@@ -12,27 +12,27 @@ export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-  if (typeof window === "undefined") return;
+    if (typeof window === "undefined") return;
 
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
 
-  if (!token) {
-    router.replace("/Login");
-    return;
-  }
+    // Não logado → vai para login
+    if (!token) {
+      router.replace("/Login");
+      return;
+    }
 
-  // Usuário comum → vai direto pra agendamentos
-  if (role !== "admin") {
-    router.replace("/Agendamento");
-    return;
-  }
+    // Usuário comum → vai direto pra agendamentos
+    if (role !== "admin") {
+      router.replace("/Agendamento");
+      return;
+    }
 
-  // Admin → mostra dashboard normal
-  setIsAuthenticated(true);
-  setIsChecking(false);
-}, []);
- // <- sem router aqui
+    // Admin → mostra dashboard normal
+    setIsAuthenticated(true);
+    setIsChecking(false);
+  }, [router]); // 👈 dependência correta
 
   if (isChecking) {
     return (
@@ -45,16 +45,35 @@ export default function Home() {
   if (!isAuthenticated) return null; // evita renderização duplicada
 
   const options = [
-    { title: "Agendamentos", description: "Gerencie todos os agendamentos do sistema.", path: "/Cadastro/agendamento", icon: "📅" },
-    { title: "Relatórios", description: "Visualize relatórios completos.", path: "/relatorios", icon: "📊" },
-    { title: "Locais", description: "Gerencie locais do sistema.", path: "/Locais", icon: "📍" },
-    { title: "Tipos de Consulta", description: "Configure tipos de consulta.", path: "/Cadastro/consulta", icon: "🩺" },
+    {
+      title: "Agendamentos",
+      description: "Gerencie todos os agendamentos do sistema.",
+      path: "/Cadastro/agendamento",
+      icon: "📅",
+    },
+    {
+      title: "Relatórios",
+      description: "Visualize relatórios completos.",
+      path: "/relatorios",
+      icon: "📊",
+    },
+    {
+      title: "Locais",
+      description: "Gerencie locais do sistema.",
+      path: "/Locais",
+      icon: "📍",
+    },
+    {
+      title: "Tipos de Consulta",
+      description: "Configure tipos de consulta.",
+      path: "/Cadastro/consulta",
+      icon: "🩺",
+    },
   ];
 
   return (
     <div className="bgContainer">
       <main className="homePage">
-
         <header className="header">
           <Image src="/aa.png" alt="Logo IAITEA" width={80} height={80} />
           <h1 className="title">Sistema IAITEA</h1>
@@ -79,7 +98,6 @@ export default function Home() {
             </Link>
           ))}
         </section>
-
       </main>
     </div>
   );

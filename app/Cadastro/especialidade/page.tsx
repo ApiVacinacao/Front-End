@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Navbar from '../../components/navbar/page';
 import styles from './especialidade.module.css';
+import ProtectedRoute from '@/app/components/auth/protecetroute';
 
 const CadastroEspecialidade: React.FC = () => {
     const [nome, setNome] = useState('');
@@ -73,7 +74,8 @@ const CadastroEspecialidade: React.FC = () => {
     };
 
     return (
-        <div className={styles.pageWrapper}>
+        <ProtectedRoute allowedRoles={"admin"}>
+            <div className={styles.pageWrapper}>
             <Navbar />
             <main className={styles.mainContent}>
                 <div className={styles.container}>
@@ -130,6 +132,7 @@ const CadastroEspecialidade: React.FC = () => {
                 </div>
             </main>
         </div>
+        </ProtectedRoute>
     );
 };
 

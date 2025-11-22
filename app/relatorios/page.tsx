@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/navbar/page';
 import styles from '../styles/Relatorios.module.css';
+import ProtectedRoute from '../components/auth/protecetroute';
 
 interface Appointment {
   id: number;
@@ -109,7 +110,8 @@ const RelatoriosPage = () => {
   };
 
   return (
-    <>
+    <ProtectedRoute allowedRoles={"admin"}>
+          <>
       <Navbar />
       <main className={styles.mainContent}>
         <h1>Relatórios de Agendamentos</h1>
@@ -185,6 +187,8 @@ const RelatoriosPage = () => {
         </section>
       </main>
     </>
+    </ProtectedRoute>
+
   );
 };
 

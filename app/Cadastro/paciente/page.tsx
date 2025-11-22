@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../components/navbar/page';
 import styles from './paciente.module.css';
+import ProtectedRoute from '@/app/components/auth/protecetroute';
 
 const CadastroPaciente: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -129,7 +130,8 @@ const CadastroPaciente: React.FC = () => {
 
 
   return (
-    <>
+    <ProtectedRoute allowedRoles={"admin"}>
+          <>
       <Navbar />
       <main className={styles.content}>
         <div className={styles.formContainer}>
@@ -220,6 +222,8 @@ const CadastroPaciente: React.FC = () => {
         </div>
       </main>
     </>
+    </ProtectedRoute>
+
   );
 };
 

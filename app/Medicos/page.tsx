@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/navbar/page';
 import styles from '../styles/Especialidade.module.css';
+import ProtectedRoute from '../components/auth/protecetroute';
 
 type Especialidade = {
   id: number;
@@ -183,7 +184,8 @@ export default function MedicosPage() {
   };
 
   return (
-    <>
+    <ProtectedRoute allowedRoles={"admin"}>
+          <>
       <Navbar />
       <main className={styles.mainContent}>
         <div className={styles.header}>
@@ -230,6 +232,8 @@ export default function MedicosPage() {
         )}
       </main>
     </>
+    </ProtectedRoute>
+
   );
 }
 

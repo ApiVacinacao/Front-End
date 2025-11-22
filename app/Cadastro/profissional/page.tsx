@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/navbar/page';
 import styles from './medico.module.css';
+import ProtectedRoute from '@/app/components/auth/protecetroute';
 
 interface Especialidade {
   id: number;
@@ -19,6 +20,7 @@ const CadastroMedico: React.FC = () => {
   });
   const [mensagem, setMensagem] = useState('');
   const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
+  const [mensagemTipo, setMensagemTipo] = useState<'erro' | 'sucesso' | ''>('');
 
   useEffect(() => {
     const fetchEspecialidades = async () => {
@@ -88,6 +90,7 @@ const CadastroMedico: React.FC = () => {
 
       if (res.ok) {
         setMensagem(`Médico ${data.nome} cadastrado com sucesso!`);
+        setMensagemTipo('sucesso');
         setFormData({ nome: '', cpf: '', crm: '', especialidade_id: '' });
       } else {
         if (data.errors) {
@@ -100,16 +103,19 @@ const CadastroMedico: React.FC = () => {
         } else {
           setMensagem(data.message || 'Erro ao cadastrar médico.');
         }
+        setMensagemTipo('erro');
       }
     } catch (err) {
       console.error('Erro:', err);
       setMensagem('Erro ao cadastrar médico.');
+      setMensagemTipo('erro');
     }
   };
 
 
   return (
-    <>
+    <ProtectedRoute allowedRoles={"admin"}>
+          <>
       <Navbar />
       <main className={styles.content}>
         <div className={styles.formContainer}>
@@ -174,11 +180,22 @@ const CadastroMedico: React.FC = () => {
             </div>
 
             <button type="submit">Cadastrar</button>
-            {mensagem && <p className={styles.mensagem}>{mensagem}</p>}
+            {mensagem && (
+              <p
+                className={`${styles.mensagem} ${
+                  mensagemTipo === 'erro' ? styles.erro : styles.sucesso
+                }`}
+              >
+                {mensagem}
+            </p>
+)}
+
           </form>
         </div>
       </main>
     </>
+    </ProtectedRoute>
+
   );
 };
 

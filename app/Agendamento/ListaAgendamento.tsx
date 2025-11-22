@@ -105,6 +105,8 @@ const AgendamentosList: React.FC = () => {
   const toggleStatus = async (appointment: Appointment) => {
     if (!appointment.id) return;
 
+    console.log(appointment);
+
     try {
       const res = await fetch(`${API_URL}/${appointment.id}/toggle-status`, {
         method: 'PATCH',

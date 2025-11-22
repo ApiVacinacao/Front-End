@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Navbar from '../../components/navbar/page';
 import styles from './consulta.module.css';
+import ProtectedRoute from '@/app/components/auth/protecetroute';
 
 const API_URL = 'http://localhost:8000/api/tipoConsultas';
 
@@ -54,7 +55,8 @@ const CadastroTipoConsulta: React.FC = () => {
 
 
   return (
-    <div className={styles.pageWrapper}>
+    <ProtectedRoute allowedRoles={"admin"}>
+      <div className={styles.pageWrapper}>
       <Navbar />
       <main className={styles.mainContent}>
         <div className={styles.container}>
@@ -80,6 +82,8 @@ const CadastroTipoConsulta: React.FC = () => {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
+
   );
 };
 

@@ -21,12 +21,13 @@ const LoginPage: React.FC = () => {
   };
 
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const digits = e.target.value.replace(/\D/g, '');
-    setCpf(digits.slice(0, 11));
+    setCpf(formatCpf(e.target.value)); // 👈 agora guarda formatado
   };
 
   const handleLogin = async () => {
-    if (!cpf || !password) {
+    const digits = cpf.replace(/\D/g, ''); // 👈 envia só números
+
+    if (!digits || !password) {
       alert('Preencha todos os campos!');
       return;
     }
@@ -35,7 +36,7 @@ const LoginPage: React.FC = () => {
       const res = await fetch('http://localhost:8000/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cpf, password }),
+        body: JSON.stringify({ cpf: digits, password }),
       });
 
       const data = await res.json();
@@ -45,7 +46,7 @@ const LoginPage: React.FC = () => {
         localStorage.setItem('role', data.user.role);
         localStorage.setItem('user_id', String(data.user.id));
         if (remember) localStorage.setItem('rememberMe', 'true');
-        router.replace('/');
+        router.replace('/'); 
       } else {
         alert(data.error || 'CPF ou senha inválidos!');
       }
@@ -66,8 +67,9 @@ const LoginPage: React.FC = () => {
             type="text"
             id="cpf"
             placeholder=" "
-            value={formatCpf(cpf)}
+            value={cpf}
             onChange={handleCpfChange}
+            maxLength={14} // 👈 limita ao formato 000.000.000-00
           />
           <label htmlFor="cpf">CPF</label>
         </div>
@@ -93,10 +95,14 @@ const LoginPage: React.FC = () => {
             />
             <label htmlFor="remember">Lembrar-me</label>
           </div>
-          <a href="/Senha" className={styles.forgotLink}>Esqueci minha senha</a>
+          <a href="/Senha" className={styles.forgotLink}>
+            Esqueci minha senha
+          </a>
         </div>
 
-        <button className={styles.btnLogin} onClick={handleLogin}>Acessar</button>
+        <button className={styles.btnLogin} onClick={handleLogin}>
+          Acessar
+        </button>
       </div>
     </div>
   );

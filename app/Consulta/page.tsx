@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navbar/page';
 import styles from './tipoConsulta.module.css';
+import ProtectedRoute from '../components/auth/protecetroute';
 
 interface TipoConsulta {
   id: number;
@@ -77,7 +78,8 @@ export default function TipoConsultaPage() {
   };
 
   return (
-    <div className={styles.page}>
+    <ProtectedRoute allowedRoles={"admin"}>
+          <div className={styles.page}>
       <Navbar />
       <main className={styles.content}>
         <div className={styles.header}>
@@ -130,6 +132,8 @@ export default function TipoConsultaPage() {
         )}
       </main>
     </div>
+    </ProtectedRoute>
+
   );
 }
 

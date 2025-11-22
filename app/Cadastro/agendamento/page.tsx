@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../components/navbar/page';
 import styles from './agendamento.module.css';
+import ProtectedRoute from '@/app/components/auth/protecetroute';
 
 interface LocalAtendimento { id: number; nome: string; status: boolean; }
 interface Medico { id: number; nome: string; status: boolean; }
@@ -116,7 +117,8 @@ const CadastroAgendamento: React.FC = () => {
 
 
   return (
-    <div className={styles.pageWrapper}>
+    <ProtectedRoute allowedRoles={"admin"}>
+       <div className={styles.pageWrapper}>
       <Navbar />
       <main className={styles.mainContent}>
         {loading ? (
@@ -213,6 +215,7 @@ const CadastroAgendamento: React.FC = () => {
         )}
       </main>
     </div>
+    </ProtectedRoute>
   );
 };
 

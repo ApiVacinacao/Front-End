@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Navbar from '../../components/navbar/page';
 import styles from './localAtendimento.module.css';
+import ProtectedRoute from '@/app/components/auth/protecetroute';
 
 const API_URL = 'http://127.0.0.1:8000/api/localAtendimentos';
 
@@ -70,7 +71,8 @@ const CadastroLocalAtendimento: React.FC = () => {
 
 
   return (
-    <div className={styles.pageWrapper}>
+    <ProtectedRoute allowedRoles={"admin"}>
+          <div className={styles.pageWrapper}>
       <Navbar />
       <main className={styles.mainContent}>
         <div className={styles.formContainer}>
@@ -118,6 +120,8 @@ const CadastroLocalAtendimento: React.FC = () => {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
+
   );
 };
 
