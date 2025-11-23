@@ -41,14 +41,16 @@ export default function TipoConsultaPage() {
     }
   };
 
+  // 🔵 CONFIRMAÇÃO ANTES DE ATIVAR/INATIVAR
   const toggleStatus = async (id: number, statusAtual: boolean) => {
     const confirmar = await Swal.fire({
-      title: statusAtual ? 'Deseja Inativar?' : 'Deseja Ativar?',
-      text: 'Confirme a alteração.',
-      icon: 'question',
+      title: statusAtual ? 'Confirmar Inativação?' : 'Confirmar Ativação?',
+      text: `Você realmente deseja ${statusAtual ? 'inativar' : 'ativar'} este tipo de consulta?`,
+      icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sim',
       cancelButtonText: 'Cancelar',
+      reverseButtons: true
     });
 
     if (!confirmar.isConfirmed) return;
@@ -67,7 +69,7 @@ export default function TipoConsultaPage() {
 
       Swal.fire({
         icon: 'success',
-        title: 'Status alterado com sucesso!',
+        title: `Status atualizado para ${atualizado.status ? 'Ativo' : 'Inativo'}!`,
         timer: 1500,
         showConfirmButton: false,
       });
@@ -77,6 +79,7 @@ export default function TipoConsultaPage() {
     }
   };
 
+  // 🔵 EDIÇÃO COM CONFIRMAÇÃO
   const editarTipo = async (tipo: TipoConsulta) => {
     const { value: descricao } = await Swal.fire({
       title: 'Editar tipo de consulta',
@@ -86,7 +89,7 @@ export default function TipoConsultaPage() {
       showCancelButton: true,
       cancelButtonText: 'Cancelar',
       inputValidator: value => {
-        if (!value) return 'Digite um nome válido';
+        if (!value) return 'Digite uma descrição válida';
       }
     });
 
@@ -100,12 +103,13 @@ export default function TipoConsultaPage() {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ ...tipo, descricao }),
+        body: JSON.stringify({ descricao }),
       });
 
       if (!res.ok) throw new Error('Erro ao salvar');
 
       const atualizado = await res.json();
+
       setTipos(prev => prev.map(t => (t.id === atualizado.id ? atualizado : t)));
 
       Swal.fire({
@@ -122,53 +126,53 @@ export default function TipoConsultaPage() {
 
   return (
     <ProtectedRoute allowedRoles={"admin"}>
-          <div className={styles.page}>
-      <Navbar />
-      <main className={styles.content}>
-        <div className={styles.header}>
-          <h2 className={styles.title}>🩺 Tipos de Consulta</h2>
-        </div>
+      <div className={styles.page}>
+        <Navbar />
+        <main className={styles.content}>
+          <div className={styles.header}>
+            <h2 className={styles.title}>🩺 Tipos de Consulta</h2>
+          </div>
 
-        {loading && <p className={styles.loading}>Carregando tipos...</p>}
-        {erro && <p className={styles.error}>{erro}</p>}
+          {loading && <p className={styles.loading}>Carregando tipos...</p>}
+          {erro && <p className={styles.error}>{erro}</p>}
 
-        <div className={styles.tableWrapper}>
-          {tipos.map(tipo => (
-            <div key={tipo.id} className={styles.card}>
-              <div>
-                <p className={styles.cardTitle}>{tipo.descricao}</p>
-                <p className={styles.statusText}>
-                  Status:{' '}
-                  <span
-                    className={
-                      tipo.status ? styles.statusAtivo : styles.statusInativo
-                    }
+          <div className={styles.tableWrapper}>
+            {tipos.map(tipo => (
+              <div key={tipo.id} className={styles.card}>
+                <div>
+                  <p className={styles.cardTitle}>{tipo.descricao}</p>
+                  <p className={styles.statusText}>
+                    Status:{' '}
+                    <span
+                      className={
+                        tipo.status ? styles.statusAtivo : styles.statusInativo
+                      }
+                    >
+                      {tipo.status ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </p>
+                </div>
+
+                <div className={styles.actions}>
+                  <button
+                    className={`${styles.actionButton} ${styles.primary}`}
+                    onClick={() => editarTipo(tipo)}
                   >
-                    {tipo.status ? 'Ativo' : 'Inativo'}
-                  </span>
-                </p>
-              </div>
+                    Editar
+                  </button>
 
-              <div className={styles.actions}>
-                <button
-                  className={`${styles.actionButton} ${styles.primary}`}
-                  onClick={() => editarTipo(tipo)}
-                >
-                  Editar
-                </button>
-
-                <button
-                  className={`${styles.actionButton} ${styles.secondary}`}
-                  onClick={() => toggleStatus(tipo.id, tipo.status)}
-                >
-                  {tipo.status ? 'Inativar' : 'Ativar'}
-                </button>
+                  <button
+                    className={`${styles.actionButton} ${styles.secondary}`}
+                    onClick={() => toggleStatus(tipo.id, tipo.status)}
+                  >
+                    {tipo.status ? 'Inativar' : 'Ativar'}
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </main>
-    </div>
+            ))}
+          </div>
+        </main>
+      </div>
     </ProtectedRoute>
   );
 }

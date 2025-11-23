@@ -31,6 +31,7 @@ export default function EspecialidadePage() {
       : { 'Content-Type': 'application/json' };
   };
 
+  // LISTAGEM
   const fetchEspecialidades = async () => {
     setLoading(true);
     try {
@@ -46,6 +47,7 @@ export default function EspecialidadePage() {
     }
   };
 
+  // MODAL DE CRIAÇÃO / EDIÇÃO
   const abrirModal = async (esp?: Especialidade) => {
     const item = esp || {
       id: 0,
@@ -105,7 +107,18 @@ export default function EspecialidadePage() {
     });
   };
 
+  // SALVAR (CRIAR / EDITAR)
   const salvarEspecialidade = async (esp: Especialidade) => {
+    const confirm = await Swal.fire({
+      title: esp.id === 0 ? 'Confirmar cadastro?' : 'Confirmar alterações?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Salvar',
+      cancelButtonText: 'Cancelar',
+    });
+
+    if (!confirm.isConfirmed) return;
+
     try {
       let res: Response;
 
@@ -123,9 +136,17 @@ export default function EspecialidadePage() {
         });
       }
 
-      if (!res.ok) throw new Error('Erro ao salvar');
+      const data = await res.json();
 
-      await res.json();
+      if (!res.ok) {
+        const msg =
+          data.message ||
+          data.error ||
+          (data.errors ? Object.values(data.errors).flat().join("\n") : "Erro ao salvar");
+
+        Swal.fire("Erro", msg, "error");
+        return;
+      }
 
       Swal.fire({
         icon: 'success',
@@ -135,18 +156,23 @@ export default function EspecialidadePage() {
       });
 
       fetchEspecialidades();
-    } catch (err) {
+    } catch {
       Swal.fire('Erro', 'Não foi possível salvar.', 'error');
     }
   };
 
+  // ATIVAR / INATIVAR COM CONFIRMAÇÃO
   const toggleStatus = async (esp: Especialidade) => {
+    const acao = esp.status ? "inativar" : "ativar";
+
     const confirmar = await Swal.fire({
-      title: esp.status ? 'Deseja Inativar especialidade?' : 'Deseja Ativar especialidade?',
-      icon: 'question',
+      title: `Confirmar ${acao}?`,
+      text: `Você realmente deseja ${acao} a especialidade "${esp.nome}"?`,
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: 'Sim',
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: "Sim",
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
     });
 
     if (!confirmar.isConfirmed) return;
@@ -158,64 +184,70 @@ export default function EspecialidadePage() {
         body: JSON.stringify({ status: !esp.status }),
       });
 
-      if (!res.ok) throw new Error('Erro ao alterar status');
+      const data = await res.json();
+
+      if (!res.ok) {
+        Swal.fire("Erro", data.error || "Falha ao alterar status", "error");
+        return;
+      }
 
       Swal.fire({
         icon: 'success',
         title: 'Status atualizado',
-        timer: 1200,
+        text: `A especialidade agora está ${!esp.status ? "Ativa" : "Inativa"}.`,
         showConfirmButton: false,
+        timer: 1500,
       });
 
       fetchEspecialidades();
-    } catch (err) {
+    } catch {
       Swal.fire('Erro', 'Não foi possível alterar o status.', 'error');
     }
   };
 
   return (
     <ProtectedRoute allowedRoles={"admin"}>
-          <>
-      <Navbar />
-      <main className={styles.mainContent}>
-        <div className={styles.header}>
-          <h2>Listagem de Especialidades</h2>
-        </div>
+      <>
+        <Navbar />
 
-        {loading ? (
-          <p>Carregando...</p>
-        ) : (
-          <div className={styles.listagem}>
-            {especialidades.map(esp => (
-              <div key={esp.id} className={styles.card}>
-                <div className={styles.info}>
-                  <p><b>Nome:</b> {esp.nome}</p>
-                  <p><b>Descrição:</b> {esp.descricao}</p>
-                  <p><b>Área:</b> {esp.area}</p>
-                  <p>
-                    <b>Status:</b>{' '}
-                    <span className={esp.status ? styles.ativo : styles.inativo}>
-                      {esp.status ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </p>
-                </div>
-
-                <div className={styles.botoes}>
-                  <button className={styles.btnEdit} onClick={() => abrirModal(esp)}>
-                    Editar
-                  </button>
-
-                  <button className={styles.btnToggle} onClick={() => toggleStatus(esp)}>
-                    {esp.status ? 'Inativar' : 'Ativar'}
-                  </button>
-                </div>
-              </div>
-            ))}
+        <main className={styles.mainContent}>
+          <div className={styles.header}>
+            <h2>Listagem de Especialidades</h2>
           </div>
-        )}
-      </main>
-    </>
-    </ProtectedRoute>
 
+          {loading ? (
+            <p>Carregando...</p>
+          ) : (
+            <div className={styles.listagem}>
+              {especialidades.map(esp => (
+                <div key={esp.id} className={styles.card}>
+                  <div className={styles.info}>
+                    <p><b>Nome:</b> {esp.nome}</p>
+                    <p><b>Descrição:</b> {esp.descricao}</p>
+                    <p><b>Área:</b> {esp.area}</p>
+                    <p>
+                      <b>Status:</b>{' '}
+                      <span className={esp.status ? styles.ativo : styles.inativo}>
+                        {esp.status ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className={styles.botoes}>
+                    <button className={styles.btnEdit} onClick={() => abrirModal(esp)}>
+                      Editar
+                    </button>
+
+                    <button className={styles.btnToggle} onClick={() => toggleStatus(esp)}>
+                      {esp.status ? 'Inativar' : 'Ativar'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </main>
+      </>
+    </ProtectedRoute>
   );
 }

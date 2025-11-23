@@ -109,6 +109,50 @@ body {
   transform: translateY(0);
 }
 
+/* --- ESQUECI MINHA SENHA BONITO --- */
+.forgotLink {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.forgotLink:hover {
+  background: rgba(79, 70, 229, 0.08);
+  transform: translateY(-2px);
+}
+
+.forgotIcon {
+  font-size: 17px;
+  transform: translateY(1px);
+}
+
+/* --- BOTÃO MOSTRAR / OCULTAR SENHA --- */
+.showPasswordBtn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--primary);
+  transition: 0.3s;
+}
+
+.showPasswordBtn:hover {
+  transform: translateY(-50%) scale(1.15);
+}
+
+
 /* Linha animada de foco */
 .inputGroup::after {
   content: '';

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Swal from "sweetalert2";   // <-- AQUI
+import Swal from "sweetalert2";
 import Navbar from '../components/navbar/page';
 import styles from '../styles/Especialidade.module.css';
 import ProtectedRoute from '../components/auth/protecetroute';
@@ -148,38 +148,45 @@ export default function MedicosPage() {
   };
 
   // =============================
-  // ALTERAR STATUS
+  // ALTERAR STATUS (COM ROTA CORRETA)
   // =============================
   const toggleStatus = async (medico: Medico) => {
+    const acao = medico.status ? "inativar" : "ativar";
 
-    const confirm = await Swal.fire({
-      title: "Tem certeza?",
-      text: medico.status
-        ? "Isso irá inativar o médico."
-        : "Isso irá ativar o médico.",
+    const confirmar = await Swal.fire({
+      title: `Deseja realmente ${acao}?`,
+      text: `O médico "${medico.nome}" será ${acao}.`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Sim",
-      cancelButtonText: "Cancelar"
+      confirmButtonText: medico.status ? "Inativar" : "Ativar",
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
     });
 
-    if (!confirm.isConfirmed) return;
+    if (!confirmar.isConfirmed) return;
 
     try {
-      const res = await fetch(`${API_URL}/${medico.id}`, {
-        method: 'PATCH',
+      const res = await fetch(`${API_URL}/${medico.id}/status`, {
+        method: "PATCH",
         headers: getHeaders(),
-        body: JSON.stringify({ status: !medico.status }),
       });
-      if (!res.ok) throw new Error("Erro ao alterar status");
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        Swal.fire("Erro", data.error || "Falha ao alterar status.", "error");
+        return;
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Status atualizado!",
+        text: `O médico agora está ${data.status ? "Ativo" : "Inativo"}.`,
+        showConfirmButton: false,
+        timer: 1500,
+      });
 
       fetchMedicos();
-
-      Swal.fire(
-        "Sucesso",
-        medico.status ? "Médico inativado!" : "Médico ativado!",
-        "success"
-      );
 
     } catch (err) {
       Swal.fire("Erro", "Erro ao alterar status.", "error");
@@ -188,53 +195,53 @@ export default function MedicosPage() {
 
   return (
     <ProtectedRoute allowedRoles={"admin"}>
-          <>
-      <Navbar />
-      <main className={styles.mainContent}>
-        <div className={styles.header}>
-          <h2>Listagem de Médicos</h2>
-        </div>
-
-        {loading ? (
-          <p>Carregando...</p>
-        ) : (
-          <div className={styles.listagem}>
-            {medicos.map(medico => (
-              <div key={medico.id} className={styles.card}>
-                <div className={styles.info}>
-                  <p><b>Nome:</b> {medico.nome}</p>
-                  <p><b>CPF:</b> {medico.cpf}</p>
-                  <p><b>CRM:</b> {medico.CRM}</p>
-                  <p><b>Especialidade:</b> {medico.especialidade?.nome || '---'}</p>
-                  <p>
-                    <b>Status:</b>{' '}
-                    <span className={medico.status ? styles.ativo : styles.inativo}>
-                      {medico.status ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </p>
-                </div>
-
-                <div className={styles.botoes}>
-                  <button className={styles.btnEdit} onClick={() => abrirModal(medico)}>Editar</button>
-                  <button className={styles.btnToggle} onClick={() => toggleStatus(medico)}>
-                    {medico.status ? 'Inativar' : 'Ativar'}
-                  </button>
-                </div>
-              </div>
-            ))}
+      <>
+        <Navbar />
+        <main className={styles.mainContent}>
+          <div className={styles.header}>
+            <h2>Listagem de Médicos</h2>
           </div>
-        )}
 
-        {openModal && selected && (
-          <ModalMedico
-            medico={selected}
-            especialidades={especialidades}
-            onSalvar={salvarMedico}
-            onCancelar={() => setOpenModal(false)}
-          />
-        )}
-      </main>
-    </>
+          {loading ? (
+            <p>Carregando...</p>
+          ) : (
+            <div className={styles.listagem}>
+              {medicos.map(medico => (
+                <div key={medico.id} className={styles.card}>
+                  <div className={styles.info}>
+                    <p><b>Nome:</b> {medico.nome}</p>
+                    <p><b>CPF:</b> {medico.cpf}</p>
+                    <p><b>CRM:</b> {medico.CRM}</p>
+                    <p><b>Especialidade:</b> {medico.especialidade?.nome || '---'}</p>
+                    <p>
+                      <b>Status:</b>{' '}
+                      <span className={medico.status ? styles.ativo : styles.inativo}>
+                        {medico.status ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className={styles.botoes}>
+                    <button className={styles.btnEdit} onClick={() => abrirModal(medico)}>Editar</button>
+                    <button className={styles.btnToggle} onClick={() => toggleStatus(medico)}>
+                      {medico.status ? 'Inativar' : 'Ativar'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {openModal && selected && (
+            <ModalMedico
+              medico={selected}
+              especialidades={especialidades}
+              onSalvar={salvarMedico}
+              onCancelar={() => setOpenModal(false)}
+            />
+          )}
+        </main>
+      </>
     </ProtectedRoute>
   );
 }
@@ -261,32 +268,34 @@ function ModalMedico({
   const salvar = () => onSalvar({ ...medico, nome, cpf, CRM, especialidade_id });
 
   return (
-    <div className={styles.modalOverlay} onClick={onCancelar}>
-      <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-        <h2>{medico.id === 0 ? 'Novo Médico' : 'Editar Médico'}</h2>
+    <ProtectedRoute allowedRoles={"admin"}>
+      <div className={styles.modalOverlay} onClick={onCancelar}>
+        <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+          <h2>{medico.id === 0 ? 'Novo Médico' : 'Editar Médico'}</h2>
 
-        <label>Nome*</label>
-        <input value={nome} onChange={e => setNome(e.target.value)} />
+          <label>Nome*</label>
+          <input value={nome} onChange={e => setNome(e.target.value)} />
 
-        <label>CPF*</label>
-        <input value={cpf} onChange={e => setCpf(e.target.value)} />
+          <label>CPF*</label>
+          <input value={cpf} onChange={e => setCpf(e.target.value)} />
 
-        <label>CRM*</label>
-        <input value={CRM} onChange={e => setCRM(e.target.value)} />
+          <label>CRM*</label>
+          <input value={CRM} onChange={e => setCRM(e.target.value)} />
 
-        <label>Especialidade*</label>
-        <select value={especialidade_id} onChange={e => setEspecialidadeId(Number(e.target.value))}>
-          <option value={0}>Selecione...</option>
-          {especialidades.map(e => (
-            <option key={e.id} value={e.id}>{e.nome}</option>
-          ))}
-        </select>
+          <label>Especialidade*</label>
+          <select value={especialidade_id} onChange={e => setEspecialidadeId(Number(e.target.value))}>
+            <option value={0}>Selecione...</option>
+            {especialidades.map(e => (
+              <option key={e.id} value={e.id}>{e.nome}</option>
+            ))}
+          </select>
 
-        <div className={styles.modalActions}>
-          <button className={styles.cancelBtn} onClick={onCancelar}>Cancelar</button>
-          <button className={styles.saveBtn} onClick={salvar}>Salvar</button>
+          <div className={styles.modalActions}>
+            <button className={styles.cancelBtn} onClick={onCancelar}>Cancelar</button>
+            <button className={styles.saveBtn} onClick={salvar}>Salvar</button>
+          </div>
         </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }

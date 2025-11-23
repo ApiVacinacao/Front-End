@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../styles/Login.module.css';
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 const LoginPage: React.FC = () => {
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
-  const [remember, setRemember] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const formatCpf = (value: string) => {
@@ -21,11 +22,11 @@ const LoginPage: React.FC = () => {
   };
 
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCpf(formatCpf(e.target.value)); // 👈 agora guarda formatado
+    setCpf(formatCpf(e.target.value));
   };
 
   const handleLogin = async () => {
-    const digits = cpf.replace(/\D/g, ''); // 👈 envia só números
+    const digits = cpf.replace(/\D/g, '');
 
     if (!digits || !password) {
       alert('Preencha todos os campos!');
@@ -45,8 +46,8 @@ const LoginPage: React.FC = () => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.user.role);
         localStorage.setItem('user_id', String(data.user.id));
-        if (remember) localStorage.setItem('rememberMe', 'true');
-        router.replace('/'); 
+
+        router.replace('/');
       } else {
         alert(data.error || 'CPF ou senha inválidos!');
       }
@@ -69,34 +70,35 @@ const LoginPage: React.FC = () => {
             placeholder=" "
             value={cpf}
             onChange={handleCpfChange}
-            maxLength={14} // 👈 limita ao formato 000.000.000-00
+            maxLength={14}
           />
           <label htmlFor="cpf">CPF</label>
         </div>
 
         <div className={styles.inputGroup}>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             id="password"
             placeholder=" "
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           <label htmlFor="password">Senha</label>
+
+          {/* OLHO PROFISSIONAL DO BOOTSTRAP */}
+          <button
+            type="button"
+            className={styles.showPasswordBtn}
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            <i className={`bi ${showPassword ? "bi-eye-slash-fill" : "bi-eye-fill"}`}></i>
+          </button>
         </div>
 
         <div className={styles.rememberForgot}>
-          <div className={styles.checkboxContainer}>
-            <input
-              type="checkbox"
-              id="remember"
-              checked={remember}
-              onChange={(e) => setRemember(e.target.checked)}
-            />
-            <label htmlFor="remember">Lembrar-me</label>
-          </div>
           <a href="/Senha" className={styles.forgotLink}>
-            Esqueci minha senha
+            <span className={styles.forgotIcon}></span>
+            Recuperar senha
           </a>
         </div>
 

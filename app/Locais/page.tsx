@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navbar/page';
-import styles from '../styles/Especialidade.module.css'; // reaproveitando CSS dos médicos
+import styles from '../styles/Especialidade.module.css';
+import ProtectedRoute from '../components/auth/protecetroute';
+import Swal from "sweetalert2";
 
 interface Local {
   id: number;
@@ -36,58 +38,113 @@ export default function LocaisPage() {
     setLoading(true);
     try {
       const res = await fetch(API_URL, { headers: getHeaders() });
-      if (!res.ok) throw new Error('Erro ao buscar locais');
-      setLocais(await res.json());
+      const data = await res.json();
+
+      if (!res.ok) {
+        Swal.fire("Erro", data.message || "Erro ao carregar locais", "error");
+        return;
+      }
+
+      setLocais(data);
+
     } catch (err) {
-      console.error(err);
-      alert('Erro ao carregar locais');
+      Swal.fire("Erro", "Erro ao carregar locais", "error");
     } finally {
       setLoading(false);
     }
   };
 
+  // -----------------------------------------------------------
+  // ✅ CONFIRMAÇÃO E ALTERAÇÃO DE STATUS
+  // -----------------------------------------------------------
   const toggleStatus = async (local: Local) => {
-    const token = localStorage.getItem('token');
+    const acao = local.status ? "inativar" : "ativar";
+
+    const confirmar = await Swal.fire({
+      title: `Confirmar ${acao}?`,
+      text: `Você realmente deseja ${acao} o local "${local.nome}"?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sim",
+      cancelButtonText: "Não",
+      reverseButtons: true,
+    });
+
+    if (!confirmar.isConfirmed) return;
+
+    const token = localStorage.getItem("token");
+
     try {
-      const res = await fetch(`${API_URL}/${local.id}`, {
-        method: 'PATCH',
+      const res = await fetch(`${API_URL}/${local.id}/toggle-status`, {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status: !local.status })
       });
-      if (!res.ok) throw new Error('Erro ao alterar status');
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        Swal.fire("Erro", data.error || "Falha ao alterar status", "error");
+        return;
+      }
+
+      Swal.fire(
+        "Atualizado!",
+        `O local agora está ${data.status ? "Ativo" : "Inativo"}.`,
+        "success"
+      );
+
       fetchLocais();
+
     } catch (err) {
-      console.error(err);
-      alert('Erro ao alterar status');
+      Swal.fire("Erro", "Falha inesperada ao alterar status", "error");
     }
   };
 
+  // -----------------------------------------------------------
+  // ✅ SALVAR LOCAL + ERROS DE VALIDAÇÃO
+  // -----------------------------------------------------------
   const salvarLocal = async (local: Local) => {
     if (!local.nome.trim() || !local.endereco.trim() || !local.telefone.trim()) {
-      alert('Preencha todos os campos.');
+      Swal.fire("Atenção", "Preencha todos os campos obrigatórios.", "warning");
       return;
     }
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
+
     try {
       const res = await fetch(`${API_URL}/${local.id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(local)
+        body: JSON.stringify(local),
       });
-      if (!res.ok) throw new Error('Erro ao salvar local');
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const msg =
+          data.message ||
+          data.error ||
+          (data.errors
+            ? Object.values(data.errors).flat().join("\n")
+            : "Erro ao salvar");
+
+        Swal.fire("Erro", msg, "error");
+        return;
+      }
+
+      Swal.fire("Sucesso", "Local atualizado com sucesso!", "success");
       fetchLocais();
       setOpenModal(false);
       setSelected(null);
+
     } catch (err) {
-      console.error(err);
-      alert('Erro ao salvar local');
+      Swal.fire("Erro", "Falha inesperada ao salvar", "error");
     }
   };
 
@@ -97,7 +154,7 @@ export default function LocaisPage() {
   };
 
   return (
-    <>
+    <ProtectedRoute allowedRoles={"admin"}>
       <Navbar />
       <main className={styles.mainContent}>
         <div className={styles.header}>
@@ -141,10 +198,14 @@ export default function LocaisPage() {
           />
         )}
       </main>
-    </>
+    </ProtectedRoute >
   );
 }
 
+
+// ===================================================================
+// 📌 MODAL COMPLETO
+// ===================================================================
 function ModalLocal({
   local,
   onSalvar,
@@ -161,24 +222,26 @@ function ModalLocal({
   const salvar = () => onSalvar({ ...local, nome, endereco, telefone });
 
   return (
-    <div className={styles.modalOverlay} onClick={onCancelar}>
-      <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-        <h2>{local.id === 0 ? 'Novo Local' : 'Editar Local'}</h2>
+    <ProtectedRoute allowedRoles={"admin"}>
+      <div className={styles.modalOverlay} onClick={onCancelar}>
+        <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+          <h2>{local.id === 0 ? 'Novo Local' : 'Editar Local'}</h2>
 
-        <label>Nome*</label>
-        <input value={nome} onChange={e => setNome(e.target.value)} />
+          <label>Nome*</label>
+          <input value={nome} onChange={e => setNome(e.target.value)} />
 
-        <label>Endereço*</label>
-        <input value={endereco} onChange={e => setEndereco(e.target.value)} />
+          <label>Endereço*</label>
+          <input value={endereco} onChange={e => setEndereco(e.target.value)} />
 
-        <label>Telefone*</label>
-        <input value={telefone} onChange={e => setTelefone(e.target.value)} />
+          <label>Telefone*</label>
+          <input value={telefone} onChange={e => setTelefone(e.target.value)} />
 
-        <div className={styles.modalActions}>
-          <button className={styles.cancelBtn} onClick={onCancelar}>Cancelar</button>
-          <button className={styles.saveBtn} onClick={salvar}>Salvar</button>
+          <div className={styles.modalActions}>
+            <button className={styles.cancelBtn} onClick={onCancelar}>Cancelar</button>
+            <button className={styles.saveBtn} onClick={salvar}>Salvar</button>
+          </div>
         </div>
       </div>
-    </div>
+    </ProtectedRoute >
   );
 }

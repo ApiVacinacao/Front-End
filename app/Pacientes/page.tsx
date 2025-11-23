@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/navbar/page';
+import ProtectedRoute from '../components/auth/protecetroute';
 import styles from '../styles/Especialidade.module.css';
 import Swal from "sweetalert2";
 
@@ -16,6 +17,18 @@ type Paciente = {
 const API_URL = 'http://localhost:8000/api/users';
 
 export default function PacientesPage() {
+  return (
+    <ProtectedRoute allowedRoles={"admin"}>
+      <PacientesContent />
+    </ProtectedRoute>
+  );
+}
+
+// ==============================================
+// COMPONENTE PRINCIPAL
+// ==============================================
+function PacientesContent() {
+
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [selected, setSelected] = useState<Paciente | null>(null);
   const [openModal, setOpenModal] = useState(false);
@@ -39,11 +52,14 @@ export default function PacientesPage() {
   const fetchPacientes = async () => {
     setLoading(true);
     try {
-      const res = await fetch(API_URL, { headers: getHeaders() });
+      const res = await fetch(API_URL, {
+        headers: getHeaders()
+      });
+
       if (!res.ok) throw new Error('Erro ao carregar pacientes');
+
       setPacientes(await res.json());
     } catch (err) {
-      console.error(err);
       Swal.fire({
         icon: "error",
         title: "Erro",
@@ -59,15 +75,22 @@ export default function PacientesPage() {
   // =============================
   const abrirModal = (paciente?: Paciente) => {
     setSelected(
-      paciente || { id: 0, name: '', email: '', cpf: '', status: true }
+      paciente || {
+        id: 0,
+        name: '',
+        email: '',
+        cpf: '',
+        status: true
+      }
     );
     setOpenModal(true);
   };
 
   // =============================
-  // SALVAR (PUT)
+  // SALVAR PACIENTE (PUT)
   // =============================
   const salvarPaciente = async (paciente: Paciente) => {
+
     if (!paciente.name.trim() || !paciente.email.trim() || !paciente.cpf.trim()) {
       Swal.fire({
         icon: "warning",
@@ -78,7 +101,7 @@ export default function PacientesPage() {
     }
 
     const payload = {
-      nome: paciente.name,
+      name: paciente.name,
       email: paciente.email,
       cpf: paciente.cpf,
       status: paciente.status,
@@ -117,7 +140,6 @@ export default function PacientesPage() {
       });
 
     } catch (err) {
-      console.error(err);
       Swal.fire({
         icon: "error",
         title: "Erro",
@@ -130,15 +152,14 @@ export default function PacientesPage() {
   // ALTERAR STATUS
   // =============================
   const toggleStatus = async (paciente: Paciente) => {
+
     const confirmar = await Swal.fire({
       icon: "question",
       title: paciente.status ? "Inativar paciente?" : "Ativar paciente?",
-      text: paciente.status
-        ? "O paciente ficará inativo."
-        : "O paciente será reativado.",
+      text: paciente.status ? "O paciente ficará inativo." : "O paciente será reativado.",
       showCancelButton: true,
       confirmButtonText: "Confirmar",
-      cancelButtonText: "Cancelar",
+      cancelButtonText: "Cancelar"
     });
 
     if (!confirmar.isConfirmed) return;
@@ -151,8 +172,7 @@ export default function PacientesPage() {
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ status: !paciente.status }),
+        }
       });
 
       if (!res.ok) throw new Error("Erro");
@@ -166,7 +186,6 @@ export default function PacientesPage() {
       });
 
     } catch (err) {
-      console.error(err);
       Swal.fire({
         icon: "error",
         title: "Erro",
@@ -176,8 +195,9 @@ export default function PacientesPage() {
   };
 
   return (
-    <>
+    <ProtectedRoute allowedRoles={"admin"}>
       <Navbar />
+
       <main className={styles.mainContent}>
         <div className={styles.header}>
           <h2>Listagem de Pacientes</h2>
@@ -202,7 +222,10 @@ export default function PacientesPage() {
                 </div>
 
                 <div className={styles.botoes}>
-                  <button className={styles.btnEdit} onClick={() => abrirModal(p)}>Editar</button>
+                  <button className={styles.btnEdit} onClick={() => abrirModal(p)}>
+                    Editar
+                  </button>
+
                   <button className={styles.btnToggle} onClick={() => toggleStatus(p)}>
                     {p.status ? 'Inativar' : 'Ativar'}
                   </button>
@@ -220,12 +243,12 @@ export default function PacientesPage() {
           />
         )}
       </main>
-    </>
+    </ProtectedRoute>
   );
 }
 
 // =============================
-// MODAL PACIENTE COMPLETO
+// MODAL COMPLETO
 // =============================
 function ModalPaciente({
   paciente,
@@ -236,6 +259,7 @@ function ModalPaciente({
   onSalvar: (p: Paciente) => void;
   onCancelar: () => void;
 }) {
+
   const [name, setNome] = useState(paciente.name);
   const [email, setEmail] = useState(paciente.email);
   const [cpf, setCpf] = useState(paciente.cpf);
@@ -249,34 +273,40 @@ function ModalPaciente({
       title: "Descartar alterações?",
       showCancelButton: true,
       confirmButtonText: "Sim",
-      cancelButtonText: "Não",
+      cancelButtonText: "Não"
     });
 
     if (confirm.isConfirmed) onCancelar();
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={cancelar}>
-      <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-        <h2>{paciente.id === 0 ? 'Novo Paciente' : 'Editar Paciente'}</h2>
+    <ProtectedRoute allowedRoles={"admin"}>
+      <div className={styles.modalOverlay} onClick={cancelar}>
+        <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+          <h2>{paciente.id === 0 ? 'Novo Paciente' : 'Editar Paciente'}</h2>
 
-        <label>Nome*</label>
-        <input value={name} onChange={e => setNome(e.target.value)} />
+          <label>Nome*</label>
+          <input value={name} onChange={e => setNome(e.target.value)} />
 
-        <label>Email*</label>
-        <input type="email" value={email} onChange={e => setEmail(e.target.value)} />
+          <label>Email*</label>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} />
 
-        <label>CPF*</label>
-        <input value={cpf} onChange={e => setCpf(e.target.value)} />
+          <label>CPF*</label>
+          <input value={cpf} onChange={e => setCpf(e.target.value)} />
 
-        <label>Status</label>
-        <input type="checkbox" checked={status} onChange={e => setStatus(e.target.checked)} />
+          <label>Status</label>
+          <input
+            type="checkbox"
+            checked={status}
+            onChange={e => setStatus(e.target.checked)}
+          />
 
-        <div className={styles.modalActions}>
-          <button className={styles.cancelBtn} onClick={cancelar}>Cancelar</button>
-          <button className={styles.saveBtn} onClick={salvar}>Salvar</button>
+          <div className={styles.modalActions}>
+            <button className={styles.cancelBtn} onClick={cancelar}>Cancelar</button>
+            <button className={styles.saveBtn} onClick={salvar}>Salvar</button>
+          </div>
         </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }
