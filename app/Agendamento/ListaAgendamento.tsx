@@ -12,13 +12,15 @@ export interface Appointment {
   medico_id: number;
   local_atendimento_id: number;
   tipo_consulta_id: number;
-  data: string; // backend manda um campo só (datetime)
+  dataHora?: string;  // <-- ALTERADO
   hora?: string;
   status?: boolean;
   user?: { id: number; name: string };
   medico?: { id: number; nome: string };
   local_atendimento?: { id: number; nome: string };
   tipo_consulta?: { id: number; descricao: string };
+  data_formatada?: string;
+  hora_formatada?: string;
 }
 
 const API_URL = 'http://localhost:8000/api/agendamentos';
@@ -49,11 +51,11 @@ const AgendamentosList: React.FC = () => {
     window.location.href = '/Login';
   };
 
-  // 🔥 FORMATAÇÃO LOCAL (SEM DEPENDER DO BACK)
-  const formatarDataHora = (dataStr: string) => {
+  // 🔥 FORMATAÇÃO DA DATA/HORA (USANDO dataHora VINDO DO BACKEND)
+  const formatarDataHora = (dataStr: string | undefined) => {
     if (!dataStr) return { data: '-', hora: '-' };
 
-    const d = new Date(dataStr);
+    const d = new Date(dataStr.replace(' ', 'T')); // para evitar erro no iOS/macOS
     if (isNaN(d.getTime())) return { data: '-', hora: '-' };
 
     const data = d.toLocaleDateString('pt-BR');
@@ -72,7 +74,7 @@ const AgendamentosList: React.FC = () => {
     try {
       let url = API_URL;
 
-      // 🔥 user → só dele
+      // user → só vê os próprios agendamentos
       if (role === 'user' && user_id) {
         url = `${API_URL}?user_id=${user_id}`;
       }
@@ -86,10 +88,14 @@ const AgendamentosList: React.FC = () => {
 
       const data = await res.json();
 
-      // 🔥 AQUI EU FORMATO DATA/HORA
+      // 🔥 AGORA USANDO dataHora
       const ajustado = data.map((item: Appointment) => {
-        const { data, hora } = formatarDataHora(item.data);
-        return { ...item, data_formatada: data, hora_formatada: hora };
+        const { data, hora } = formatarDataHora(item.dataHora);
+        return {
+          ...item,
+          data_formatada: data,
+          hora_formatada: hora,
+        };
       });
 
       setAppointments(ajustado);
@@ -112,10 +118,13 @@ const AgendamentosList: React.FC = () => {
   const closeModal = () => setSelectedAppointment(null);
 
   const handleUpdate = (updated: Appointment) => {
-    const { data, hora } = formatarDataHora(updated.data);
+    const { data, hora } = formatarDataHora(updated.dataHora);
+
     setAppointments(prev =>
       prev.map(a =>
-        a.id === updated.id ? { ...updated, data_formatada: data, hora_formatada: hora } : a
+        a.id === updated.id
+          ? { ...updated, data_formatada: data, hora_formatada: hora }
+          : a
       )
     );
   };
@@ -145,7 +154,9 @@ const AgendamentosList: React.FC = () => {
       const { status } = await res.json();
 
       setAppointments(prev =>
-        prev.map(a => (a.id === appointment.id ? { ...a, status } : a))
+        prev.map(a =>
+          a.id === appointment.id ? { ...a, status } : a
+        )
       );
 
       Swal.fire({
@@ -207,7 +218,9 @@ const AgendamentosList: React.FC = () => {
                       </button>
 
                       <button
-                        className={`${styles.btnToggle} ${a.status ? styles.btnInativar : styles.btnAtivar}`}
+                        className={`${styles.btnToggle} ${
+                          a.status ? styles.btnInativar : styles.btnAtivar
+                        }`}
                         onClick={() => toggleStatus(a)}
                       >
                         {a.status ? 'Inativar' : 'Ativar'}
