@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navbar/page';
 import styles from '../styles/Especialidade.module.css'; // reaproveitando CSS dos médicos
-import ProtectedRoute from '../components/auth/protecetroute';
 
 interface Local {
   id: number;
@@ -98,8 +97,7 @@ export default function LocaisPage() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={"admin"}>
-          <>
+    <>
       <Navbar />
       <main className={styles.mainContent}>
         <div className={styles.header}>
@@ -144,8 +142,6 @@ export default function LocaisPage() {
         )}
       </main>
     </>
-    </ProtectedRoute>
-
   );
 }
 

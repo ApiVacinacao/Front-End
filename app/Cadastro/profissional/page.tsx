@@ -2,25 +2,28 @@
 
 import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/navbar/page';
+import Swal from 'sweetalert2';
+import { useRouter } from 'next/navigation';
 import styles from './medico.module.css';
 import ProtectedRoute from '@/app/components/auth/protecetroute';
 
 interface Especialidade {
   id: number;
   nome: string;
-  status: number; // 0 ou 1
+  status: number;
 }
 
 const CadastroMedico: React.FC = () => {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     nome: '',
     cpf: '',
     crm: '',
     especialidade_id: '',
   });
-  const [mensagem, setMensagem] = useState('');
+
   const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
-  const [mensagemTipo, setMensagemTipo] = useState<'erro' | 'sucesso' | ''>('');
 
   useEffect(() => {
     const fetchEspecialidades = async () => {
@@ -29,46 +32,48 @@ const CadastroMedico: React.FC = () => {
         const res = await fetch('http://localhost:8000/api/especialidades', {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
+
         const data = await res.json();
+
         if (res.ok) {
-          const ativas = data.filter((esp: Especialidade) => esp.status === 1);
-          setEspecialidades(ativas);
+          setEspecialidades(data.filter((esp: Especialidade) => esp.status === 1));
         }
       } catch (err) {
-        console.error('Erro ao conectar à API de especialidades', err);
+        Swal.fire('Erro', 'Falha ao carregar especialidades.', 'error');
       }
     };
+
     fetchEspecialidades();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, '').slice(0, 11);
-    value = value.replace(/(\d{3})(\d)/, '$1.$2')
-                 .replace(/(\d{3})(\d)/, '$1.$2')
-                 .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-    setFormData({ ...formData, cpf: value });
+    let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+    v = v.replace(/(\d{3})(\d)/, '$1.$2')
+         .replace(/(\d{3})(\d)/, '$1.$2')
+         .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    setFormData(prev => ({ ...prev, cpf: v }));
   };
 
   const handleCrmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toUpperCase().replace(/[^A-Z0-9/ ]/g, '');
-    setFormData({ ...formData, crm: value });
+    setFormData(prev => ({ ...prev, crm: e.target.value.toUpperCase() }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMensagem('');
 
     const { nome, cpf, crm, especialidade_id } = formData;
-    if (!nome || !cpf || !crm || !especialidade_id)
-      return setMensagem('Preencha todos os campos obrigatórios.');
+
+    if (!nome || !cpf || !crm || !especialidade_id) {
+      return Swal.fire('Aviso', 'Preencha todos os campos obrigatórios.', 'warning');
+    }
 
     try {
       const token = localStorage.getItem('token');
+
       const payload = {
         nome,
         cpf: cpf.replace(/\D/g, ''),
@@ -88,27 +93,23 @@ const CadastroMedico: React.FC = () => {
 
       const data = await res.json();
 
-      if (res.ok) {
-        setMensagem(`Médico ${data.nome} cadastrado com sucesso!`);
-        setMensagemTipo('sucesso');
-        setFormData({ nome: '', cpf: '', crm: '', especialidade_id: '' });
-      } else {
-        if (data.errors) {
-          // Trata erros da validação do Laravel (422)
-          const mensagens = Object.values(data.errors)
-            .flat()
-            .join(' | ');
-
-          setMensagem(mensagens);
-        } else {
-          setMensagem(data.message || 'Erro ao cadastrar médico.');
-        }
-        setMensagemTipo('erro');
+      if (!res.ok) {
+        return Swal.fire('Erro', data.error || 'Erro ao cadastrar médico', 'error');
       }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Sucesso!',
+        text: `Médico cadastrado com sucesso!`,
+        confirmButtonText: 'Ir para Médicos'
+      }).then(() => {
+        router.push('/Medicos');
+      });
+
+      setFormData({ nome: '', cpf: '', crm: '', especialidade_id: '' });
+
     } catch (err) {
-      console.error('Erro:', err);
-      setMensagem('Erro ao cadastrar médico.');
-      setMensagemTipo('erro');
+      Swal.fire('Erro', 'Erro inesperado ao cadastrar médico.', 'error');
     }
   };
 
@@ -117,10 +118,13 @@ const CadastroMedico: React.FC = () => {
     <ProtectedRoute allowedRoles={"admin"}>
           <>
       <Navbar />
+
       <main className={styles.content}>
         <div className={styles.formContainer}>
           <h1>Cadastro de Médico</h1>
+
           <form onSubmit={handleSubmit} className={styles.form}>
+            
             <div className={styles.row}>
               <div className={styles.col}>
                 <label>Nome*</label>
@@ -130,9 +134,9 @@ const CadastroMedico: React.FC = () => {
                   value={formData.nome}
                   onChange={handleChange}
                   placeholder="Nome completo"
-                  required
                 />
               </div>
+
               <div className={styles.col}>
                 <label>CPF*</label>
                 <input
@@ -141,7 +145,6 @@ const CadastroMedico: React.FC = () => {
                   value={formData.cpf}
                   onChange={handleCpfChange}
                   placeholder="000.000.000-00"
-                  required
                 />
               </div>
             </div>
@@ -155,22 +158,18 @@ const CadastroMedico: React.FC = () => {
                   value={formData.crm}
                   onChange={handleCrmChange}
                   placeholder="CRM/SP 123456"
-                  required
                 />
               </div>
+
               <div className={styles.col}>
                 <label>Especialidade*</label>
                 <select
                   name="especialidade_id"
                   value={formData.especialidade_id}
                   onChange={handleChange}
-                  required
-                  disabled={especialidades.length === 0}
                 >
-                  <option value="">
-                    {especialidades.length === 0 ? 'Carregando...' : 'Selecione a especialidade'}
-                  </option>
-                  {especialidades.map((esp) => (
+                  <option value="">Selecione</option>
+                  {especialidades.map(esp => (
                     <option key={esp.id} value={esp.id}>
                       {esp.nome}
                     </option>
@@ -180,16 +179,6 @@ const CadastroMedico: React.FC = () => {
             </div>
 
             <button type="submit">Cadastrar</button>
-            {mensagem && (
-              <p
-                className={`${styles.mensagem} ${
-                  mensagemTipo === 'erro' ? styles.erro : styles.sucesso
-                }`}
-              >
-                {mensagem}
-            </p>
-)}
-
           </form>
         </div>
       </main>

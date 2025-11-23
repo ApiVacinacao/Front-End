@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import styles from '../styles/ListaAgendamento.module.css';
 import DetalheAgendamento from './AgendamentoDetalhe';
+import Swal from 'sweetalert2';
+import ProtectedRoute from '../components/auth/protecetroute';
 
 export interface Appointment {
   id?: number;
@@ -17,7 +19,6 @@ export interface Appointment {
   medico?: { id: number; nome: string };
   local_atendimento?: { id: number; nome: string };
   tipo_consulta?: { id: number; descricao: string };
-  dataHora?: string; // backend novo
 }
 
 const API_URL = 'http://localhost:8000/api/agendamentos';
@@ -40,6 +41,11 @@ const AgendamentosList: React.FC = () => {
   const fetchAppointments = async () => {
     const token = getToken();
     if (!token) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Sessão expirada',
+        text: 'Faça login novamente.',
+      });
       window.location.href = '/Login';
       return;
     }
@@ -49,6 +55,11 @@ const AgendamentosList: React.FC = () => {
 
       if (res.status === 401) {
         localStorage.removeItem('token');
+        Swal.fire({
+          icon: 'warning',
+          title: 'Sessão expirada',
+          text: 'Faça login novamente.',
+        });
         window.location.href = '/Login';
         return;
       }
@@ -58,31 +69,16 @@ const AgendamentosList: React.FC = () => {
       }
 
       const data = await res.json();
-
-      // 🔥 AQUI É A PARTE QUE FAZ A CONVERSÃO DATAHORA → DATA e HORA
-      const formatted = Array.isArray(data)
-        ? data.map((item: any) => {
-            // Se o backend ANTIGO ainda envia separado, mantém
-            if (item.data && item.hora) return item;
-
-            // Se o backend NOVO envia "dataHora": "2025-11-21 13:26:44"
-            if (item.dataHora) {
-              const [dataPart, horaPart] = item.dataHora.split(' ');
-
-              return {
-                ...item,
-                data: dataPart,
-                hora: horaPart?.slice(0, 5), // HH:mm
-              };
-            }
-
-            return item;
-          })
-        : [];
-
-      setAppointments(formatted);
+      setAppointments(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Erro ao carregar agendamentos:', err);
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Não foi possível carregar os agendamentos.',
+      });
+
       setAppointments([]);
     } finally {
       setLoading(false);
@@ -105,7 +101,16 @@ const AgendamentosList: React.FC = () => {
   const toggleStatus = async (appointment: Appointment) => {
     if (!appointment.id) return;
 
-    console.log(appointment);
+    const confirmar = await Swal.fire({
+      icon: 'question',
+      title: appointment.status ? 'Inativar agendamento?' : 'Ativar agendamento?',
+      text: 'Deseja inativar.',
+      showCancelButton: true,
+      confirmButtonText: 'Confirmar',
+      cancelButtonText: 'Cancelar',
+    });
+
+    if (!confirmar.isConfirmed) return;
 
     try {
       const res = await fetch(`${API_URL}/${appointment.id}/toggle-status`, {
@@ -120,14 +125,29 @@ const AgendamentosList: React.FC = () => {
       setAppointments(prev =>
         prev.map(a => (a.id === appointment.id ? { ...a, status } : a))
       );
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Status atualizado',
+        text: `O agendamento agora está ${status ? 'Ativo' : 'Inativo'}.`,
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
     } catch (err) {
       console.error('Erro ao alterar status:', err);
-      alert('Não foi possível alterar status do agendamento.');
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Não foi possível alterar o status do agendamento.',
+      });
     }
   };
 
   return (
-    <main className={styles.mainContent}>
+    <ProtectedRoute allowedRoles={"admin"}>
+          <main className={styles.mainContent}>
       <h2 className={styles.title}>Agendamentos</h2>
 
       {loading && <p className={styles.loading}>Carregando agendamentos...</p>}
@@ -162,8 +182,12 @@ const AgendamentosList: React.FC = () => {
                   <td data-label="Local">{a.local_atendimento?.nome ?? 'Desconhecido'}</td>
                   <td data-label="Tipo Consulta">{a.tipo_consulta?.descricao ?? 'Desconhecido'}</td>
                   <td data-label="Status">{a.status ? 'Ativo' : 'Inativo'}</td>
+
                   <td className="actionsCell">
-                    <button className={styles.btnDetails} onClick={() => openModal(a)}>Editar</button>
+                    <button className={styles.btnDetails} onClick={() => openModal(a)}>
+                      Editar
+                    </button>
+
                     <button
                       className={`${styles.btnToggle} ${a.status ? styles.btnInativar : styles.btnAtivar}`}
                       onClick={() => toggleStatus(a)}
@@ -187,6 +211,8 @@ const AgendamentosList: React.FC = () => {
         />
       )}
     </main>
+    </ProtectedRoute>
+
   );
 };
 

@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import Navbar from '../../components/navbar/page';
 import styles from './localAtendimento.module.css';
+import Swal from 'sweetalert2';
+import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/app/components/auth/protecetroute';
 
 const API_URL = 'http://127.0.0.1:8000/api/localAtendimentos';
@@ -11,24 +13,32 @@ const CadastroLocalAtendimento: React.FC = () => {
   const [nome, setNome] = useState('');
   const [endereco, setEndereco] = useState('');
   const [telefone, setTelefone] = useState('');
-  const [mensagem, setMensagem] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const router = useRouter();
 
   const handleSubmit = async () => {
     if (!nome.trim() || !endereco.trim() || !telefone.trim()) {
-      setMensagem('Por favor, preencha todos os campos!');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos obrigatórios',
+        text: 'Preencha todos os campos antes de continuar.',
+      });
       return;
     }
 
     const token = localStorage.getItem('token');
 
     if (!token) {
-      setMensagem('Usuário não autenticado. Faça login para continuar.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Acesso negado',
+        text: 'Você precisa estar logado para cadastrar locais.',
+      });
       return;
     }
 
     setLoading(true);
-    setMensagem('');
 
     const telefoneNome = telefone.replace(/\D/g, "")
 
@@ -37,33 +47,41 @@ const CadastroLocalAtendimento: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ nome, endereco, telefone:telefoneNome }),
+        body: JSON.stringify({ nome, endereco, telefone, status: true }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        if (data?.errors) {
-          const mensagens = Object.values(data.errors)
-            .flat()
-            .join(' | ');
-
-          setMensagem(mensagens);
-        } else {
-          setMensagem(data.message || data.error || 'Erro ao cadastrar local');
-        }
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro ao cadastrar',
+          text: data.error || 'Não foi possível salvar o local.',
+        });
         return;
       }
 
-      setMensagem('Local de Atendimento cadastrado com sucesso!');
+      Swal.fire({
+        icon: 'success',
+        title: 'Sucesso!',
+        text: 'Local de atendimento cadastrado com sucesso!',
+        confirmButtonText: 'Ir para Locais',
+      }).then(() => {
+        router.push('/Locais'); // **REDIRECIONA AO CONFIRMAR**
+      });
+
       setNome('');
       setEndereco('');
       setTelefone('');
     } catch (err) {
       console.error(err);
-      setMensagem('Erro ao conectar com o servidor');
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro de conexão',
+        text: 'Não foi possível conectar ao servidor.',
+      });
     } finally {
       setLoading(false);
     }
@@ -77,6 +95,7 @@ const CadastroLocalAtendimento: React.FC = () => {
       <main className={styles.mainContent}>
         <div className={styles.formContainer}>
           <h1 className={styles.title}>Cadastro de Local de Atendimento</h1>
+
           <form
             className={styles.form}
             onSubmit={(e) => {
@@ -114,14 +133,11 @@ const CadastroLocalAtendimento: React.FC = () => {
             <button type="submit" disabled={loading}>
               {loading ? 'Cadastrando...' : 'Cadastrar Local'}
             </button>
-
-            {mensagem && <p className={styles.mensagem}>{mensagem}</p>}
           </form>
         </div>
       </main>
     </div>
     </ProtectedRoute>
-
   );
 };
 

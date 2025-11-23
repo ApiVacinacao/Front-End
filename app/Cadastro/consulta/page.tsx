@@ -3,24 +3,31 @@
 import React, { useState } from 'react';
 import Navbar from '../../components/navbar/page';
 import styles from './consulta.module.css';
+import Swal from 'sweetalert2';
+import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/app/components/auth/protecetroute';
 
 const API_URL = 'http://localhost:8000/api/tipoConsultas';
 
 const CadastroTipoConsulta: React.FC = () => {
   const [descricao, setDescricao] = useState('');
-  const [mensagem, setMensagem] = useState('');
+  const router = useRouter();
 
   const handleSubmit = async () => {
     setMensagem('');
 
     if (!descricao.trim()) {
-      setMensagem('Preencha a descrição!');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Atenção',
+        text: 'Preencha a descrição!',
+      });
       return;
     }
 
     try {
       const token = localStorage.getItem('token');
+
       const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 
@@ -30,33 +37,36 @@ const CadastroTipoConsulta: React.FC = () => {
         body: JSON.stringify({ descricao, status: true }),
       });
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error();
 
-        if (data?.errors) {
-          const mensagens = Object.values(data.errors)
-            .flat()
-            .join(' | ');
-          setMensagem(mensagens);
-        } else {
-          setMensagem(data?.message || 'Erro ao cadastrar tipo de consulta');
-        }
+      Swal.fire({
+        icon: 'success',
+        title: 'Sucesso!',
+        text: 'Tipo de consulta cadastrado com sucesso!',
+        timer: 1500,
+        showConfirmButton: false,
+      });
 
-        return;
-      }
-
-      setMensagem('Tipo de consulta cadastrado com sucesso!');
       setDescricao('');
+
+      // Redireciona rápido
+      setTimeout(() => {
+        router.push('/Consulta');
+      }, 1500);
+
     } catch (err) {
-      console.error(err);
-      setMensagem('Erro ao cadastrar tipo de consulta');
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao cadastrar tipo de consulta',
+      });
     }
   };
 
 
   return (
     <ProtectedRoute allowedRoles={"admin"}>
-      <div className={styles.pageWrapper}>
+    <div className={styles.pageWrapper}>
       <Navbar />
       <main className={styles.mainContent}>
         <div className={styles.container}>
@@ -77,8 +87,6 @@ const CadastroTipoConsulta: React.FC = () => {
           <button className={styles.button} onClick={handleSubmit}>
             Cadastrar
           </button>
-
-          {mensagem && <p className={styles.mensagem}>{mensagem}</p>}
         </div>
       </main>
     </div>
@@ -88,3 +96,6 @@ const CadastroTipoConsulta: React.FC = () => {
 };
 
 export default CadastroTipoConsulta;
+function setMensagem(arg0: string) {
+  throw new Error('Function not implemented.');
+}

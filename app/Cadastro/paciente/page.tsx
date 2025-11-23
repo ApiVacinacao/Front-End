@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../components/navbar/page';
 import styles from './paciente.module.css';
+import Swal from 'sweetalert2';
 import ProtectedRoute from '@/app/components/auth/protecetroute';
 
 const CadastroPaciente: React.FC = () => {
@@ -13,10 +14,9 @@ const CadastroPaciente: React.FC = () => {
     cpf: '',
     password: '',
     password_confirmation: '',
-    telefone: '', // <-- TELEFONE AQUI
+    telefone: '',
   });
 
-  const [mensagem, setMensagem] = useState('');
   const router = useRouter();
 
   const getToken = () => {
@@ -26,7 +26,6 @@ const CadastroPaciente: React.FC = () => {
     return null;
   };
 
-  // Máscaras de CPF e Telefone
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
@@ -60,18 +59,23 @@ const CadastroPaciente: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMensagem('');
 
     const { name, email, cpf, password, password_confirmation, telefone } = formData;
 
     if (!name || !email || !cpf || !password || !password_confirmation || !telefone) {
-      setMensagem('Preencha todos os campos obrigatórios!');
-      return;
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Campos obrigatórios',
+        text: 'Preencha todos os campos.',
+      });
     }
 
     if (password !== password_confirmation) {
-      setMensagem('As senhas não coincidem!');
-      return;
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Senhas diferentes',
+        text: 'As senhas não coincidem.',
+      });
     }
 
     try {
@@ -87,44 +91,50 @@ const CadastroPaciente: React.FC = () => {
       const token = getToken();
 
       if (!token) {
-        setMensagem('Token de autenticação não encontrado. Faça login novamente.');
-        return;
+        return Swal.fire({
+          icon: 'error',
+          title: 'Erro de autenticação',
+          text: 'Faça login novamente.',
+        });
       }
 
       const res = await fetch('http://localhost:8000/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
 
-      if (res.ok) {
-        setMensagem('Paciente cadastrado com sucesso!');
-        setFormData({
-          name: '',
-          email: '',
-          cpf: '',
-          password: '',
-          password_confirmation: '',
-          telefone: '',
-        });
-      } else {
-        const data = await res.json();
+      const data = await res.json();
 
-        if (data.errors) {
-          const mensagens = Object.values(data.errors)
-            .flat()
-            .join(' | ');
-          setMensagem(mensagens);
-        } else {
-          setMensagem(data.message || 'Erro ao cadastrar paciente.');
-        }
+      if (!res.ok) {
+        return Swal.fire({
+          icon: 'error',
+          title: 'Erro ao cadastrar',
+          text: data.message || 'Algo deu errado.',
+        });
       }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Sucesso!',
+        text: 'Paciente cadastrado com sucesso!',
+        confirmButtonText: 'Ir para pacientes',
+      }).then(() => {
+        router.push('/Pacientes');
+      });
+
+      setFormData({ name: '', email: '', cpf: '', password: '', password_confirmation: '', telefone: '' });
+
     } catch (err) {
       console.error(err);
-      setMensagem('Erro ao cadastrar paciente.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro no servidor',
+        text: 'Não foi possível cadastrar o paciente.',
+      });
     }
   };
 
@@ -136,94 +146,87 @@ const CadastroPaciente: React.FC = () => {
       <main className={styles.content}>
         <div className={styles.formContainer}>
           <h1>Cadastro de Paciente</h1>
-          <form className={styles.form} onSubmit={handleSubmit}>
 
+          <form className={styles.form} onSubmit={handleSubmit}>
+            
             <div className={styles.row}>
               <div className={styles.col}>
-                <label htmlFor="name">Nome *</label>
+                <label>Nome *</label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Nome completo"
-                  required
                 />
               </div>
 
               <div className={styles.col}>
-                <label htmlFor="email">E-mail *</label>
+                <label>E-mail *</label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="exemplo@email.com"
-                  required
+                  placeholder="email@exemplo.com"
                 />
               </div>
             </div>
 
             <div className={styles.row}>
               <div className={styles.col}>
-                <label htmlFor="cpf">CPF *</label>
+                <label>CPF *</label>
                 <input
                   type="text"
                   name="cpf"
                   value={formData.cpf}
                   onChange={handleChange}
                   placeholder="000.000.000-00"
-                  required
                 />
               </div>
 
               <div className={styles.col}>
-                <label htmlFor="telefone">Telefone *</label>
+                <label>Telefone *</label>
                 <input
                   type="text"
                   name="telefone"
                   value={formData.telefone}
                   onChange={handleChange}
                   placeholder="(00) 00000-0000"
-                  required
                 />
               </div>
             </div>
 
             <div className={styles.row}>
               <div className={styles.col}>
-                <label htmlFor="password">Senha *</label>
+                <label>Senha *</label>
                 <input
                   type="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Crie uma senha segura"
-                  required
+                  placeholder="Senha"
                 />
               </div>
 
               <div className={styles.col}>
-                <label htmlFor="password_confirmation">Confirmação de Senha *</label>
+                <label>Confirmação *</label>
                 <input
                   type="password"
                   name="password_confirmation"
                   value={formData.password_confirmation}
                   onChange={handleChange}
-                  placeholder="Confirme sua senha"
-                  required
+                  placeholder="Confirme a senha"
                 />
               </div>
             </div>
 
             <button type="submit">Cadastrar Paciente</button>
-            {mensagem && <p className={styles.mensagem}>{mensagem}</p>}
           </form>
         </div>
       </main>
     </>
     </ProtectedRoute>
-
   );
 };
 

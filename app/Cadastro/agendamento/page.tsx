@@ -6,10 +6,7 @@ import Navbar from '../../components/navbar/page';
 import styles from './agendamento.module.css';
 import ProtectedRoute from '@/app/components/auth/protecetroute';
 
-interface LocalAtendimento { id: number; nome: string; status: boolean; }
-interface Medico { id: number; nome: string; status: boolean; }
-interface Paciente { id: number; name: string; status: boolean; }
-interface TipoAgendamento { id: number; descricao: string; status: boolean; }
+interface Base { id: number; nome?: string; name?: string; descricao?: string; status: boolean; }
 
 const CadastroAgendamento: React.FC = () => {
   const [data, setData] = useState('');
@@ -19,53 +16,38 @@ const CadastroAgendamento: React.FC = () => {
   const [tipoAgendamento, setTipoAgendamento] = useState('');
   const [userId, setUserId] = useState('');
 
-  const [locais, setLocais] = useState<LocalAtendimento[]>([]);
-  const [medicos, setMedicos] = useState<Medico[]>([]);
-  const [pacientes, setPacientes] = useState<Paciente[]>([]);
-  const [tiposAgendamento, setTiposAgendamento] = useState<TipoAgendamento[]>([]);
+  const [locais, setLocais] = useState<Base[]>([]);
+  const [medicos, setMedicos] = useState<Base[]>([]);
+  const [pacientes, setPacientes] = useState<Base[]>([]);
+  const [tiposAgendamentoList, setTiposAgendamentoList] = useState<Base[]>([]);
 
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+
     const headers = {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {})
     };
 
-    const fetchData = async () => {
-      try {
-        const [locaisRes, medicosRes, pacRes, tiposRes] = await Promise.all([
-          fetch('http://localhost:8000/api/localAtendimentos', { headers }),
-          fetch('http://localhost:8000/api/medicos', { headers }),
-          fetch('http://localhost:8000/api/users', { headers }),
-          fetch('http://localhost:8000/api/tipoConsultas', { headers }),
-        ]);
-        if (!locaisRes.ok || !medicosRes.ok || !pacRes.ok || !tiposRes.ok) {
-          throw new Error('Erro ao buscar dados');
-        }
-        const [locaisData, medicosData, pacData, tiposData] = await Promise.all([
-          locaisRes.json(),
-          medicosRes.json(),
-          pacRes.json(),
-          tiposRes.json(),
-        ]);
+    const get = (url: string) => fetch(url, { headers }).then(r => r.json());
 
-        // Filtra apenas os ativos
-        setLocais(locaisData.filter((l: LocalAtendimento) => l.status));
-        setMedicos(medicosData.filter((m: Medico) => m.status));
-        setPacientes(pacData.filter((p: Paciente) => p.status));
-        setTiposAgendamento(tiposData.filter((t: TipoAgendamento) => t.status));
-      } catch (err) {
-        console.error('Erro ao buscar dados:', err);
-        alert('Erro ao carregar dados. Tente novamente mais tarde.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    Promise.all([
+      get('http://localhost:8000/api/localAtendimentos'),
+      get('http://localhost:8000/api/medicos'),
+      get('http://localhost:8000/api/users'),
+      get('http://localhost:8000/api/tipoConsultas'),
+    ])
+      .then(([l, m, p, t]) => {
+        setLocais(l.filter((i: Base) => i.status));
+        setMedicos(m.filter((i: Base) => i.status));
+        setPacientes(p.filter((i: Base) => i.status));
+        setTiposAgendamentoList(t.filter((i: Base) => i.status));
+      })
+      .catch(() => alert('Erro ao carregar dados.'))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleSubmit = async () => {
@@ -74,8 +56,10 @@ const CadastroAgendamento: React.FC = () => {
       return;
     }
 
-    const agendamentoData = {
-      dataHora: `${data} ${hora}:00`,
+    const token = localStorage.getItem('token');
+    const body = {
+      data,
+      hora,
       local_atendimento_id: Number(localAtendimentoId),
       medico_id: Number(medicoId),
       tipo_consulta_id: Number(tipoAgendamento),
@@ -83,48 +67,36 @@ const CadastroAgendamento: React.FC = () => {
     };
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/agendamentos', {
+      const res = await fetch('http://localhost:8000/api/agendamentos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
-        body: JSON.stringify(agendamentoData),
+        body: JSON.stringify(body),
       });
 
-      if (response.ok) {
-        alert('Agendamento cadastrado com sucesso!');
-        router.push('/');
-      } else {
-        const errorData = await response.json();
-
-        if (errorData?.errors) {
-          const mensagens = Object.values(errorData.errors)
-            .flat()
-            .join(' | ');
-
-          alert(mensagens);
-        } else {
-          alert(errorData.message || 'Erro ao cadastrar agendamento!');
-        }
+      if (res.ok) {
+        alert('Agendamento registrado com sucesso!');
+        router.push('/Agendamento'); // <-- REDIRECIONA DIRETO
+        return;
       }
-    } catch (err) {
-      console.error('Erro ao cadastrar agendamento:', err);
-      alert('Erro ao cadastrar agendamento!');
+
+      const err = await res.json();
+      alert(err.message || 'Erro ao cadastrar.');
+    } catch {
+      alert('Erro ao conectar com o servidor.');
     }
   };
 
-
   return (
     <ProtectedRoute allowedRoles={"admin"}>
-       <div className={styles.pageWrapper}>
+          <div className={styles.pageWrapper}>
       <Navbar />
       <main className={styles.mainContent}>
+
         {loading ? (
-          <div className="loadingWrapper">
-            <div className="spinner" />
-          </div>
+          <div className="loadingWrapper"><div className="spinner" /></div>
         ) : (
           <div className={styles.container}>
             <h1 className={styles.title}>Cadastrar Agendamento</h1>
@@ -132,25 +104,18 @@ const CadastroAgendamento: React.FC = () => {
             <div className={styles.row}>
               <div className={styles.col}>
                 <label>Paciente</label>
-                <select
-                  value={userId}
-                  onChange={e => setUserId(e.target.value)}
-                  className={styles.input}
-                >
-                  <option value="">Selecione o paciente</option>
+                <select value={userId} onChange={e => setUserId(e.target.value)} className={styles.input}>
+                  <option value="">Selecione</option>
                   {pacientes.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
               </div>
+
               <div className={styles.col}>
                 <label>Médico</label>
-                <select
-                  value={medicoId}
-                  onChange={e => setMedicoId(e.target.value)}
-                  className={styles.input}
-                >
-                  <option value="">Selecione o médico</option>
+                <select value={medicoId} onChange={e => setMedicoId(e.target.value)} className={styles.input}>
+                  <option value="">Selecione</option>
                   {medicos.map(m => (
                     <option key={m.id} value={m.id}>{m.nome}</option>
                   ))}
@@ -160,26 +125,19 @@ const CadastroAgendamento: React.FC = () => {
 
             <div className={styles.row}>
               <div className={styles.col}>
-                <label>Tipo de Agendamento</label>
-                <select
-                  value={tipoAgendamento}
-                  onChange={e => setTipoAgendamento(e.target.value)}
-                  className={styles.input}
-                >
-                  <option value="">Selecione o tipo</option>
-                  {tiposAgendamento.map(t => (
+                <label>Tipo</label>
+                <select value={tipoAgendamento} onChange={e => setTipoAgendamento(e.target.value)} className={styles.input}>
+                  <option value="">Selecione</option>
+                  {tiposAgendamentoList.map(t => (
                     <option key={t.id} value={t.id}>{t.descricao}</option>
                   ))}
                 </select>
               </div>
+
               <div className={styles.col}>
-                <label>Local de Atendimento</label>
-                <select
-                  value={localAtendimentoId}
-                  onChange={e => setLocalAtendimentoId(e.target.value)}
-                  className={styles.input}
-                >
-                  <option value="">Selecione o local</option>
+                <label>Local</label>
+                <select value={localAtendimentoId} onChange={e => setLocalAtendimentoId(e.target.value)} className={styles.input}>
+                  <option value="">Selecione</option>
                   {locais.map(l => (
                     <option key={l.id} value={l.id}>{l.nome}</option>
                   ))}
@@ -190,21 +148,12 @@ const CadastroAgendamento: React.FC = () => {
             <div className={styles.row}>
               <div className={styles.col}>
                 <label>Data</label>
-                <input
-                  type="date"
-                  value={data}
-                  onChange={e => setData(e.target.value)}
-                  className={styles.input}
-                />
+                <input type="date" value={data} onChange={e => setData(e.target.value)} className={styles.input} />
               </div>
+
               <div className={styles.col}>
                 <label>Hora</label>
-                <input
-                  type="time"
-                  value={hora}
-                  onChange={e => setHora(e.target.value)}
-                  className={styles.input}
-                />
+                <input type="time" value={hora} onChange={e => setHora(e.target.value)} className={styles.input} />
               </div>
             </div>
 

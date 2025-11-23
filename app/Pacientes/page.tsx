@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/navbar/page';
 import styles from '../styles/Especialidade.module.css';
-import ProtectedRoute from '../components/auth/protecetroute';
+import Swal from "sweetalert2";
 
 type Paciente = {
   id: number;
@@ -33,6 +33,9 @@ export default function PacientesPage() {
     fetchPacientes();
   }, []);
 
+  // =============================
+  // BUSCAR PACIENTES
+  // =============================
   const fetchPacientes = async () => {
     setLoading(true);
     try {
@@ -41,7 +44,11 @@ export default function PacientesPage() {
       setPacientes(await res.json());
     } catch (err) {
       console.error(err);
-      alert('Erro ao carregar pacientes');
+      Swal.fire({
+        icon: "error",
+        title: "Erro",
+        text: "Erro ao carregar pacientes."
+      });
     } finally {
       setLoading(false);
     }
@@ -62,12 +69,16 @@ export default function PacientesPage() {
   // =============================
   const salvarPaciente = async (paciente: Paciente) => {
     if (!paciente.name.trim() || !paciente.email.trim() || !paciente.cpf.trim()) {
-      alert('Preencha todos os campos obrigatórios.');
+      Swal.fire({
+        icon: "warning",
+        title: "Campos obrigatórios",
+        text: "Preencha todos os campos."
+      });
       return;
     }
 
     const payload = {
-      name: paciente.name,
+      nome: paciente.name,
       email: paciente.email,
       cpf: paciente.cpf,
       status: paciente.status,
@@ -80,19 +91,38 @@ export default function PacientesPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error('Erro ao salvar paciente');
+      if (!res.ok) {
+        Swal.fire({
+          icon: "error",
+          title: "Erro",
+          text: "Erro ao salvar paciente."
+        });
+        return;
+      }
+
       await res.json();
       fetchPacientes();
       setOpenModal(false);
       setSelected(null);
+
+      Swal.fire({
+        icon: "success",
+        title: "Salvo!",
+        text: "Paciente atualizado com sucesso."
+      });
+
     } catch (err) {
       console.error(err);
-      alert('Erro ao salvar paciente');
+      Swal.fire({
+        icon: "error",
+        title: "Erro",
+        text: "Erro ao salvar paciente."
+      });
     }
   };
 
@@ -100,27 +130,53 @@ export default function PacientesPage() {
   // ALTERAR STATUS
   // =============================
   const toggleStatus = async (paciente: Paciente) => {
+    const confirmar = await Swal.fire({
+      icon: "question",
+      title: paciente.status ? "Inativar paciente?" : "Ativar paciente?",
+      text: paciente.status
+        ? "O paciente ficará inativo."
+        : "O paciente será reativado.",
+      showCancelButton: true,
+      confirmButtonText: "Confirmar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!confirmar.isConfirmed) return;
+
     const token = localStorage.getItem('token');
+
     try {
       const res = await fetch(`${API_URL}/${paciente.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
         body: JSON.stringify({ status: !paciente.status }),
       });
-      if (!res.ok) throw new Error('Erro ao alterar status');
+
+      if (!res.ok) throw new Error("Erro");
+
       fetchPacientes();
+
+      Swal.fire({
+        icon: "success",
+        title: "Status atualizado",
+        text: "O status do paciente foi alterado."
+      });
+
     } catch (err) {
       console.error(err);
-      alert('Erro ao alterar status');
+      Swal.fire({
+        icon: "error",
+        title: "Erro",
+        text: "Erro ao alterar status."
+      });
     }
   };
 
   return (
-    <ProtectedRoute allowedRoles={"admin"}>
-          <>
+    <>
       <Navbar />
       <main className={styles.mainContent}>
         <div className={styles.header}>
@@ -165,13 +221,11 @@ export default function PacientesPage() {
         )}
       </main>
     </>
-    </ProtectedRoute>
-
   );
 }
 
 // =============================
-// MODAL PACIENTE
+// MODAL PACIENTE COMPLETO
 // =============================
 function ModalPaciente({
   paciente,
@@ -189,8 +243,20 @@ function ModalPaciente({
 
   const salvar = () => onSalvar({ ...paciente, name, email, cpf, status });
 
+  const cancelar = async () => {
+    const confirm = await Swal.fire({
+      icon: "warning",
+      title: "Descartar alterações?",
+      showCancelButton: true,
+      confirmButtonText: "Sim",
+      cancelButtonText: "Não",
+    });
+
+    if (confirm.isConfirmed) onCancelar();
+  };
+
   return (
-    <div className={styles.modalOverlay} onClick={onCancelar}>
+    <div className={styles.modalOverlay} onClick={cancelar}>
       <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
         <h2>{paciente.id === 0 ? 'Novo Paciente' : 'Editar Paciente'}</h2>
 
@@ -207,7 +273,7 @@ function ModalPaciente({
         <input type="checkbox" checked={status} onChange={e => setStatus(e.target.checked)} />
 
         <div className={styles.modalActions}>
-          <button className={styles.cancelBtn} onClick={onCancelar}>Cancelar</button>
+          <button className={styles.cancelBtn} onClick={cancelar}>Cancelar</button>
           <button className={styles.saveBtn} onClick={salvar}>Salvar</button>
         </div>
       </div>

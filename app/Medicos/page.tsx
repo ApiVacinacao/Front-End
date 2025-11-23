@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Swal from "sweetalert2";   // <-- AQUI
 import Navbar from '../components/navbar/page';
 import styles from '../styles/Especialidade.module.css';
 import ProtectedRoute from '../components/auth/protecetroute';
@@ -23,10 +24,8 @@ type Medico = {
 const API_URL = 'http://localhost:8000/api/medicos';
 const ESPECIALIDADE_URL = 'http://localhost:8000/api/especialidades';
 
-
-
 export default function MedicosPage() {
-  
+
   const [medicos, setMedicos] = useState<Medico[]>([]);
   const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
   const [selected, setSelected] = useState<Medico | null>(null);
@@ -58,7 +57,7 @@ export default function MedicosPage() {
       if (!res.ok) throw new Error("Erro ao buscar especialidades");
       setEspecialidades(await res.json());
     } catch (err) {
-      console.error(err);
+      Swal.fire("Erro", "Erro ao carregar especialidades.", "error");
     }
   };
 
@@ -72,8 +71,7 @@ export default function MedicosPage() {
       if (!res.ok) throw new Error("Erro ao buscar médicos");
       setMedicos(await res.json());
     } catch (err) {
-      console.error(err);
-      alert("Erro ao carregar médicos");
+      Swal.fire("Erro", "Erro ao carregar médicos.", "error");
     } finally {
       setLoading(false);
     }
@@ -93,12 +91,12 @@ export default function MedicosPage() {
   // SALVAR (POST / PUT)
   // =============================
   const salvarMedico = async (medico: Medico) => {
+
     if (!medico.nome.trim() || !medico.cpf.trim() || !medico.CRM.trim() || !medico.especialidade_id) {
-      alert('Preencha todos os campos obrigatórios.');
+      Swal.fire("Atenção", "Preencha todos os campos obrigatórios.", "warning");
       return;
     }
 
-    // *OBJETO LIMPO* (SEM especialidade)
     const payload = {
       nome: medico.nome,
       cpf: medico.cpf,
@@ -107,30 +105,19 @@ export default function MedicosPage() {
       especialidade_id: medico.especialidade_id,
     };
 
-    const token = localStorage.getItem("token");
-
     try {
       let res: Response;
 
       if (medico.id === 0) {
-        // CRIAR
         res = await fetch(API_URL, {
-          method: 'POST',
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
+          method: "POST",
+          headers: getHeaders(),
           body: JSON.stringify(payload),
         });
       } else {
-        // EDITAR
-        console.log(payload)
         res = await fetch(`${API_URL}/${medico.id}`, {
-          method: 'PUT',
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
+          method: "PUT",
+          headers: getHeaders(),
           body: JSON.stringify(payload),
         });
       }
@@ -139,11 +126,11 @@ export default function MedicosPage() {
         const errorData = await res.json();
         if (errorData?.errors) {
           const mensagens = Object.entries(errorData.errors)
-            .map(([campo, mensagens]) => `${campo}: ${(mensagens as string[]).join(', ')}`)
-            .join('\n');
-          alert(`Erro de validação:\n${mensagens}`);
+            .map(([campo, msgs]) => `${campo}: ${(msgs as string[]).join(", ")}`)
+            .join("<br>");
+          Swal.fire("Erro de validação", mensagens, "error");
         } else {
-          alert("Erro ao salvar médico");
+          Swal.fire("Erro", "Erro ao salvar médico.", "error");
         }
         return;
       }
@@ -153,9 +140,10 @@ export default function MedicosPage() {
       setOpenModal(false);
       setSelected(null);
 
+      Swal.fire("Sucesso", "Médico salvo com sucesso!", "success");
+
     } catch (err) {
-      console.error(err);
-      alert("Erro ao salvar médico");
+      Swal.fire("Erro", "Erro ao salvar médico.", "error");
     }
   };
 
@@ -163,23 +151,38 @@ export default function MedicosPage() {
   // ALTERAR STATUS
   // =============================
   const toggleStatus = async (medico: Medico) => {
-    const token = localStorage.getItem("token");
+
+    const confirm = await Swal.fire({
+      title: "Tem certeza?",
+      text: medico.status
+        ? "Isso irá inativar o médico."
+        : "Isso irá ativar o médico.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sim",
+      cancelButtonText: "Cancelar"
+    });
+
+    if (!confirm.isConfirmed) return;
 
     try {
       const res = await fetch(`${API_URL}/${medico.id}`, {
         method: 'PATCH',
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers: getHeaders(),
         body: JSON.stringify({ status: !medico.status }),
       });
       if (!res.ok) throw new Error("Erro ao alterar status");
 
       fetchMedicos();
+
+      Swal.fire(
+        "Sucesso",
+        medico.status ? "Médico inativado!" : "Médico ativado!",
+        "success"
+      );
+
     } catch (err) {
-      console.error(err);
-      alert("Erro ao alterar status");
+      Swal.fire("Erro", "Erro ao alterar status.", "error");
     }
   };
 
@@ -233,7 +236,6 @@ export default function MedicosPage() {
       </main>
     </>
     </ProtectedRoute>
-
   );
 }
 
@@ -256,8 +258,7 @@ function ModalMedico({
   const [CRM, setCRM] = useState(medico.CRM);
   const [especialidade_id, setEspecialidadeId] = useState(medico.especialidade_id);
 
-  const salvar = () =>
-    onSalvar({ ...medico, nome, cpf, CRM, especialidade_id });
+  const salvar = () => onSalvar({ ...medico, nome, cpf, CRM, especialidade_id });
 
   return (
     <div className={styles.modalOverlay} onClick={onCancelar}>

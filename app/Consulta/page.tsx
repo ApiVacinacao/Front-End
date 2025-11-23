@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navbar/page';
 import styles from './tipoConsulta.module.css';
+import Swal from 'sweetalert2';
 import ProtectedRoute from '../components/auth/protecetroute';
 
 interface TipoConsulta {
@@ -15,7 +16,6 @@ const API_URL = 'http://localhost:8000/api/tipoConsultas';
 
 export default function TipoConsultaPage() {
   const [tipos, setTipos] = useState<TipoConsulta[]>([]);
-  const [tipoEditando, setTipoEditando] = useState<TipoConsulta | null>(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState('');
 
@@ -29,34 +29,69 @@ export default function TipoConsultaPage() {
       const res = await fetch(API_URL, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
+
       if (!res.ok) throw new Error('Erro: ' + res.status);
+
       const data = await res.json();
       setTipos(data);
     } catch (err) {
-      console.error(err);
       setErro('Erro ao carregar tipos de consulta');
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleStatus = async (id: number) => {
+  const toggleStatus = async (id: number, statusAtual: boolean) => {
+    const confirmar = await Swal.fire({
+      title: statusAtual ? 'Deseja Inativar?' : 'Deseja Ativar?',
+      text: 'Confirme a alteração.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sim',
+      cancelButtonText: 'Cancelar',
+    });
+
+    if (!confirmar.isConfirmed) return;
+
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_URL}/${id}/toggle-status`, {
         method: 'PATCH',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
+
       if (!res.ok) throw new Error('Erro ao alterar status');
+
       const atualizado = await res.json();
       setTipos(prev => prev.map(t => (t.id === atualizado.id ? atualizado : t)));
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Status alterado com sucesso!',
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
     } catch (err) {
-      console.error(err);
-      alert('Erro ao alterar status');
+      Swal.fire('Erro', 'Não foi possível alterar o status.', 'error');
     }
   };
 
-  const salvarEdicao = async (tipo: TipoConsulta) => {
+  const editarTipo = async (tipo: TipoConsulta) => {
+    const { value: descricao } = await Swal.fire({
+      title: 'Editar tipo de consulta',
+      input: 'text',
+      inputValue: tipo.descricao,
+      confirmButtonText: 'Salvar',
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar',
+      inputValidator: value => {
+        if (!value) return 'Digite um nome válido';
+      }
+    });
+
+    if (!descricao) return;
+
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_URL}/${tipo.id}`, {
@@ -65,15 +100,23 @@ export default function TipoConsultaPage() {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify(tipo),
+        body: JSON.stringify({ ...tipo, descricao }),
       });
-      if (!res.ok) throw new Error('Erro ao salvar tipo');
+
+      if (!res.ok) throw new Error('Erro ao salvar');
+
       const atualizado = await res.json();
       setTipos(prev => prev.map(t => (t.id === atualizado.id ? atualizado : t)));
-      setTipoEditando(null);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Atualizado com sucesso!',
+        timer: 1400,
+        showConfirmButton: false,
+      });
+
     } catch (err) {
-      console.error(err);
-      alert('Erro ao salvar tipo de consulta');
+      Swal.fire('Erro', 'Não foi possível salvar.', 'error');
     }
   };
 
@@ -105,16 +148,18 @@ export default function TipoConsultaPage() {
                   </span>
                 </p>
               </div>
+
               <div className={styles.actions}>
                 <button
                   className={`${styles.actionButton} ${styles.primary}`}
-                  onClick={() => setTipoEditando(tipo)}
+                  onClick={() => editarTipo(tipo)}
                 >
                   Editar
                 </button>
+
                 <button
                   className={`${styles.actionButton} ${styles.secondary}`}
-                  onClick={() => toggleStatus(tipo.id)}
+                  onClick={() => toggleStatus(tipo.id, tipo.status)}
                 >
                   {tipo.status ? 'Inativar' : 'Ativar'}
                 </button>
@@ -122,55 +167,8 @@ export default function TipoConsultaPage() {
             </div>
           ))}
         </div>
-
-        {tipoEditando && (
-          <ModalEditarTipo
-            tipo={tipoEditando}
-            onClose={() => setTipoEditando(null)}
-            onSave={salvarEdicao}
-          />
-        )}
       </main>
     </div>
     </ProtectedRoute>
-
-  );
-}
-
-interface ModalProps {
-  tipo: TipoConsulta;
-  onClose: () => void;
-  onSave: (tipo: TipoConsulta) => void;
-}
-
-function ModalEditarTipo({ tipo, onClose, onSave }: ModalProps) {
-  const [descricao, setDescricao] = useState(tipo.descricao);
-
-  return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div
-        className={styles.modalContent}
-        onClick={e => e.stopPropagation()}
-      >
-        <h3 className={styles.modalTitle}>Editar Tipo de Consulta</h3>
-        <input
-          type="text"
-          value={descricao}
-          onChange={e => setDescricao(e.target.value)}
-          className={styles.modalInput}
-        />
-        <div className={styles.modalButtons}>
-          <button className={`${styles.actionButton} ${styles.secondary}`} onClick={onClose}>
-            Cancelar
-          </button>
-          <button
-            className={`${styles.actionButton} ${styles.primary}`}
-            onClick={() => onSave({ ...tipo, descricao })}
-          >
-            Salvar
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
