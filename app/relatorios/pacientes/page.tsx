@@ -15,7 +15,7 @@ interface Appointment {
   local_atendimento?: { nome?: string };
 }
 
-const API_URL = 'http://localhost:8000/api/relatorios/agendamentos';
+const API_URL = 'http://localhost:8001/api/relatorios/agendamentos';
 
 const RelatoriosPage = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -74,7 +74,7 @@ const RelatoriosPage = () => {
     if (!token) return;
 
     try {
-      const res = await fetch('http://localhost:8000/api/users', {
+      const res = await fetch('http://localhost:8001/api/users', {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -1,26 +1,10 @@
-:root {
-  --primary-blue: #0ea5e9;
-  --primary-blue-dark: #0369a1;
-  --light-gray: #f3f4f6;
-  --white: #ffffff;
-  --text-dark: #111827;
-  --text-muted: #6b7280;
-  --shadow-light: rgba(0,0,0,0.08);
-  --ativo-hover: #1c3d91;
-  --inativo-hover: #d11414;
-}
-
-body {
-  font-family: 'Inter', sans-serif;
-  margin: 0;
-  background-color: var(--light-gray);
-  color: var(--text-dark);
-}
-
 .mainContent {
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  margin-left: var(--sidebar-width);
+  padding: 2rem 1rem;
+  max-width: calc(100% - var(--sidebar-width));
+  width: 100%;
+  transition: margin-left 0.3s ease, max-width 0.3s ease;
+  color: var(--text-dark);
 }
 
 .title {
@@ -37,10 +21,10 @@ body {
 }
 
 .tableWrapper {
+  width: 100%;
   overflow-x: auto;
 }
 
-/* ---------------- Desktop ---------------- */
 .table {
   width: 100%;
   border-collapse: separate;
@@ -49,13 +33,13 @@ body {
   border-radius: 12px;
   box-shadow: 0 4px 20px var(--shadow-light);
   overflow: hidden;
+  color: var(--text-dark);
 }
 
 .table th, .table td {
   padding: 1rem 1.25rem;
   text-align: center;
   vertical-align: middle;
-  width: 12.5%; /* Deixa todas as colunas iguais */
 }
 
 .table th {
@@ -100,15 +84,14 @@ body {
 }
 
 .btnToggle {
-  padding: 6px 14px;
-  font-size: 0.95rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
   color: #fff;
   min-width: 90px;
   text-align: center;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* Botão Ativar = azul */
 .btnAtivar {
   background-color: var(--primary-blue);
 }
@@ -116,7 +99,6 @@ body {
   background-color: var(--primary-blue-dark);
 }
 
-/* Botão Inativar = vermelho */
 .btnInativar {
   background-color: #fc1616;
 }
@@ -124,9 +106,13 @@ body {
   background-color: #d11414;
 }
 
-/* ---------------- Mobile ---------------- */
+/* Mobile */
 @media (max-width: 768px) {
-  .tableWrapper { overflow: visible; }
+  .mainContent {
+    margin-left: 0;
+    max-width: 100%;
+    padding: 1rem;
+  }
 
   .table, .table thead, .table tbody, .table th, .table td, .table tr {
     display: block;
@@ -141,29 +127,23 @@ body {
     box-shadow: 0 4px 20px var(--shadow-light);
     border-radius: 12px;
     padding: 1rem;
-    text-align: center;
+    text-align: left;
   }
 
   .table td {
     padding: 0.5rem 0;
-    display: block;
-    text-align: center;
-    width: 100%;
+    display: flex;
+    justify-content: space-between;
   }
 
   .table td::before {
     content: attr(data-label);
-    display: block;
     font-weight: 600;
     color: var(--text-muted);
-    margin-bottom: 0.25rem;
   }
 
   .actionsCell {
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+    justify-content: flex-start;
     margin-top: 0.5rem;
   }
 

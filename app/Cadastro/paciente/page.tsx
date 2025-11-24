@@ -100,7 +100,7 @@ const CadastroPaciente: React.FC = () => {
         });
       }
 
-      const res = await fetch('http://localhost:8000/api/register', {
+      const res = await fetch('http://localhost:8001/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

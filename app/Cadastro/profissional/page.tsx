@@ -29,7 +29,7 @@ const CadastroMedico: React.FC = () => {
     const fetchEspecialidades = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:8000/api/especialidades', {
+        const res = await fetch('http://localhost:8001/api/especialidades', {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
 
@@ -88,7 +88,7 @@ const CadastroMedico: React.FC = () => {
         status: 1,
       };
 
-      const res = await fetch('http://localhost:8000/api/medicos', {
+      const res = await fetch('http://localhost:8001/api/medicos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

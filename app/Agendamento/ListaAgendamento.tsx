@@ -3,8 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import styles from '../styles/ListaAgendamento.module.css';
 import DetalheAgendamento from './AgendamentoDetalhe';
-import Swal from 'sweetalert2';
-import ProtectedRoute from '../components/auth/protecetroute';
 
 export interface Appointment {
   id?: number;
@@ -12,18 +10,17 @@ export interface Appointment {
   medico_id: number;
   local_atendimento_id: number;
   tipo_consulta_id: number;
-  dataHora?: string;  // <-- ALTERADO
-  hora?: string;
+  data: string;
+  hora: string;
   status?: boolean;
   user?: { id: number; name: string };
   medico?: { id: number; nome: string };
   local_atendimento?: { id: number; nome: string };
   tipo_consulta?: { id: number; descricao: string };
-  data_formatada?: string;
-  hora_formatada?: string;
+  dataHora?: string; // backend novo
 }
 
-const API_URL = 'http://localhost:8000/api/agendamentos';
+const API_URL = 'http://localhost:8001/api/agendamentos';
 
 const AgendamentosList: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -31,80 +28,62 @@ const AgendamentosList: React.FC = () => {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
   const getToken = () => localStorage.getItem('token');
-  const getRole = () => localStorage.getItem('role');
-  const getUserId = () => localStorage.getItem('user_id');
 
   const authHeaders = () => {
     const token = getToken();
     return {
       'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
-  };
-
-  const redirectLogin = () => {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Sessão expirada',
-      text: 'Faça login novamente.',
-    });
-    window.location.href = '/Login';
-  };
-
-  // 🔥 FORMATAÇÃO DA DATA/HORA (USANDO dataHora VINDO DO BACKEND)
-  const formatarDataHora = (dataStr: string | undefined) => {
-    if (!dataStr) return { data: '-', hora: '-' };
-
-    const d = new Date(dataStr.replace(' ', 'T')); // para evitar erro no iOS/macOS
-    if (isNaN(d.getTime())) return { data: '-', hora: '-' };
-
-    const data = d.toLocaleDateString('pt-BR');
-    const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-    return { data, hora };
   };
 
   const fetchAppointments = async () => {
     const token = getToken();
-    const role = getRole();
-    const user_id = getUserId();
-
-    if (!token) return redirectLogin();
+    if (!token) {
+      window.location.href = '/Login';
+      return;
+    }
 
     try {
-      let url = API_URL;
-
-      // user → só vê os próprios agendamentos
-      if (role === 'user' && user_id) {
-        url = `${API_URL}?user_id=${user_id}`;
-      }
-
-      const res = await fetch(url, { headers: authHeaders() });
+      let res = await fetch(API_URL, { headers: authHeaders() });
 
       if (res.status === 401) {
         localStorage.removeItem('token');
-        return redirectLogin();
+        window.location.href = '/Login';
+        return;
+      }
+
+      if (res.status === 403 || res.status === 404) {
+        res = await fetch(`${API_URL}/`, { headers: authHeaders() });
       }
 
       const data = await res.json();
 
-      // 🔥 AGORA USANDO dataHora
-      const ajustado = data.map((item: Appointment) => {
-        const { data, hora } = formatarDataHora(item.dataHora);
-        return {
-          ...item,
-          data_formatada: data,
-          hora_formatada: hora,
-        };
-      });
+      // 🔥 AQUI É A PARTE QUE FAZ A CONVERSÃO DATAHORA → DATA e HORA
+      const formatted = Array.isArray(data)
+        ? data.map((item: any) => {
+            // Se o backend ANTIGO ainda envia separado, mantém
+            if (item.data && item.hora) return item;
 
-      setAppointments(ajustado);
+            // Se o backend NOVO envia "dataHora": "2025-11-21 13:26:44"
+            if (item.dataHora) {
+              const [dataPart, horaPart] = item.dataHora.split(' ');
+
+              return {
+                ...item,
+                data: dataPart,
+                hora: horaPart?.slice(0, 5), // HH:mm
+              };
+            }
+
+            return item;
+          })
+        : [];
+
+      setAppointments(formatted);
     } catch (err) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Não foi possível carregar os agendamentos.',
-      });
+      console.error('Erro ao carregar agendamentos:', err);
+      setAppointments([]);
     } finally {
       setLoading(false);
     }
@@ -118,30 +97,13 @@ const AgendamentosList: React.FC = () => {
   const closeModal = () => setSelectedAppointment(null);
 
   const handleUpdate = (updated: Appointment) => {
-    const { data, hora } = formatarDataHora(updated.dataHora);
-
     setAppointments(prev =>
-      prev.map(a =>
-        a.id === updated.id
-          ? { ...updated, data_formatada: data, hora_formatada: hora }
-          : a
-      )
+      prev.map(a => (a.id === updated.id ? updated : a))
     );
   };
 
   const toggleStatus = async (appointment: Appointment) => {
     if (!appointment.id) return;
-
-    const confirmar = await Swal.fire({
-      icon: 'question',
-      title: appointment.status ? 'Inativar agendamento?' : 'Ativar agendamento?',
-      text: 'Deseja realmente alterar o status?',
-      showCancelButton: true,
-      confirmButtonText: 'Confirmar',
-      cancelButtonText: 'Cancelar',
-    });
-
-    if (!confirmar.isConfirmed) return;
 
     try {
       const res = await fetch(`${API_URL}/${appointment.id}/toggle-status`, {
@@ -149,99 +111,80 @@ const AgendamentosList: React.FC = () => {
         headers: authHeaders(),
       });
 
-      if (!res.ok) throw new Error('Erro ao alterar status');
+      if (!res.ok) throw new Error('Erro ao alterar status do agendamento.');
 
       const { status } = await res.json();
 
       setAppointments(prev =>
-        prev.map(a =>
-          a.id === appointment.id ? { ...a, status } : a
-        )
+        prev.map(a => (a.id === appointment.id ? { ...a, status } : a))
       );
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Status atualizado',
-        text: `Agora está ${status ? 'Ativo' : 'Inativo'}.`,
-        timer: 1500,
-        showConfirmButton: false,
-      });
     } catch (err) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Não foi possível alterar o status.',
-      });
+      console.error('Erro ao alterar status:', err);
+      alert('Não foi possível alterar status do agendamento.');
     }
   };
 
   return (
-    <ProtectedRoute allowedRoles={["admin", "user"]}>
-      <main className={styles.mainContent}>
-        <h2 className={styles.title}>Agendamentos</h2>
+    <main className={styles.mainContent}>
+      <h2 className={styles.title}>Agendamentos</h2>
 
-        {loading && <p className={styles.loading}>Carregando agendamentos...</p>}
-        {!loading && appointments.length === 0 && (
-          <p className={styles.empty}>Nenhum agendamento encontrado.</p>
-        )}
+      {loading && <p className={styles.loading}>Carregando agendamentos...</p>}
 
-        {!loading && appointments.length > 0 && (
-          <div className={styles.tableWrapper}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Paciente</th>
-                  <th>Data</th>
-                  <th>Hora</th>
-                  <th>Profissional</th>
-                  <th>Local</th>
-                  <th>Tipo Consulta</th>
-                  <th>Status</th>
-                  <th>Ações</th>
+      {!loading && appointments.length === 0 && (
+        <p className={styles.empty}>Nenhum agendamento encontrado.</p>
+      )}
+
+      {!loading && appointments.length > 0 && (
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Paciente</th>
+                <th>Data</th>
+                <th>Hora</th>
+                <th>Profissional</th>
+                <th>Local</th>
+                <th>Tipo Consulta</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {appointments.map(a => (
+                <tr key={a.id}>
+                  <td data-label="Paciente">{a.user?.name ?? 'Desconhecido'}</td>
+                  <td data-label="Data">{a.data}</td>
+                  <td data-label="Hora">{a.hora}</td>
+                  <td data-label="Profissional">{a.medico?.nome ?? 'Desconhecido'}</td>
+                  <td data-label="Local">{a.local_atendimento?.nome ?? 'Desconhecido'}</td>
+                  <td data-label="Tipo Consulta">{a.tipo_consulta?.descricao ?? 'Desconhecido'}</td>
+                  <td data-label="Status">{a.status ? 'Ativo' : 'Inativo'}</td>
+                  <td className="actionsCell">
+                    <button className={styles.btnDetails} onClick={() => openModal(a)}>Editar</button>
+                    <button
+                      className={`${styles.btnToggle} ${a.status ? styles.btnInativar : styles.btnAtivar}`}
+                      onClick={() => toggleStatus(a)}
+                    >
+                      {a.status ? 'Inativar' : 'Ativar'}
+                    </button>
+                  </td>
                 </tr>
-              </thead>
+              ))}
+            </tbody>
 
-              <tbody>
-                {appointments.map(a => (
-                  <tr key={a.id}>
-                    <td>{a.user?.name ?? 'Desconhecido'}</td>
-                    <td>{a.data_formatada}</td>
-                    <td>{a.hora_formatada}</td>
-                    <td>{a.medico?.nome ?? 'Desconhecido'}</td>
-                    <td>{a.local_atendimento?.nome ?? 'Desconhecido'}</td>
-                    <td>{a.tipo_consulta?.descricao ?? 'Desconhecido'}</td>
-                    <td>{a.status ? 'Ativo' : 'Inativo'}</td>
+          </table>
+        </div>
+      )}
 
-                    <td className="actionsCell">
-                      <button className={styles.btnDetails} onClick={() => openModal(a)}>
-                        Editar
-                      </button>
-
-                      <button
-                        className={`${styles.btnToggle} ${
-                          a.status ? styles.btnInativar : styles.btnAtivar
-                        }`}
-                        onClick={() => toggleStatus(a)}
-                      >
-                        {a.status ? 'Inativar' : 'Ativar'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {selectedAppointment && (
-          <DetalheAgendamento
-            appointment={selectedAppointment}
-            onClose={closeModal}
-            onUpdate={handleUpdate}
-          />
-        )}
-      </main>
-    </ProtectedRoute>
+      {selectedAppointment && (
+        <DetalheAgendamento
+          appointment={selectedAppointment}
+          onClose={closeModal}
+          onUpdate={handleUpdate}
+        />
+      )}
+    </main>
   );
 };
 
