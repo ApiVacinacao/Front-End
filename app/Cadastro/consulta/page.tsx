@@ -14,7 +14,7 @@ const CadastroTipoConsulta: React.FC = () => {
   const router = useRouter();
 
   const handleSubmit = async () => {
-    setMensagem('');
+    // setMensagem('');
 
     if (!descricao.trim()) {
       Swal.fire({
@@ -96,6 +96,6 @@ const CadastroTipoConsulta: React.FC = () => {
 };
 
 export default CadastroTipoConsulta;
-function setMensagem(arg0: string) {
-  throw new Error('Function not implemented.');
-}
+// function setMensagem(arg0: string) {
+//   throw new Error('Function not implemented.');
+// }
