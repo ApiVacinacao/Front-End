@@ -7,7 +7,7 @@ import Swal from 'sweetalert2';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/app/components/auth/protecetroute';
 
-const API_URL = 'http://localhost:8001/api/tipoConsultas';
+const API_URL = 'http://localhost:8000/api/tipoConsultas';
 
 const CadastroTipoConsulta: React.FC = () => {
   const [descricao, setDescricao] = useState('');

@@ -7,7 +7,7 @@ import Swal from 'sweetalert2';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/app/components/auth/protecetroute';
 
-const API_URL = 'http://127.0.0.1:8001/api/localAtendimentos';
+const API_URL = 'http://127.0.0.1:8000/api/localAtendimentos';
 
 const CadastroLocalAtendimento: React.FC = () => {
   const [nome, setNome] = useState('');

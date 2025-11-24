@@ -45,7 +45,7 @@ const CadastroEspecialidade: React.FC = () => {
         }
 
         try {
-            const res = await fetch('http://localhost:8001/api/especialidades', {
+            const res = await fetch('http://localhost:8000/api/especialidades', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

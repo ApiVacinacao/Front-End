@@ -10,7 +10,7 @@ export function useAuth() {
   const login = async (cpf: string, password: string, remember: boolean) => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:8001/api/login', {
+      const res = await fetch('http://localhost:8000/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cpf, password }),
@@ -38,7 +38,7 @@ export function useAuth() {
     if (!token) return;
 
     try {
-      await fetch('http://localhost:8001/api/logout', {
+      await fetch('http://localhost:8000/api/logout', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

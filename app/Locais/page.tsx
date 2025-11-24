@@ -14,7 +14,7 @@ interface Local {
   status: boolean;
 }
 
-const API_URL = 'http://localhost:8001/api/localAtendimentos';
+const API_URL = 'http://localhost:8000/api/localAtendimentos';
 
 export default function LocaisPage() {
   const [locais, setLocais] = useState<Local[]>([]);

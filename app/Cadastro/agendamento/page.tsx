@@ -36,10 +36,10 @@ const CadastroAgendamento: React.FC = () => {
     const get = (url: string) => fetch(url, { headers }).then(r => r.json());
 
     Promise.all([
-      get('http://localhost:8001/api/localAtendimentos'),
-      get('http://localhost:8001/api/medicos'),
-      get('http://localhost:8001/api/users'),
-      get('http://localhost:8001/api/tipoConsultas'),
+      get('http://localhost:8000/api/localAtendimentos'),
+      get('http://localhost:8000/api/medicos'),
+      get('http://localhost:8000/api/users'),
+      get('http://localhost:8000/api/tipoConsultas'),
     ])
       .then(([l, m, p, t]) => {
         setLocais(l.filter((i: Base) => i.status));
@@ -77,7 +77,7 @@ const CadastroAgendamento: React.FC = () => {
     };
 
     try {
-      const res = await fetch('http://localhost:8001/api/agendamentos', {
+      const res = await fetch('http://localhost:8000/api/agendamentos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

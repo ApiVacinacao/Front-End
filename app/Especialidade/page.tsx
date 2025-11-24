@@ -14,7 +14,7 @@ type Especialidade = {
   status: boolean;
 };
 
-const API_URL = 'http://localhost:8001/api/especialidades';
+const API_URL = 'http://localhost:8000/api/especialidades';
 
 export default function EspecialidadePage() {
   const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);

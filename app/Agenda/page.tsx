@@ -23,7 +23,7 @@ export default function AgendaConsulta() {
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : "";
 
   const api = axios.create({
-    baseURL: "http://localhost:8001/api",
+    baseURL: "http://localhost:8000/api",
     headers: { Authorization: `Bearer ${token}` },
   });
 

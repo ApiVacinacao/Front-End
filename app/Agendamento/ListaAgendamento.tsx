@@ -17,72 +17,44 @@ export interface Appointment {
   medico?: { id: number; nome: string };
   local_atendimento?: { id: number; nome: string };
   tipo_consulta?: { id: number; descricao: string };
-  dataHora?: string; // backend novo
+  dataHora?: string;
 }
 
-const API_URL = 'http://localhost:8001/api/agendamentos';
+const API_URL = 'http://localhost:8000/api/agendamentos';
 
-const AgendamentosList: React.FC = () => {
+export default function AgendamentosList() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [selected, setSelected] = useState<Appointment | null>(null);
 
   const getToken = () => localStorage.getItem('token');
+  const headers = () => ({
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${getToken()}`,
+  });
 
-  const authHeaders = () => {
-    const token = getToken();
-    return {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
-  };
-
-  const fetchAppointments = async () => {
-    const token = getToken();
-    if (!token) {
-      window.location.href = '/Login';
-      return;
-    }
+  const fetchData = async () => {
+    if (!getToken()) return (window.location.href = '/Login');
 
     try {
-      let res = await fetch(API_URL, { headers: authHeaders() });
+      let res = await fetch(API_URL, { headers: headers() });
 
       if (res.status === 401) {
         localStorage.removeItem('token');
-        window.location.href = '/Login';
-        return;
-      }
-
-      if (res.status === 403 || res.status === 404) {
-        res = await fetch(`${API_URL}/`, { headers: authHeaders() });
+        return (window.location.href = '/Login');
       }
 
       const data = await res.json();
 
-      // 🔥 AQUI É A PARTE QUE FAZ A CONVERSÃO DATAHORA → DATA e HORA
-      const formatted = Array.isArray(data)
-        ? data.map((item: any) => {
-            // Se o backend ANTIGO ainda envia separado, mantém
-            if (item.data && item.hora) return item;
-
-            // Se o backend NOVO envia "dataHora": "2025-11-21 13:26:44"
-            if (item.dataHora) {
-              const [dataPart, horaPart] = item.dataHora.split(' ');
-
-              return {
-                ...item,
-                data: dataPart,
-                hora: horaPart?.slice(0, 5), // HH:mm
-              };
-            }
-
-            return item;
-          })
-        : [];
+      const formatted = data.map((i: any) => {
+        if (i.data && i.hora) return i;
+        if (!i.dataHora) return i;
+        const [d, h] = i.dataHora.split(' ');
+        return { ...i, data: d, hora: h.slice(0, 5) };
+      });
 
       setAppointments(formatted);
-    } catch (err) {
-      console.error('Erro ao carregar agendamentos:', err);
+    } catch {
       setAppointments([]);
     } finally {
       setLoading(false);
@@ -90,46 +62,31 @@ const AgendamentosList: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchAppointments();
+    fetchData();
   }, []);
 
-  const openModal = (appointment: Appointment) => setSelectedAppointment(appointment);
-  const closeModal = () => setSelectedAppointment(null);
+  const toggleStatus = async (a: Appointment) => {
+    if (!a.id) return;
 
-  const handleUpdate = (updated: Appointment) => {
+    const res = await fetch(`${API_URL}/${a.id}/toggle-status`, {
+      method: 'PATCH',
+      headers: headers(),
+    });
+
+    if (!res.ok) return alert('Erro ao alterar status');
+
+    const { status } = await res.json();
+
     setAppointments(prev =>
-      prev.map(a => (a.id === updated.id ? updated : a))
+      prev.map(x => (x.id === a.id ? { ...x, status } : x))
     );
-  };
-
-  const toggleStatus = async (appointment: Appointment) => {
-    if (!appointment.id) return;
-
-    try {
-      const res = await fetch(`${API_URL}/${appointment.id}/toggle-status`, {
-        method: 'PATCH',
-        headers: authHeaders(),
-      });
-
-      if (!res.ok) throw new Error('Erro ao alterar status do agendamento.');
-
-      const { status } = await res.json();
-
-      setAppointments(prev =>
-        prev.map(a => (a.id === appointment.id ? { ...a, status } : a))
-      );
-    } catch (err) {
-      console.error('Erro ao alterar status:', err);
-      alert('Não foi possível alterar status do agendamento.');
-    }
   };
 
   return (
     <main className={styles.mainContent}>
       <h2 className={styles.title}>Agendamentos</h2>
 
-      {loading && <p className={styles.loading}>Carregando agendamentos...</p>}
-
+      {loading && <p className={styles.loading}>Carregando...</p>}
       {!loading && appointments.length === 0 && (
         <p className={styles.empty}>Nenhum agendamento encontrado.</p>
       )}
@@ -144,7 +101,7 @@ const AgendamentosList: React.FC = () => {
                 <th>Hora</th>
                 <th>Profissional</th>
                 <th>Local</th>
-                <th>Tipo Consulta</th>
+                <th>Consulta</th>
                 <th>Status</th>
                 <th>Ações</th>
               </tr>
@@ -153,17 +110,32 @@ const AgendamentosList: React.FC = () => {
             <tbody>
               {appointments.map(a => (
                 <tr key={a.id}>
-                  <td data-label="Paciente">{a.user?.name ?? 'Desconhecido'}</td>
+                  <td data-label="Paciente">{a.user?.name}</td>
                   <td data-label="Data">{a.data}</td>
                   <td data-label="Hora">{a.hora}</td>
-                  <td data-label="Profissional">{a.medico?.nome ?? 'Desconhecido'}</td>
-                  <td data-label="Local">{a.local_atendimento?.nome ?? 'Desconhecido'}</td>
-                  <td data-label="Tipo Consulta">{a.tipo_consulta?.descricao ?? 'Desconhecido'}</td>
-                  <td data-label="Status">{a.status ? 'Ativo' : 'Inativo'}</td>
-                  <td className="actionsCell">
-                    <button className={styles.btnDetails} onClick={() => openModal(a)}>Editar</button>
+                  <td data-label="Profissional">{a.medico?.nome}</td>
+                  <td data-label="Local">{a.local_atendimento?.nome}</td>
+                  <td data-label="Consulta">{a.tipo_consulta?.descricao}</td>
+
+                  <td
+                    data-label="Status"
+                    className={a.status ? styles.active : styles.inactive}
+                  >
+                    {a.status ? 'Ativo' : 'Inativo'}
+                  </td>
+
+                  <td className={styles.actionsCell}>
                     <button
-                      className={`${styles.btnToggle} ${a.status ? styles.btnInativar : styles.btnAtivar}`}
+                      className={styles.btnDetails}
+                      onClick={() => setSelected(a)}
+                    >
+                      Editar
+                    </button>
+
+                    <button
+                      className={
+                        a.status ? styles.btnInativar : styles.btnAtivar
+                      }
                       onClick={() => toggleStatus(a)}
                     >
                       {a.status ? 'Inativar' : 'Ativar'}
@@ -172,20 +144,21 @@ const AgendamentosList: React.FC = () => {
                 </tr>
               ))}
             </tbody>
-
           </table>
         </div>
       )}
 
-      {selectedAppointment && (
+      {selected && (
         <DetalheAgendamento
-          appointment={selectedAppointment}
-          onClose={closeModal}
-          onUpdate={handleUpdate}
+          appointment={selected}
+          onClose={() => setSelected(null)}
+          onUpdate={updated =>
+            setAppointments(prev =>
+              prev.map(a => (a.id === updated.id ? updated : a))
+            )
+          }
         />
       )}
     </main>
   );
-};
-
-export default AgendamentosList;
+}

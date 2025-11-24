@@ -17,22 +17,19 @@ export default function Home() {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
 
-    // Não logado → vai para login
     if (!token) {
       router.replace("/Login");
       return;
     }
 
-    // Usuário comum → vai direto pra agendamentos
     if (role !== "admin") {
       router.replace("/Agendamento");
       return;
     }
 
-    // Admin → mostra dashboard normal
     setIsAuthenticated(true);
     setIsChecking(false);
-  }, [router]); // 👈 dependência correta
+  }, [router]);
 
   if (isChecking) {
     return (
@@ -42,12 +39,12 @@ export default function Home() {
     );
   }
 
-  if (!isAuthenticated) return null; // evita renderização duplicada
+  if (!isAuthenticated) return null;
 
   const options = [
     {
       title: "Agendamentos",
-      description: "Gerencie todos os agendamentos do sistema.",
+      description: "Gerencie todos os agendamentos.",
       path: "/Cadastro/agendamento",
       icon: "📅",
     },
@@ -87,7 +84,6 @@ export default function Home() {
               href={item.path}
               className="optionCard floating"
               style={{
-                animation: `fadeUp 0.5s ease forwards`,
                 animationDelay: `${index * 0.1}s`,
               }}
             >

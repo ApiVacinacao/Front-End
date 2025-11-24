@@ -1,25 +1,28 @@
-:root {
-  --bg-start: #0f172a;
-  --bg-end: #1e293b;
-  --text-color: #f8fafc;
-  --card-bg: rgba(30, 41, 59, 0.8);
-  --card-hover: rgba(51, 65, 85, 0.9);
-  --accent: #38bdf8;
-  --accent-hover: #0ea5e9;
-  --border-radius: 18px;
-  --shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+/* =======================================================================================
+   TEMA DARK PREMIUM PROFISSIONAL
+   ======================================================================================= */
 
-  --primary-blue: #0ea5e9;
-  --primary-blue-dark: #0369a1;
-  --light-gray: #f3f4f6;
-  --white: #ffffff;
-  --text-dark: #111827;
-  --text-muted: #6b7280;
-  --shadow-light: rgba(0,0,0,0.08);
-  --sidebar-width: 250px;
+:root {
+  --bg: #0d1117;
+  --bg-soft: #161b22;
+  --bg-soft-2: #1c2430;
+
+  --text: #e6edf3;
+  --text-soft: #9ba3b4;
+  
+  --primary: #4ea1ff;
+  --primary-hover: #2f8aff;
+
+  --radius: 16px;
+  --transition: 0.25s ease;
+
+  --shadow-1: 0 6px 16px rgba(0,0,0,0.35);
+  --shadow-2: 0 12px 24px rgba(0,0,0,0.55);
 }
 
-/* Reset Global */
+/* =======================================================================================
+   RESET GLOBAL
+   ======================================================================================= */
 * {
   margin: 0;
   padding: 0;
@@ -27,15 +30,169 @@
 }
 
 html, body {
-  height: 100%;
-  font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
-  background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
-  color: var(--text-color);
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", sans-serif;
   overflow-x: hidden;
-  line-height: 1.5;
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
+/* =======================================================================================
+   LOADING
+   ======================================================================================= */
+
+.loadingWrapper {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner {
+  width: 55px;
+  height: 55px;
+  border: 5px solid rgba(255,255,255,0.15);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =======================================================================================
+   HOME / WRAPPER
+   ======================================================================================= */
+
+.bgContainer {
+  padding: 60px 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.homePage {
+  width: 100%;
+  max-width: 1100px;
+}
+
+/* =======================================================================================
+   HEADER
+   ======================================================================================= */
+
+.header {
+  text-align: center;
+  margin-bottom: 45px;
+}
+
+.title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-top: 12px;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  opacity: 0.75;
+  margin-top: 6px;
+}
+
+/* =======================================================================================
+   CARDS GRID
+   ======================================================================================= */
+
+.optionsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 26px;
+}
+
+/* =======================================================================================
+   CARD – DESIGN PROFISSIONAL
+   ======================================================================================= */
+
+.optionCard {
+  background: var(--bg-soft);
+  border-radius: var(--radius);
+  padding: 28px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: var(--shadow-1);
+  transition: var(--transition);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.optionCard:hover {
+  background: var(--bg-soft-2);
+  border-color: rgba(255,255,255,0.12);
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-2);
+}
+
+.icon {
+  font-size: 2.6rem;
+}
+
+.optionCard h3 {
+  font-size: 1.35rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.optionCard p {
+  color: var(--text-soft);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  margin-bottom: 28px;
+}
+
+.access {
+  position: absolute;
+  right: 22px;
+  bottom: 18px;
+  opacity: 0.9;
+  transition: var(--transition);
+  font-weight: 600;
+}
+
+.optionCard:hover .access {
+  opacity: 1;
+  color: var(--primary-hover);
+}
+
+/* =======================================================================================
+   ANIMAÇÕES
+   ======================================================================================= */
+
+.floating {
+  opacity: 0;
+  animation: fadeUp 0.45s ease forwards;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =======================================================================================
+   RESPONSIVIDADE
+   ======================================================================================= */
+
+@media (max-width: 650px) {
+  .title {
+    font-size: 2.2rem;
+  }
+
+  .optionCard {
+    padding: 22px;
+  }
 }

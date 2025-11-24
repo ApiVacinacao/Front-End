@@ -21,8 +21,8 @@ interface Medico {
   nome: string;
 }
 
-const API_URL = 'http://localhost:8001/api/relatorios/agendamentos';
-const API_MEDICOS = 'http://localhost:8001/api/medicos';
+const API_URL = 'http://localhost:8000/api/relatorios/agendamentos';
+const API_MEDICOS = 'http://localhost:8000/api/medicos';
 
 const RelatoriosPage = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
