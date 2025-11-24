@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../../components/navbar/page';
 import styles from './agendamento.module.css';
 import ProtectedRoute from '@/app/components/auth/protecetroute';
+import Swal from 'sweetalert2';
 
 interface Base { id: number; nome?: string; name?: string; descricao?: string; status: boolean; }
 
@@ -46,20 +47,29 @@ const CadastroAgendamento: React.FC = () => {
         setPacientes(p.filter((i: Base) => i.status));
         setTiposAgendamentoList(t.filter((i: Base) => i.status));
       })
-      .catch(() => alert('Erro ao carregar dados.'))
+      .catch(() => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: 'Erro ao carregar dados.',
+        });
+      })
       .finally(() => setLoading(false));
   }, []);
 
   const handleSubmit = async () => {
     if (!data || !hora || !localAtendimentoId || !medicoId || !tipoAgendamento || !userId) {
-      alert('Preencha todos os campos!');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Atenção',
+        text: 'Preencha todos os campos!',
+      });
       return;
     }
 
     const token = localStorage.getItem('token');
     const body = {
-      data,
-      hora,
+      dataHora: `${data} ${hora}`,
       local_atendimento_id: Number(localAtendimentoId),
       medico_id: Number(medicoId),
       tipo_consulta_id: Number(tipoAgendamento),
@@ -77,93 +87,113 @@ const CadastroAgendamento: React.FC = () => {
       });
 
       if (res.ok) {
-        alert('Agendamento registrado com sucesso!');
-        router.push('/Agendamento'); // <-- REDIRECIONA DIRETO
+        Swal.fire({
+          icon: 'success',
+          title: 'Sucesso!',
+          text: 'Agendamento registrado com sucesso!',
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
+        setTimeout(() => {
+          router.push('/Agendamento');
+        }, 1500);
+
         return;
       }
 
       const err = await res.json();
-      alert(err.message || 'Erro ao cadastrar.');
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: err.message || 'Erro ao cadastrar.',
+      });
+
     } catch {
-      alert('Erro ao conectar com o servidor.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao conectar com o servidor.',
+      });
     }
   };
 
   return (
     <ProtectedRoute allowedRoles={"admin"}>
-          <div className={styles.pageWrapper}>
-      <Navbar />
-      <main className={styles.mainContent}>
+      <div className={styles.pageWrapper}>
+        <Navbar />
+        <main className={styles.mainContent}>
 
-        {loading ? (
-          <div className="loadingWrapper"><div className="spinner" /></div>
-        ) : (
-          <div className={styles.container}>
-            <h1 className={styles.title}>Cadastrar Agendamento</h1>
+          {loading ? (
+            <div className="loadingWrapper"><div className="spinner" /></div>
+          ) : (
+            <div className={styles.container}>
+              <h1 className={styles.title}>Cadastrar Agendamento</h1>
 
-            <div className={styles.row}>
-              <div className={styles.col}>
-                <label>Paciente</label>
-                <select value={userId} onChange={e => setUserId(e.target.value)} className={styles.input}>
-                  <option value="">Selecione</option>
-                  {pacientes.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
+              <div className={styles.row}>
+                <div className={styles.col}>
+                  <label>Paciente</label>
+                  <select value={userId} onChange={e => setUserId(e.target.value)} className={styles.input}>
+                    <option value="">Selecione</option>
+                    {pacientes.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles.col}>
+                  <label>Médico</label>
+                  <select value={medicoId} onChange={e => setMedicoId(e.target.value)} className={styles.input}>
+                    <option value="">Selecione</option>
+                    {medicos.map(m => (
+                      <option key={m.id} value={m.id}>{m.nome}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div className={styles.col}>
-                <label>Médico</label>
-                <select value={medicoId} onChange={e => setMedicoId(e.target.value)} className={styles.input}>
-                  <option value="">Selecione</option>
-                  {medicos.map(m => (
-                    <option key={m.id} value={m.id}>{m.nome}</option>
-                  ))}
-                </select>
+              <div className={styles.row}>
+                <div className={styles.col}>
+                  <label>Tipo</label>
+                  <select value={tipoAgendamento} onChange={e => setTipoAgendamento(e.target.value)} className={styles.input}>
+                    <option value="">Selecione</option>
+                    {tiposAgendamentoList.map(t => (
+                      <option key={t.id} value={t.id}>{t.descricao}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles.col}>
+                  <label>Local</label>
+                  <select value={localAtendimentoId} onChange={e => setLocalAtendimentoId(e.target.value)} className={styles.input}>
+                    <option value="">Selecione</option>
+                    {locais.map(l => (
+                      <option key={l.id} value={l.id}>{l.nome}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
+
+              <div className={styles.row}>
+                <div className={styles.col}>
+                  <label>Data</label>
+                  <input type="date" value={data} onChange={e => setData(e.target.value)} className={styles.input} />
+                </div>
+
+                <div className={styles.col}>
+                  <label>Hora</label>
+                  <input type="time" value={hora} onChange={e => setHora(e.target.value)} className={styles.input} />
+                </div>
+              </div>
+
+              <button className={styles.button} onClick={handleSubmit}>
+                Cadastrar Agendamento
+              </button>
             </div>
-
-            <div className={styles.row}>
-              <div className={styles.col}>
-                <label>Tipo</label>
-                <select value={tipoAgendamento} onChange={e => setTipoAgendamento(e.target.value)} className={styles.input}>
-                  <option value="">Selecione</option>
-                  {tiposAgendamentoList.map(t => (
-                    <option key={t.id} value={t.id}>{t.descricao}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className={styles.col}>
-                <label>Local</label>
-                <select value={localAtendimentoId} onChange={e => setLocalAtendimentoId(e.target.value)} className={styles.input}>
-                  <option value="">Selecione</option>
-                  {locais.map(l => (
-                    <option key={l.id} value={l.id}>{l.nome}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className={styles.row}>
-              <div className={styles.col}>
-                <label>Data</label>
-                <input type="date" value={data} onChange={e => setData(e.target.value)} className={styles.input} />
-              </div>
-
-              <div className={styles.col}>
-                <label>Hora</label>
-                <input type="time" value={hora} onChange={e => setHora(e.target.value)} className={styles.input} />
-              </div>
-            </div>
-
-            <button className={styles.button} onClick={handleSubmit}>
-              Cadastrar Agendamento
-            </button>
-          </div>
-        )}
-      </main>
-    </div>
+          )}
+        </main>
+      </div>
     </ProtectedRoute>
   );
 };
