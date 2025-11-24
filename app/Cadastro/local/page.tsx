@@ -40,8 +40,6 @@ const CadastroLocalAtendimento: React.FC = () => {
 
     setLoading(true);
 
-    const telefoneNome = telefone.replace(/\D/g, "")
-
     try {
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -54,27 +52,45 @@ const CadastroLocalAtendimento: React.FC = () => {
 
       const data = await res.json();
 
+      // 🔥 ERROS DE VALIDAÇÃO DA API
       if (!res.ok) {
+        if (data.errors) {
+          const mensagens = Object.values(data.errors)
+            .flat()
+            .map((msg: any) => `<li>${msg}</li>`)
+            .join('');
+
+          Swal.fire({
+            icon: 'error',
+            title: 'Erros de validação',
+            html: `<ul style="text-align:left;">${mensagens}</ul>`,
+          });
+
+          return;
+        }
+
         Swal.fire({
           icon: 'error',
           title: 'Erro ao cadastrar',
-          text: data.error || 'Não foi possível salvar o local.',
+          text: data.error || data.message || 'Não foi possível salvar o local.',
         });
         return;
       }
 
+      // 🔥 SUCESSO
       Swal.fire({
         icon: 'success',
         title: 'Sucesso!',
         text: 'Local de atendimento cadastrado com sucesso!',
         confirmButtonText: 'Ir para Locais',
       }).then(() => {
-        router.push('/Locais'); // **REDIRECIONA AO CONFIRMAR**
+        router.push('/Locais');
       });
 
       setNome('');
       setEndereco('');
       setTelefone('');
+
     } catch (err) {
       console.error(err);
       Swal.fire({
@@ -87,56 +103,55 @@ const CadastroLocalAtendimento: React.FC = () => {
     }
   };
 
-
   return (
     <ProtectedRoute allowedRoles={"admin"}>
-          <div className={styles.pageWrapper}>
-      <Navbar />
-      <main className={styles.mainContent}>
-        <div className={styles.formContainer}>
-          <h1 className={styles.title}>Cadastro de Local de Atendimento</h1>
+      <div className={styles.pageWrapper}>
+        <Navbar />
+        <main className={styles.mainContent}>
+          <div className={styles.formContainer}>
+            <h1 className={styles.title}>Cadastro de Local de Atendimento</h1>
 
-          <form
-            className={styles.form}
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSubmit();
-            }}
-          >
-            <label htmlFor="nome">Nome do Local *</label>
-            <input
-              id="nome"
-              type="text"
-              placeholder="Digite o nome do local"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-            />
+            <form
+              className={styles.form}
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit();
+              }}
+            >
+              <label htmlFor="nome">Nome do Local *</label>
+              <input
+                id="nome"
+                type="text"
+                placeholder="Digite o nome do local"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+              />
 
-            <label htmlFor="endereco">Endereço *</label>
-            <input
-              id="endereco"
-              type="text"
-              placeholder="Digite o endereço"
-              value={endereco}
-              onChange={(e) => setEndereco(e.target.value)}
-            />
+              <label htmlFor="endereco">Endereço *</label>
+              <input
+                id="endereco"
+                type="text"
+                placeholder="Digite o endereço"
+                value={endereco}
+                onChange={(e) => setEndereco(e.target.value)}
+              />
 
-            <label htmlFor="telefone">Telefone *</label>
-            <input
-              id="telefone"
-              type="tel"
-              placeholder="Digite o telefone"
-              value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
-            />
+              <label htmlFor="telefone">Telefone *</label>
+              <input
+                id="telefone"
+                type="tel"
+                placeholder="Digite o telefone"
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+              />
 
-            <button type="submit" disabled={loading}>
-              {loading ? 'Cadastrando...' : 'Cadastrar Local'}
-            </button>
-          </form>
-        </div>
-      </main>
-    </div>
+              <button type="submit" disabled={loading}>
+                {loading ? 'Cadastrando...' : 'Cadastrar Local'}
+              </button>
+            </form>
+          </div>
+        </main>
+      </div>
     </ProtectedRoute>
   );
 };

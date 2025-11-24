@@ -29,6 +29,7 @@ const CadastroPaciente: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
+    // Máscara CPF
     if (name === 'cpf') {
       let v = value.replace(/\D/g, '').slice(0, 11);
       v = v.replace(/(\d{3})(\d)/, '$1.$2')
@@ -39,6 +40,7 @@ const CadastroPaciente: React.FC = () => {
       return;
     }
 
+    // Máscara Telefone
     if (name === 'telefone') {
       let t = value.replace(/\D/g, '').slice(0, 11);
 
@@ -109,7 +111,21 @@ const CadastroPaciente: React.FC = () => {
 
       const data = await res.json();
 
+      /** 🔥 TRATAMENTO DOS ERROS DE VALIDAÇÃO DO BACKEND */
       if (!res.ok) {
+        if (data.errors) {
+          const mensagens = Object.values(data.errors)
+            .flat()
+            .map((msg: any) => `<li>${msg}</li>`)
+            .join('');
+
+          return Swal.fire({
+            icon: 'error',
+            title: 'Erros de validação',
+            html: `<ul style="text-align:left;">${mensagens}</ul>`,
+          });
+        }
+
         return Swal.fire({
           icon: 'error',
           title: 'Erro ao cadastrar',
@@ -126,7 +142,14 @@ const CadastroPaciente: React.FC = () => {
         router.push('/Pacientes');
       });
 
-      setFormData({ name: '', email: '', cpf: '', password: '', password_confirmation: '', telefone: '' });
+      setFormData({
+        name: '',
+        email: '',
+        cpf: '',
+        password: '',
+        password_confirmation: '',
+        telefone: '',
+      });
 
     } catch (err) {
       console.error(err);
@@ -138,94 +161,93 @@ const CadastroPaciente: React.FC = () => {
     }
   };
 
-
   return (
     <ProtectedRoute allowedRoles={"admin"}>
-          <>
-      <Navbar />
-      <main className={styles.content}>
-        <div className={styles.formContainer}>
-          <h1>Cadastro de Paciente</h1>
+      <>
+        <Navbar />
+        <main className={styles.content}>
+          <div className={styles.formContainer}>
+            <h1>Cadastro de Paciente</h1>
 
-          <form className={styles.form} onSubmit={handleSubmit}>
-            
-            <div className={styles.row}>
-              <div className={styles.col}>
-                <label>Nome *</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Nome completo"
-                />
+            <form className={styles.form} onSubmit={handleSubmit}>
+              
+              <div className={styles.row}>
+                <div className={styles.col}>
+                  <label>Nome *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Nome completo"
+                  />
+                </div>
+
+                <div className={styles.col}>
+                  <label>E-mail *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="email@exemplo.com"
+                  />
+                </div>
               </div>
 
-              <div className={styles.col}>
-                <label>E-mail *</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="email@exemplo.com"
-                />
-              </div>
-            </div>
+              <div className={styles.row}>
+                <div className={styles.col}>
+                  <label>CPF *</label>
+                  <input
+                    type="text"
+                    name="cpf"
+                    value={formData.cpf}
+                    onChange={handleChange}
+                    placeholder="000.000.000-00"
+                  />
+                </div>
 
-            <div className={styles.row}>
-              <div className={styles.col}>
-                <label>CPF *</label>
-                <input
-                  type="text"
-                  name="cpf"
-                  value={formData.cpf}
-                  onChange={handleChange}
-                  placeholder="000.000.000-00"
-                />
-              </div>
-
-              <div className={styles.col}>
-                <label>Telefone *</label>
-                <input
-                  type="text"
-                  name="telefone"
-                  value={formData.telefone}
-                  onChange={handleChange}
-                  placeholder="(00) 00000-0000"
-                />
-              </div>
-            </div>
-
-            <div className={styles.row}>
-              <div className={styles.col}>
-                <label>Senha *</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Senha"
-                />
+                <div className={styles.col}>
+                  <label>Telefone *</label>
+                  <input
+                    type="text"
+                    name="telefone"
+                    value={formData.telefone}
+                    onChange={handleChange}
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
               </div>
 
-              <div className={styles.col}>
-                <label>Confirmação *</label>
-                <input
-                  type="password"
-                  name="password_confirmation"
-                  value={formData.password_confirmation}
-                  onChange={handleChange}
-                  placeholder="Confirme a senha"
-                />
-              </div>
-            </div>
+              <div className={styles.row}>
+                <div className={styles.col}>
+                  <label>Senha *</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Senha"
+                  />
+                </div>
 
-            <button type="submit">Cadastrar Paciente</button>
-          </form>
-        </div>
-      </main>
-    </>
+                <div className={styles.col}>
+                  <label>Confirmação *</label>
+                  <input
+                    type="password"
+                    name="password_confirmation"
+                    value={formData.password_confirmation}
+                    onChange={handleChange}
+                    placeholder="Confirme a senha"
+                  />
+                </div>
+              </div>
+
+              <button type="submit">Cadastrar Paciente</button>
+            </form>
+          </div>
+        </main>
+      </>
     </ProtectedRoute>
   );
 };

@@ -59,17 +59,33 @@ const CadastroEspecialidade: React.FC = () => {
                 }),
             });
 
+            const data = await res.json();
+
+            // 🔥 Validação do backend
             if (!res.ok) {
+                if (data.errors) {
+                    const mensagens = Object.values(data.errors)
+                        .flat()
+                        .map((msg: any) => `<li>${msg}</li>`)
+                        .join('');
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erros de validação',
+                        html: `<ul style="text-align:left;">${mensagens}</ul>`,
+                    });
+                    return;
+                }
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro',
-                    text: 'Erro ao cadastrar especialidade.',
+                    text: data.message || 'Erro ao cadastrar especialidade.',
                 });
                 return;
             }
 
-            const data = await res.json();
-
+            // 🔥 Sucesso
             Swal.fire({
                 icon: 'success',
                 title: 'Sucesso!',
@@ -98,65 +114,64 @@ const CadastroEspecialidade: React.FC = () => {
 
     return (
         <ProtectedRoute allowedRoles={"admin"}>
-                    <div className={styles.pageWrapper}>
-            <Navbar />
-            <main className={styles.mainContent}>
-                <div className={styles.container}>
-                    <h1 className={styles.title}>Cadastro de Especialidade</h1>
+            <div className={styles.pageWrapper}>
+                <Navbar />
+                <main className={styles.mainContent}>
+                    <div className={styles.container}>
+                        <h1 className={styles.title}>Cadastro de Especialidade</h1>
 
-                    <form onSubmit={handleSubmit}>
-                        <div className={styles.row}>
-                            <div className={styles.col}>
-                                <label>Nome*</label>
-                                <input
-                                    type="text"
-                                    value={nome}
-                                    onChange={(e) => setNome(e.target.value)}
-                                    placeholder="Ex: Cardiologia"
-                                    className={styles.input}
-                                />
+                        <form onSubmit={handleSubmit}>
+                            <div className={styles.row}>
+                                <div className={styles.col}>
+                                    <label>Nome*</label>
+                                    <input
+                                        type="text"
+                                        value={nome}
+                                        onChange={(e) => setNome(e.target.value)}
+                                        placeholder="Ex: Cardiologia"
+                                        className={styles.input}
+                                    />
+                                </div>
+
+                                <div className={styles.col}>
+                                    <label>Descrição</label>
+                                    <input
+                                        type="text"
+                                        value={descricao}
+                                        onChange={(e) => setDescricao(e.target.value)}
+                                        placeholder="Ex: Especialidade do coração"
+                                        className={styles.input}
+                                    />
+                                </div>
                             </div>
 
-                            <div className={styles.col}>
-                                <label>Descrição</label>
-                                <input
-                                    type="text"
-                                    value={descricao}
-                                    onChange={(e) => setDescricao(e.target.value)}
-                                    placeholder="Ex: Especialidade do coração"
-                                    className={styles.input}
-                                />
+                            <div className={styles.row}>
+                                <div className={styles.col}>
+                                    <label>Área*</label>
+                                    <select
+                                        value={area}
+                                        onChange={(e) => setArea(e.target.value)}
+                                        className={styles.input}
+                                    >
+                                        <option value="">Selecione...</option>
+                                        <option value="Medica">Médica</option>
+                                        <option value="Enfermagem">Enfermagem</option>
+                                        <option value="Odontologia">Odontologia</option>
+                                        <option value="Fisioterapia">Fisioterapia</option>
+                                        <option value="Psicologia">Psicologia</option>
+                                        <option value="Outros">Outros</option>
+                                    </select>
+                                </div>
                             </div>
-                        </div>
 
-                        <div className={styles.row}>
-                            <div className={styles.col}>
-                                <label>Área*</label>
-                                <select
-                                    value={area}
-                                    onChange={(e) => setArea(e.target.value)}
-                                    className={styles.input}
-                                >
-                                    <option value="">Selecione...</option>
-                                    <option value="Medica">Médica</option>
-                                    <option value="Enfermagem">Enfermagem</option>
-                                    <option value="Odontologia">Odontologia</option>
-                                    <option value="Fisioterapia">Fisioterapia</option>
-                                    <option value="Psicologia">Psicologia</option>
-                                    <option value="Outros">Outros</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <button type="submit" className={styles.button}>
-                            Cadastrar
-                        </button>
-                    </form>
-                </div>
-            </main>
-        </div>
+                            <button type="submit" className={styles.button}>
+                                Cadastrar
+                            </button>
+                        </form>
+                    </div>
+                </main>
+            </div>
         </ProtectedRoute>
-
     );
 };
 

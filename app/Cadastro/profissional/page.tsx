@@ -37,6 +37,8 @@ const CadastroMedico: React.FC = () => {
 
         if (res.ok) {
           setEspecialidades(data.filter((esp: Especialidade) => esp.status === 1));
+        } else {
+          Swal.fire('Erro', data.message || 'Falha ao carregar especialidades.', 'error');
         }
       } catch (err) {
         Swal.fire('Erro', 'Falha ao carregar especialidades.', 'error');
@@ -68,7 +70,11 @@ const CadastroMedico: React.FC = () => {
     const { nome, cpf, crm, especialidade_id } = formData;
 
     if (!nome || !cpf || !crm || !especialidade_id) {
-      return Swal.fire('Aviso', 'Preencha todos os campos obrigatórios.', 'warning');
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Campos obrigatórios',
+        text: 'Preencha todos os campos obrigatórios.',
+      });
     }
 
     try {
@@ -93,15 +99,30 @@ const CadastroMedico: React.FC = () => {
 
       const data = await res.json();
 
+      // 🔥 Tratar ERROS DE VALIDAÇÃO
       if (!res.ok) {
-        return Swal.fire('Erro', data.error || 'Erro ao cadastrar médico', 'error');
+        if (data.errors) {
+          const mensagens = Object.values(data.errors)
+            .flat()
+            .map((msg: any) => `<li>${msg}</li>`)
+            .join('');
+
+          return Swal.fire({
+            icon: 'error',
+            title: 'Erros de validação',
+            html: `<ul style="text-align:left;">${mensagens}</ul>`,
+          });
+        }
+
+        return Swal.fire('Erro', data.message || 'Erro ao cadastrar médico', 'error');
       }
 
+      // 🔥 Sucesso
       Swal.fire({
         icon: 'success',
         title: 'Sucesso!',
-        text: `Médico cadastrado com sucesso!`,
-        confirmButtonText: 'Ir para Médicos'
+        text: 'Médico cadastrado com sucesso!',
+        confirmButtonText: 'Ir para Médicos',
       }).then(() => {
         router.push('/Medicos');
       });
@@ -113,78 +134,76 @@ const CadastroMedico: React.FC = () => {
     }
   };
 
-
   return (
     <ProtectedRoute allowedRoles={"admin"}>
-          <>
-      <Navbar />
+      <>
+        <Navbar />
 
-      <main className={styles.content}>
-        <div className={styles.formContainer}>
-          <h1>Cadastro de Médico</h1>
+        <main className={styles.content}>
+          <div className={styles.formContainer}>
+            <h1>Cadastro de Médico</h1>
 
-          <form onSubmit={handleSubmit} className={styles.form}>
-            
-            <div className={styles.row}>
-              <div className={styles.col}>
-                <label>Nome*</label>
-                <input
-                  type="text"
-                  name="nome"
-                  value={formData.nome}
-                  onChange={handleChange}
-                  placeholder="Nome completo"
-                />
+            <form onSubmit={handleSubmit} className={styles.form}>
+
+              <div className={styles.row}>
+                <div className={styles.col}>
+                  <label>Nome*</label>
+                  <input
+                    type="text"
+                    name="nome"
+                    value={formData.nome}
+                    onChange={handleChange}
+                    placeholder="Nome completo"
+                  />
+                </div>
+
+                <div className={styles.col}>
+                  <label>CPF*</label>
+                  <input
+                    type="text"
+                    name="cpf"
+                    value={formData.cpf}
+                    onChange={handleCpfChange}
+                    placeholder="000.000.000-00"
+                  />
+                </div>
               </div>
 
-              <div className={styles.col}>
-                <label>CPF*</label>
-                <input
-                  type="text"
-                  name="cpf"
-                  value={formData.cpf}
-                  onChange={handleCpfChange}
-                  placeholder="000.000.000-00"
-                />
-              </div>
-            </div>
+              <div className={styles.row}>
+                <div className={styles.col}>
+                  <label>CRM*</label>
+                  <input
+                    type="text"
+                    name="crm"
+                    value={formData.crm}
+                    onChange={handleCrmChange}
+                    placeholder="CRM/SP 123456"
+                  />
+                </div>
 
-            <div className={styles.row}>
-              <div className={styles.col}>
-                <label>CRM*</label>
-                <input
-                  type="text"
-                  name="crm"
-                  value={formData.crm}
-                  onChange={handleCrmChange}
-                  placeholder="CRM/SP 123456"
-                />
+                <div className={styles.col}>
+                  <label>Especialidade*</label>
+                  <select
+                    name="especialidade_id"
+                    value={formData.especialidade_id}
+                    onChange={handleChange}
+                  >
+                    <option value="">Selecione</option>
+                    {especialidades.map(esp => (
+                      <option key={esp.id} value={esp.id}>
+                        {esp.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div className={styles.col}>
-                <label>Especialidade*</label>
-                <select
-                  name="especialidade_id"
-                  value={formData.especialidade_id}
-                  onChange={handleChange}
-                >
-                  <option value="">Selecione</option>
-                  {especialidades.map(esp => (
-                    <option key={esp.id} value={esp.id}>
-                      {esp.nome}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <button type="submit">Cadastrar</button>
-          </form>
-        </div>
-      </main>
-    </>
+              <button type="submit">Cadastrar</button>
+            </form>
+          </div>
+        </main>
+      </>
     </ProtectedRoute>
-
   );
 };
 

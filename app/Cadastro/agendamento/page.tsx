@@ -104,11 +104,26 @@ const CadastroAgendamento: React.FC = () => {
 
       const err = await res.json();
 
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: err.message || 'Erro ao cadastrar.',
-      });
+      if (err.errors) {
+        // Montar lista de mensagens HTML
+        const mensagens = Object.values(err.errors)
+          .flat()
+          .map(msg => `<li>${msg}</li>`)
+          .join('');
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Erros de validação',
+          html: `<ul style="text-align: left;">${mensagens}</ul>`,
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: err.message || 'Erro ao cadastrar.',
+        });
+      }
+
 
     } catch {
       Swal.fire({

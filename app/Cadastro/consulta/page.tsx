@@ -14,8 +14,6 @@ const CadastroTipoConsulta: React.FC = () => {
   const router = useRouter();
 
   const handleSubmit = async () => {
-    // setMensagem('');
-
     if (!descricao.trim()) {
       Swal.fire({
         icon: 'warning',
@@ -37,8 +35,33 @@ const CadastroTipoConsulta: React.FC = () => {
         body: JSON.stringify({ descricao, status: true }),
       });
 
-      if (!res.ok) throw new Error();
+      const data = await res.json();
 
+      // 🔥 Validações do backend
+      if (!res.ok) {
+        if (data.errors) {
+          const mensagens = Object.values(data.errors)
+            .flat()
+            .map((msg: any) => `<li>${msg}</li>`)
+            .join('');
+
+          Swal.fire({
+            icon: 'error',
+            title: 'Erros de validação',
+            html: `<ul style="text-align:left;">${mensagens}</ul>`,
+          });
+          return;
+        }
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro ao cadastrar',
+          text: data.message || 'Erro inesperado ao cadastrar tipo de consulta.',
+        });
+        return;
+      }
+
+      // 🔥 Sucesso
       Swal.fire({
         icon: 'success',
         title: 'Sucesso!',
@@ -49,7 +72,6 @@ const CadastroTipoConsulta: React.FC = () => {
 
       setDescricao('');
 
-      // Redireciona rápido
       setTimeout(() => {
         router.push('/Consulta');
       }, 1500);
@@ -58,44 +80,39 @@ const CadastroTipoConsulta: React.FC = () => {
       Swal.fire({
         icon: 'error',
         title: 'Erro',
-        text: 'Erro ao cadastrar tipo de consulta',
+        text: 'Erro ao conectar com o servidor.',
       });
     }
   };
 
-
   return (
     <ProtectedRoute allowedRoles={"admin"}>
-    <div className={styles.pageWrapper}>
-      <Navbar />
-      <main className={styles.mainContent}>
-        <div className={styles.container}>
-          <h1 className={styles.title}>Cadastrar Tipo de Consulta</h1>
+      <div className={styles.pageWrapper}>
+        <Navbar />
+        <main className={styles.mainContent}>
+          <div className={styles.container}>
+            <h1 className={styles.title}>Cadastrar Tipo de Consulta</h1>
 
-          <div className={styles.row}>
-            <div className={styles.col}>
-              <input 
-                type="text"
-                className={styles.input}
-                placeholder="Descrição do tipo de consulta"
-                value={descricao}
-                onChange={e => setDescricao(e.target.value)}
-              />
+            <div className={styles.row}>
+              <div className={styles.col}>
+                <input 
+                  type="text"
+                  className={styles.input}
+                  placeholder="Descrição do tipo de consulta"
+                  value={descricao}
+                  onChange={e => setDescricao(e.target.value)}
+                />
+              </div>
             </div>
+
+            <button className={styles.button} onClick={handleSubmit}>
+              Cadastrar
+            </button>
           </div>
-
-          <button className={styles.button} onClick={handleSubmit}>
-            Cadastrar
-          </button>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
     </ProtectedRoute>
-
   );
 };
 
 export default CadastroTipoConsulta;
-// function setMensagem(arg0: string) {
-//   throw new Error('Function not implemented.');
-// }
