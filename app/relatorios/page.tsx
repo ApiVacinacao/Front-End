@@ -7,8 +7,7 @@ import ProtectedRoute from '../components/auth/protecetroute';
 
 interface Appointment {
   id: number;
-  data: string;
-  hora?: string;
+  dataHora: string;
   status?: 'Agendado' | 'Realizado' | 'Cancelado';
   user?: { id: number; name?: string };
   medico?: { nome?: string; CRM?: string };
@@ -89,16 +88,22 @@ const RelatoriosPage = () => {
       autoTableModule.default(doc, {
         startY: 10 + height + 20,
         head: [['Data', 'Hora', 'Paciente', 'Profissional', 'CRM', 'Tipo Consulta', 'Local', 'Status']],
-        body: appointments.map(a => [
-          a.data,
-          a.hora || '-',
-          a.user?.name || '-',
-          a.medico?.nome || '-',
-          a.medico?.CRM || '-',
-          a.tipo_consulta?.descricao || '-',
-          a.local_atendimento?.nome || '-',
-          a.status || 'Agendado'
-        ]),
+        body: appointments.map(a => {
+          const [data, hora] = a.dataHora
+          ? a.dataHora.split(' ')
+          : ['-', '-'];
+
+          return [
+            data,
+            hora,
+            a.user?.name || '-',
+            a.medico?.nome || '-',
+            a.medico?.CRM || '-',
+            a.tipo_consulta?.descricao || '-',
+            a.local_atendimento?.nome || '-',
+            a.status || 'Agendado',
+          ];
+        }),
         styles: { fontSize: 10, cellPadding: 2 },
         headStyles: { fillColor: [41, 128, 185], textColor: 255, halign: 'center' },
         bodyStyles: { halign: 'center' },
@@ -163,8 +168,8 @@ const RelatoriosPage = () => {
               <tbody>
                 {appointments.map(a => (
                   <tr key={a.id}>
-                    <td>{a.data}</td>
-                    <td>{a.hora || '-'}</td>
+                    <td>{a.dataHora.split(' ')[0]}</td>
+                    <td>{a.dataHora.split(' ')[1]}</td>
                     <td>{a.user?.name || '-'}</td>
                     <td>{a.medico?.nome || '-'}</td>
                     <td>{a.medico?.CRM || '-'}</td>
