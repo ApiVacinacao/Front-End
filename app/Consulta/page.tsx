@@ -77,52 +77,93 @@ export default function TipoConsultaPage() {
     } catch (err) {
       Swal.fire('Erro', 'Não foi possível alterar o status.', 'error');
     }
+
+    
   };
 
   // 🔵 EDIÇÃO COM CONFIRMAÇÃO
-  const editarTipo = async (tipo: TipoConsulta) => {
-    const { value: descricao } = await Swal.fire({
-      title: 'Editar tipo de consulta',
-      input: 'text',
-      inputValue: tipo.descricao,
-      confirmButtonText: 'Salvar',
-      showCancelButton: true,
-      cancelButtonText: 'Cancelar',
-      inputValidator: value => {
-        if (!value) return 'Digite uma descrição válida';
-      }
+const editarTipo = async (tipo: TipoConsulta) => {
+  const { value: descricao } = await Swal.fire({
+    title: 'Editar tipo de consulta',
+    input: 'text',
+    inputValue: tipo.descricao,
+    confirmButtonText: 'Salvar',
+    showCancelButton: true,
+    cancelButtonText: 'Cancelar',
+    inputValidator: value => {
+      if (!value) return 'Digite uma descrição válida';
+    }
+  });
+
+  if (!descricao) return;
+
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/${tipo.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ descricao }),
     });
 
-    if (!descricao) return;
+    const data = await res.json();
 
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/${tipo.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ descricao }),
-      });
+    // 🔥 TRATAMENTO DE ERRO DO BACKEND
+    if (!res.ok) {
 
-      if (!res.ok) throw new Error('Erro ao salvar');
+      // ➤ 1) Erros de validação do Laravel (422)
+      if (data.errors) {
+        const mensagens = Object.values(data.errors)
+          .flat()
+          .map((msg: any) => `<li>${msg}</li>`)
+          .join('');
 
-      const atualizado = await res.json();
+        Swal.fire({
+          icon: 'error',
+          title: 'Erros de validação',
+          html: `<ul style="text-align:left;">${mensagens}</ul>`,
+        });
+        return;
+      }
 
-      setTipos(prev => prev.map(t => (t.id === atualizado.id ? atualizado : t)));
+      // ➤ 2) Erro genérico enviado pelo backend
+      if (data.error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: data.error,
+        });
+        return;
+      }
 
+      // ➤ 3) Mensagem normal de erro
       Swal.fire({
-        icon: 'success',
-        title: 'Atualizado com sucesso!',
-        timer: 1400,
-        showConfirmButton: false,
+        icon: 'error',
+        title: 'Erro ao salvar',
+        text: data.message || 'Erro inesperado ao atualizar o tipo de consulta.',
       });
-
-    } catch (err) {
-      Swal.fire('Erro', 'Não foi possível salvar.', 'error');
+      return;
     }
-  };
+
+    // 🔥 SUCESSO
+    const atualizado = data;
+
+    setTipos(prev => prev.map(t => (t.id === atualizado.id ? atualizado : t)));
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Atualizado com sucesso!',
+      timer: 1400,
+      showConfirmButton: false,
+    });
+
+  } catch (err) {
+    Swal.fire('Erro', 'Não foi possível salvar.', 'error');
+  }
+};
+
 
   return (
     <ProtectedRoute allowedRoles={"admin"}>

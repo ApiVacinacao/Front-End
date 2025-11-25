@@ -56,50 +56,85 @@ export default function EspecialidadePage() {
   };
 
   // Salvar via modal
-  const salvarModal = async (dados: Omit<Especialidade, 'id'>) => {
-    try {
-      let res: Response;
+const salvarModal = async (dados: Omit<Especialidade, 'id'>) => {
+  try {
+    let res: Response;
 
-      if (espSelecionada?.id) {
-        // Editar
-        res = await fetch(`${API_URL}/${espSelecionada.id}`, {
-          method: 'PUT',
-          headers: getHeaders(),
-          body: JSON.stringify({ ...espSelecionada, ...dados }),
+    if (espSelecionada?.id) {
+      // Editar
+      res = await fetch(`${API_URL}/${espSelecionada.id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({ ...espSelecionada, ...dados }),
+      });
+    } else {
+      // Criar
+      res = await fetch(API_URL, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ id: 0, ...dados }),
+      });
+    }
+
+    const data = await res.json();
+
+    // -----------------------------------------------------------
+    // ❌ TRATAMENTO DE ERROS DO BACKEND
+    // -----------------------------------------------------------
+    if (!res.ok) {
+
+      // 🔥 1 — ERROS DE VALIDAÇÃO (422)
+      if (data.errors) {
+        const listaErros = Object.values(data.errors)
+          .flat()
+          .map((msg: any) => `<li>${msg}</li>`)
+          .join("");
+
+        Swal.fire({
+          icon: "error",
+          title: "Erros de validação",
+          html: `<ul style="text-align:left;">${listaErros}</ul>`,
         });
-      } else {
-        // Criar
-        res = await fetch(API_URL, {
-          method: 'POST',
-          headers: getHeaders(),
-          body: JSON.stringify({ id: 0, ...dados }),
-        });
-      }
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        const msg =
-          data.message ||
-          data.error ||
-          (data.errors ? Object.values(data.errors).flat().join("\n") : "Erro ao salvar");
-        Swal.fire("Erro", msg, "error");
         return;
       }
 
+      // 🔥 2 — Erro personalizado enviado pelo backend
+      if (data.error) {
+        Swal.fire({
+          icon: "error",
+          title: "Erro",
+          text: data.error,
+        });
+        return;
+      }
+
+      // 🔥 3 — Mensagem padrão
       Swal.fire({
-        icon: 'success',
-        title: 'Salvo com sucesso!',
-        showConfirmButton: false,
-        timer: 1500,
+        icon: "error",
+        title: "Erro ao salvar",
+        text: data.message || "Erro inesperado ao salvar a especialidade.",
       });
 
-      setModalOpen(false);
-      fetchEspecialidades();
-    } catch {
-      Swal.fire('Erro', 'Não foi possível salvar.', 'error');
+      return;
     }
-  };
+
+    // -----------------------------------------------------------
+    // ✔ SUCESSO
+    // -----------------------------------------------------------
+    Swal.fire({
+      icon: 'success',
+      title: 'Salvo com sucesso!',
+      showConfirmButton: false,
+      timer: 1500,
+    });
+
+    setModalOpen(false);
+    fetchEspecialidades();
+
+  } catch (err) {
+    Swal.fire("Erro", "Não foi possível salvar. Falha inesperada.", "error");
+  }
+};
 
   // Ativar / inativar
   const toggleStatus = async (esp: Especialidade) => {

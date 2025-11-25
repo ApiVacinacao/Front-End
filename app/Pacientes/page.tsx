@@ -35,10 +35,10 @@ function PacientesContent() {
 
   const getHeaders = () => {
     const token = localStorage.getItem('token');
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/json');
-    if (token) headers.append('Authorization', `Bearer ${token}`);
-    return headers;
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
   };
 
   useEffect(() => {
@@ -52,11 +52,10 @@ function PacientesContent() {
     setLoading(true);
     try {
       const res = await fetch(API_URL, { headers: getHeaders() });
-      if (!res.ok) throw new Error('Erro ao carregar pacientes');
-      const data = await res.json();
-      setPacientes(data);
-    } catch (err) {
-      Swal.fire({ icon: 'error', title: 'Erro', text: 'Erro ao carregar pacientes.' });
+      if (!res.ok) throw new Error();
+      setPacientes(await res.json());
+    } catch {
+      Swal.fire('Erro', 'Erro ao carregar pacientes.', 'error');
     } finally {
       setLoading(false);
     }
@@ -77,36 +76,40 @@ function PacientesContent() {
   // =============================
   const salvarPaciente = async (paciente: Paciente) => {
     if (!paciente.name.trim() || !paciente.email.trim() || !paciente.cpf.trim()) {
-      Swal.fire({ icon: 'warning', title: 'Campos obrigatórios', text: 'Preencha todos os campos.' });
+      Swal.fire('Atenção', 'Preencha todos os campos obrigatórios.', 'warning');
       return;
     }
 
+    const payload = {
+      name: paciente.name,
+      email: paciente.email,
+      cpf: paciente.cpf,
+      status: paciente.status,
+    };
+
     try {
-      const token = localStorage.getItem('token');
       const method = paciente.id === 0 ? 'POST' : 'PUT';
       const url = paciente.id === 0 ? API_URL : `${API_URL}/${paciente.id}`;
 
       const res = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify(paciente),
+        headers: getHeaders(),
+        body: JSON.stringify(payload)
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message || 'Erro ao salvar paciente');
+        Swal.fire('Erro', data.message || 'Erro ao salvar paciente.', 'error');
+        return;
       }
 
       fetchPacientes();
       setOpenModal(false);
       setSelected(null);
 
-      Swal.fire({ icon: 'success', title: 'Salvo!', text: 'Paciente salvo com sucesso.' });
-    } catch (err: any) {
-      Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
+      Swal.fire('Sucesso', 'Paciente salvo com sucesso!', 'success');
+    } catch {
+      Swal.fire('Erro', 'Erro ao salvar paciente.', 'error');
     }
   };
 
@@ -115,9 +118,9 @@ function PacientesContent() {
   // =============================
   const toggleStatus = async (paciente: Paciente) => {
     const confirmar = await Swal.fire({
-      icon: 'question',
       title: paciente.status ? 'Inativar paciente?' : 'Ativar paciente?',
-      text: paciente.status ? 'O paciente ficará inativo.' : 'O paciente será reativado.',
+      text: `O paciente ficará ${paciente.status ? 'inativo' : 'ativo'}.`,
+      icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Confirmar',
       cancelButtonText: 'Cancelar'
@@ -126,33 +129,34 @@ function PacientesContent() {
     if (!confirmar.isConfirmed) return;
 
     try {
-      const token = localStorage.getItem('token');
       const res = await fetch(`${API_URL}/${paciente.id}/status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        }
+        headers: getHeaders()
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'Erro ao alterar status');
+        Swal.fire('Erro', data.error || 'Erro ao alterar status.', 'error');
+        return;
       }
 
       fetchPacientes();
-      Swal.fire({ icon: 'success', title: 'Status atualizado', text: 'O status do paciente foi alterado.' });
-    } catch (err: any) {
-      Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
+      Swal.fire('Sucesso', 'Status alterado com sucesso!', 'success');
+    } catch {
+      Swal.fire('Erro', 'Erro ao alterar status.', 'error');
     }
   };
 
   return (
     <>
       <Navbar />
+
       <main className={styles.mainContent}>
         <div className={styles.header}>
           <h2>Listagem de Pacientes</h2>
+          <button className={styles.addBtn} onClick={() => abrirModal()}>
+            + Novo Paciente
+          </button>
         </div>
 
         {loading ? (
@@ -166,7 +170,7 @@ function PacientesContent() {
                   <p><b>Email:</b> {p.email}</p>
                   <p><b>CPF:</b> {p.cpf}</p>
                   <p>
-                    <b>Status:</b>{' '}
+                    <b>Status:</b>
                     <span className={p.status ? styles.ativo : styles.inativo}>
                       {p.status ? 'Ativo' : 'Inativo'}
                     </span>
@@ -197,7 +201,7 @@ function PacientesContent() {
 }
 
 // =============================
-// MODAL
+// MODAL DO PACIENTE
 // =============================
 function ModalPaciente({
   paciente,
@@ -213,22 +217,14 @@ function ModalPaciente({
   const [cpf, setCpf] = useState(paciente.cpf);
   const [status, setStatus] = useState(paciente.status);
 
-  const salvar = () => onSalvar({ ...paciente, name, email, cpf, status });
-
-  const cancelar = async () => {
-    const confirm = await Swal.fire({
-      icon: 'warning',
-      title: 'Descartar alterações?',
-      showCancelButton: true,
-      confirmButtonText: 'Sim',
-      cancelButtonText: 'Não'
-    });
-    if (confirm.isConfirmed) onCancelar();
+  const salvar = () => {
+    onSalvar({ ...paciente, name, email, cpf, status });
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={cancelar}>
+    <div className={styles.modalOverlay} onClick={onCancelar}>
       <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+        <h2>{paciente.id === 0 ? 'Novo Paciente' : 'Editar Paciente'}</h2>
 
         <label>Nome*</label>
         <input value={name} onChange={e => setNome(e.target.value)} />
@@ -239,8 +235,14 @@ function ModalPaciente({
         <label>CPF*</label>
         <input value={cpf} onChange={e => setCpf(e.target.value)} />
 
+        <label>Status</label>
+        <select value={status ? 1 : 0} onChange={e => setStatus(Number(e.target.value) === 1)}>
+          <option value={1}>Ativo</option>
+          <option value={0}>Inativo</option>
+        </select>
+
         <div className={styles.modalActions}>
-          <button className={styles.cancelBtn} onClick={cancelar}>Cancelar</button>
+          <button className={styles.cancelBtn} onClick={onCancelar}>Cancelar</button>
           <button className={styles.saveBtn} onClick={salvar}>Salvar</button>
         </div>
       </div>

@@ -106,47 +106,84 @@ export default function LocaisPage() {
   // -----------------------------------------------------------
   // ✅ SALVAR LOCAL + ERROS DE VALIDAÇÃO
   // -----------------------------------------------------------
-  const salvarLocal = async (local: Local) => {
-    if (!local.nome.trim() || !local.endereco.trim() || !local.telefone.trim()) {
-      Swal.fire("Atenção", "Preencha todos os campos obrigatórios.", "warning");
-      return;
-    }
+const salvarLocal = async (local: Local) => {
+  if (!local.nome.trim() || !local.endereco.trim() || !local.telefone.trim()) {
+    Swal.fire("Atenção", "Preencha todos os campos obrigatórios.", "warning");
+    return;
+  }
 
-    const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
-    try {
-      const res = await fetch(`${API_URL}/${local.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(local),
-      });
+  try {
+    const res = await fetch(`${API_URL}/${local.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(local),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (!res.ok) {
-        const msg =
-          data.message ||
-          data.error ||
-          (data.errors
-            ? Object.values(data.errors).flat().join("\n")
-            : "Erro ao salvar");
+    // -----------------------------------------------------------
+    // ❌ TRATAMENTO DE ERRO DO BACKEND
+    // -----------------------------------------------------------
+    if (!res.ok) {
 
-        Swal.fire("Erro", msg, "error");
+      // 🔥 1 — Erros de validação (422)
+      if (data.errors) {
+        const mensagens = Object.values(data.errors)
+          .flat()
+          .map((msg: any) => `<li>${msg}</li>`)
+          .join("");
+
+        Swal.fire({
+          icon: "error",
+          title: "Erros de validação",
+          html: `<ul style="text-align:left;">${mensagens}</ul>`,
+        });
         return;
       }
 
-      Swal.fire("Sucesso", "Local atualizado com sucesso!", "success");
-      fetchLocais();
-      setOpenModal(false);
-      setSelected(null);
+      // 🔥 2 — Erros personalizados enviados pelo backend
+      if (data.error) {
+        Swal.fire({
+          icon: "error",
+          title: "Erro",
+          text: data.error,
+        });
+        return;
+      }
 
-    } catch (err) {
-      Swal.fire("Erro", "Falha inesperada ao salvar", "error");
+      // 🔥 3 — Mensamentos padrões ("message")
+      Swal.fire({
+        icon: "error",
+        title: "Erro ao salvar",
+        text: data.message || "Erro inesperado ao atualizar o local.",
+      });
+
+      return;
     }
-  };
+
+    // -----------------------------------------------------------
+    // ✔ SUCESSO
+    // -----------------------------------------------------------
+    Swal.fire({
+      icon: "success",
+      title: "Local atualizado com sucesso!",
+      timer: 1400,
+      showConfirmButton: false,
+    });
+
+    fetchLocais();
+    setOpenModal(false);
+    setSelected(null);
+
+  } catch (err) {
+    Swal.fire("Erro", "Falha inesperada ao salvar", "error");
+  }
+};
 
   const abrirModal = (local?: Local) => {
     setSelected(local || { id: 0, nome: '', endereco: '', telefone: '', status: true });

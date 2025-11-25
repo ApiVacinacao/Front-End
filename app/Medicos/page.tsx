@@ -6,6 +6,9 @@ import Navbar from '../components/navbar/page';
 import styles from '../styles/Especialidade.module.css';
 import ProtectedRoute from '../components/auth/protecetroute';
 
+// =============================
+// TYPES
+// =============================
 type Especialidade = {
   id: number;
   nome: string;
@@ -21,21 +24,28 @@ type Medico = {
   especialidade?: Especialidade | null;
 };
 
+// =============================
+// API URLS
+// =============================
 const API_URL = 'http://localhost:8000/api/medicos';
 const ESPECIALIDADE_URL = 'http://localhost:8000/api/especialidades';
 
+// =============================
+// COMPONENT / PAGE
+// =============================
 export default function MedicosPage() {
-
   const [medicos, setMedicos] = useState<Medico[]>([]);
   const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
   const [selected, setSelected] = useState<Medico | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // =============================
+  // HEADERS
+  // =============================
   const getHeaders = () => {
     const token = localStorage.getItem('token');
     const headers = new Headers();
-
     headers.append("Content-Type", "application/json");
     if (token) {
       headers.append("Authorization", `Bearer ${token}`);
@@ -55,6 +65,7 @@ export default function MedicosPage() {
     try {
       const res = await fetch(ESPECIALIDADE_URL, { headers: getHeaders() });
       if (!res.ok) throw new Error("Erro ao buscar especialidades");
+
       setEspecialidades(await res.json());
     } catch (err) {
       Swal.fire("Erro", "Erro ao carregar especialidades.", "error");
@@ -69,6 +80,7 @@ export default function MedicosPage() {
     try {
       const res = await fetch(API_URL, { headers: getHeaders() });
       if (!res.ok) throw new Error("Erro ao buscar médicos");
+
       setMedicos(await res.json());
     } catch (err) {
       Swal.fire("Erro", "Erro ao carregar médicos.", "error");
@@ -82,7 +94,14 @@ export default function MedicosPage() {
   // =============================
   const abrirModal = (medico?: Medico) => {
     setSelected(
-      medico || { id: 0, nome: '', cpf: '', CRM: '', status: true, especialidade_id: 0 }
+      medico || {
+        id: 0,
+        nome: '',
+        cpf: '',
+        CRM: '',
+        status: true,
+        especialidade_id: 0,
+      }
     );
     setOpenModal(true);
   };
@@ -91,7 +110,6 @@ export default function MedicosPage() {
   // SALVAR (POST / PUT)
   // =============================
   const salvarMedico = async (medico: Medico) => {
-
     if (!medico.nome.trim() || !medico.cpf.trim() || !medico.CRM.trim() || !medico.especialidade_id) {
       Swal.fire("Atenção", "Preencha todos os campos obrigatórios.", "warning");
       return;
@@ -128,6 +146,7 @@ export default function MedicosPage() {
           const mensagens = Object.entries(errorData.errors)
             .map(([campo, msgs]) => `${campo}: ${(msgs as string[]).join(", ")}`)
             .join("<br>");
+
           Swal.fire("Erro de validação", mensagens, "error");
         } else {
           Swal.fire("Erro", "Erro ao salvar médico.", "error");
@@ -141,14 +160,13 @@ export default function MedicosPage() {
       setSelected(null);
 
       Swal.fire("Sucesso", "Médico salvo com sucesso!", "success");
-
     } catch (err) {
       Swal.fire("Erro", "Erro ao salvar médico.", "error");
     }
   };
 
   // =============================
-  // ALTERAR STATUS (COM ROTA CORRETA)
+  // ALTERAR STATUS
   // =============================
   const toggleStatus = async (medico: Medico) => {
     const acao = medico.status ? "inativar" : "ativar";
@@ -187,12 +205,14 @@ export default function MedicosPage() {
       });
 
       fetchMedicos();
-
     } catch (err) {
       Swal.fire("Erro", "Erro ao alterar status.", "error");
     }
   };
 
+  // =============================
+  // RENDER
+  // =============================
   return (
     <ProtectedRoute allowedRoles={"admin"}>
       <>
@@ -222,7 +242,9 @@ export default function MedicosPage() {
                   </div>
 
                   <div className={styles.botoes}>
-                    <button className={styles.btnEdit} onClick={() => abrirModal(medico)}>Editar</button>
+                    <button className={styles.btnEdit} onClick={() => abrirModal(medico)}>
+                      Editar
+                    </button>
                     <button className={styles.btnToggle} onClick={() => toggleStatus(medico)}>
                       {medico.status ? 'Inativar' : 'Ativar'}
                     </button>
@@ -247,13 +269,13 @@ export default function MedicosPage() {
 }
 
 // =============================
-// COMPONENTE DO MODAL
+// COMPONENTE MODAL
 // =============================
 function ModalMedico({
   medico,
   especialidades,
   onSalvar,
-  onCancelar
+  onCancelar,
 }: {
   medico: Medico;
   especialidades: Especialidade[];
@@ -265,37 +287,51 @@ function ModalMedico({
   const [CRM, setCRM] = useState(medico.CRM);
   const [especialidade_id, setEspecialidadeId] = useState(medico.especialidade_id);
 
-  const salvar = () => onSalvar({ ...medico, nome, cpf, CRM, especialidade_id });
+  const salvar = () =>
+    onSalvar({
+      ...medico,
+      nome,
+      cpf,
+      CRM,
+      especialidade_id,
+    });
 
   return (
-    <ProtectedRoute allowedRoles={"admin"}>
-      <div className={styles.modalOverlay} onClick={onCancelar}>
-        <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-          <h2>{medico.id === 0 ? 'Novo Médico' : 'Editar Médico'}</h2>
+    <div className={styles.modalOverlay} onClick={onCancelar}>
+      <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+        <h2>{medico.id === 0 ? 'Novo Médico' : 'Editar Médico'}</h2>
 
-          <label>Nome*</label>
-          <input value={nome} onChange={e => setNome(e.target.value)} />
+        <label>Nome*</label>
+        <input value={nome} onChange={e => setNome(e.target.value)} />
 
-          <label>CPF*</label>
-          <input value={cpf} onChange={e => setCpf(e.target.value)} />
+        <label>CPF*</label>
+        <input value={cpf} onChange={e => setCpf(e.target.value)} />
 
-          <label>CRM*</label>
-          <input value={CRM} onChange={e => setCRM(e.target.value)} />
+        <label>CRM*</label>
+        <input value={CRM} onChange={e => setCRM(e.target.value)} />
 
-          <label>Especialidade*</label>
-          <select value={especialidade_id} onChange={e => setEspecialidadeId(Number(e.target.value))}>
-            <option value={0}>Selecione...</option>
-            {especialidades.map(e => (
-              <option key={e.id} value={e.id}>{e.nome}</option>
-            ))}
-          </select>
+        <label>Especialidade*</label>
+        <select
+          value={especialidade_id}
+          onChange={e => setEspecialidadeId(Number(e.target.value))}
+        >
+          <option value={0}>Selecione...</option>
+          {especialidades.map(e => (
+            <option key={e.id} value={e.id}>
+              {e.nome}
+            </option>
+          ))}
+        </select>
 
-          <div className={styles.modalActions}>
-            <button className={styles.cancelBtn} onClick={onCancelar}>Cancelar</button>
-            <button className={styles.saveBtn} onClick={salvar}>Salvar</button>
-          </div>
+        <div className={styles.modalActions}>
+          <button className={styles.cancelBtn} onClick={onCancelar}>
+            Cancelar
+          </button>
+          <button className={styles.saveBtn} onClick={salvar}>
+            Salvar
+          </button>
         </div>
       </div>
-    </ProtectedRoute>
+    </div>
   );
 }
