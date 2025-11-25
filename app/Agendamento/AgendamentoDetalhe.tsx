@@ -37,6 +37,15 @@ const DetalheAgendamento: React.FC<Props> = ({ appointment, onClose, onSave }) =
   const handleSave = async () => {
     setSaving(true);
     const token = localStorage.getItem('token');
+
+      const dataHora = `${form.data} ${form.hora}`;
+
+      // Monta o objeto que será enviado
+      const payload = {
+        ...form,
+        dataHora, // nova variável combinada
+      };
+
     try {
       const res = await fetch(`http://localhost:8000/api/agendamentos/${appointment.id}`, {
         method: 'PUT',
@@ -44,7 +53,7 @@ const DetalheAgendamento: React.FC<Props> = ({ appointment, onClose, onSave }) =
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error('Erro ao salvar agendamento');
@@ -72,6 +81,7 @@ const DetalheAgendamento: React.FC<Props> = ({ appointment, onClose, onSave }) =
           name="paciente"
           value={form.paciente}
           onChange={handleChange}
+          readOnly
         />
 
         <label>Profissional</label>
@@ -80,6 +90,7 @@ const DetalheAgendamento: React.FC<Props> = ({ appointment, onClose, onSave }) =
           name="profissional"
           value={form.profissional}
           onChange={handleChange}
+          readOnly
         />
 
         <label>Local</label>
@@ -88,6 +99,7 @@ const DetalheAgendamento: React.FC<Props> = ({ appointment, onClose, onSave }) =
           name="local"
           value={form.local}
           onChange={handleChange}
+          readOnly
         />
 
         <label>Tipo Consulta</label>
@@ -96,6 +108,7 @@ const DetalheAgendamento: React.FC<Props> = ({ appointment, onClose, onSave }) =
           name="tipo_consulta"
           value={form.tipo_consulta}
           onChange={handleChange}
+          readOnly
         />
 
         <label>Data</label>
@@ -105,6 +118,7 @@ const DetalheAgendamento: React.FC<Props> = ({ appointment, onClose, onSave }) =
           value={form.data}
           onChange={handleChange}
         />
+        
 
         <label>Hora</label>
         <input
@@ -112,6 +126,7 @@ const DetalheAgendamento: React.FC<Props> = ({ appointment, onClose, onSave }) =
           name="hora"
           value={form.hora}
           onChange={handleChange}
+          
         />
 
         {/* Botões */}
