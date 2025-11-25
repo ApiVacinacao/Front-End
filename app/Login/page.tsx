@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../styles/Login.module.css';
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 const LoginPage: React.FC = () => {
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
-  const [remember, setRemember] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const formatCpf = (value: string) => {
@@ -21,37 +22,37 @@ const LoginPage: React.FC = () => {
   };
 
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const digits = e.target.value.replace(/\D/g, '');
-    setCpf(digits.slice(0, 11));
+    setCpf(formatCpf(e.target.value));
   };
 
   const handleLogin = async () => {
-    if (!cpf || !password) {
+    const digits = cpf.replace(/\D/g, '');
+
+    if (!digits || !password) {
       alert('Preencha todos os campos!');
       return;
     }
 
     try {
-      const res = await fetch('http://localhost:8001/api/login', {
+      const res = await fetch('http://localhost:8000/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cpf, password }),
+        body: JSON.stringify({ cpf: digits, password }),
       });
 
       const data = await res.json();
 
       if (res.ok && data.token) {
-        // salva token
         localStorage.setItem('token', data.token);
-        if (remember) localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem('role', data.user.role);
+        localStorage.setItem('user_id', String(data.user.id));
 
-        alert('Login realizado com sucesso!');
-        router.replace('/'); // redireciona pra listagem
+        router.replace('/');
       } else {
         alert(data.error || 'CPF ou senha inválidos!');
       }
     } catch (error) {
-      alert('Erro ao conectar com o servidor');
+      alert('Erro na conexão com o servidor.');
       console.error(error);
     }
   };
@@ -67,35 +68,37 @@ const LoginPage: React.FC = () => {
             type="text"
             id="cpf"
             placeholder=" "
-            value={formatCpf(cpf)}
+            value={cpf}
             onChange={handleCpfChange}
+            maxLength={14}
           />
           <label htmlFor="cpf">CPF</label>
         </div>
 
         <div className={styles.inputGroup}>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             id="password"
             placeholder=" "
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           <label htmlFor="password">Senha</label>
+
+          {/* OLHO PROFISSIONAL DO BOOTSTRAP */}
+          <button
+            type="button"
+            className={styles.showPasswordBtn}
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            <i className={`bi ${showPassword ? "bi-eye-slash-fill" : "bi-eye-fill"}`}></i>
+          </button>
         </div>
 
         <div className={styles.rememberForgot}>
-          <div className={styles.checkboxContainer}>
-            <input
-              type="checkbox"
-              id="remember"
-              checked={remember}
-              onChange={(e) => setRemember(e.target.checked)}
-            />
-            <label htmlFor="remember">Lembrar-me</label>
-          </div>
-          <a href="/senha" className={styles.forgotLink}>
-            Esqueci minha senha
+          <a href="/Senha" className={styles.forgotLink}>
+            <span className={styles.forgotIcon}></span>
+            Recuperar senha
           </a>
         </div>
 

@@ -1,131 +1,142 @@
 :root {
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --bg: #eaf2ff;
+  --text-dark: #1e293b;
+  --text-light: #64748b;
   --white: #ffffff;
-  --light-gray: #f4f7ff;
-  --primary-blue: #2a52be;
-  --primary-blue-dark: #224a99;
-  --text-dark: #222f51;
+  --border: #cbd5e1;
+  --shadow-light: rgba(59, 130, 246, 0.3);
 }
 
-/* Conteúdo principal */
-.mainContent {
-  margin-left: 250px; /* sidebar */
-  padding: 2rem;
+.content {
   min-height: 100vh;
-  background-color: var(--white);
-  transition: all 0.3s ease;
-  max-width: calc(100% - 250px);
+  background: var(--bg);
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  align-items: center;
+  padding: 2rem 1rem;
 }
 
-@media (max-width: 1024px) {
-  .mainContent {
-    margin-left: 0;
-    max-width: 100%;
-  }
-}
-
-/* Card */
-.card {
-  background-color: var(--white);
-  padding: 2.5rem 3rem;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+.formContainer {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: saturate(180%) blur(20px);
+  padding: 3rem 2.5rem;
+  border-radius: 24px;
+  max-width: 600px;
   width: 100%;
-  max-width: 480px;
-  animation: fadeInUp 0.8s ease forwards;
+  box-shadow: 0 8px 32px var(--shadow-light);
+  transition: transform 0.3s ease;
 }
 
-.title {
-  text-align: center;
+.formContainer:hover {
+  transform: translateY(-8px);
+}
+
+.formContainer h1 {
   font-size: 2rem;
-  margin-bottom: 1.5rem;
-  color: var(--primary-blue);
   font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 2.5rem;
+  text-align: center;
 }
 
-.formGroup {
+.form {
   display: flex;
   flex-direction: column;
-  margin-bottom: 1.4rem;
+  gap: 1.2rem;
 }
 
-.formGroup label {
-  margin-bottom: 0.6rem;
+.row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.col {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form label {
   font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
   font-size: 1rem;
-  color: #4b5563;
+  user-select: none;
 }
 
-.input {
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-  border: 1.8px solid #cbd5e1;
+.form input {
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1.8px solid var(--border);
   background-color: var(--white);
+  font-size: 1.05rem;
   color: var(--text-dark);
-  font-size: 1rem;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   outline: none;
 }
 
-.input::placeholder {
-  color: #94a3b8;
+.form input::placeholder {
+  color: var(--text-light);
 }
 
-.input:hover,
-.input:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 6px rgba(42, 82, 190, 0.3);
-  background-color: #f0f9ff;
+.form input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 8px var(--primary);
+  background-color: #f9fbff;
 }
 
-.button {
-  margin-top: 1.8rem;
-  width: 100%;
-  padding: 0.85rem 0;
+.form button {
+  margin-top: 2.8rem;
+  padding: 0.95rem 0;
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--white);
-  background: var(--primary-blue);
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
   border: none;
-  border-radius: 12px;
+  border-radius: 18px;
   cursor: pointer;
-  box-shadow: 0 6px 12px rgba(42, 82, 190, 0.4);
-  transition: background-color 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
+  transition: background 0.4s ease, box-shadow 0.3s ease, transform 0.15s ease;
+  user-select: none;
 }
 
-.button:hover {
-  background-color: var(--primary-blue-dark);
+.form button:hover {
+  background: linear-gradient(135deg, var(--primary-hover), #1e40af);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.7);
   transform: translateY(-2px);
 }
 
-/* Animação */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.mensagem {
+  margin-top: 1.8rem;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--primary-hover);
 }
 
-/* Responsividade */
 @media (max-width: 520px) {
-  .card {
+  .row {
+    flex-direction: column;
+  }
+
+  .col {
+    min-width: 100%;
+  }
+
+  .formContainer {
     padding: 2rem 1.5rem;
-    margin: 20px;
   }
 
-  .title {
-    font-size: 1.8rem;
+  .formContainer h1 {
+    font-size: 1.6rem;
   }
 
-  .input,
-  .button {
+  .form button {
     font-size: 1rem;
+    padding: 0.85rem 0;
   }
 }

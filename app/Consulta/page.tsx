@@ -1,127 +1,178 @@
 'use client';
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navbar/page';
 import styles from './tipoConsulta.module.css';
+import Swal from 'sweetalert2';
+import ProtectedRoute from '../components/auth/protecetroute';
 
-type TipoConsulta = {
+interface TipoConsulta {
   id: number;
-  nome: string;
-  ativo: boolean;
-};
-
-let nextId = 4;
-
-export default function TipoConsultaPage() {
-  const [tipos, setTipos] = useState<TipoConsulta[]>([
-    { id: 1, nome: 'Clínico Geral', ativo: true },
-    { id: 2, nome: 'Pediatria', ativo: true },
-    { id: 3, nome: 'Dermatologia', ativo: false },
-  ]);
-
-  const [selected, setSelected] = useState<TipoConsulta | null>(null);
-  const [openModal, setOpenModal] = useState(false);
-
-  const abrirModal = (tipo?: TipoConsulta) => {
-    setSelected(tipo || { id: 0, nome: '', ativo: true });
-    setOpenModal(true);
-  };
-
-  const salvarTipo = (tipo: TipoConsulta) => {
-    if (!tipo.nome.trim()) {
-      alert('Preencha o nome.');
-      return;
-    }
-
-    if (tipo.id === 0) {
-      // Novo tipo
-      setTipos(prev => [...prev, { ...tipo, id: nextId++, ativo: true }]);
-    } else {
-      // Editar tipo
-      setTipos(prev => prev.map(t => t.id === tipo.id ? tipo : t));
-    }
-
-    setOpenModal(false);
-    setSelected(null);
-  };
-
-  const toggleAtivo = (id: number) => {
-    setTipos(prev => prev.map(t => t.id === id ? { ...t, ativo: !t.ativo } : t));
-  };
-
-  return (
-    <>
-      <Navbar />
-      <main className={styles.mainContent}>
-        <div className={styles.header}>
-          <h2>Tipos de Consulta</h2>
-        </div>
-
-        <div className={styles.searchBar}>
-          <input type="text" placeholder="Buscar tipos de consulta..." />
-          <button>🔍</button>
-        </div>
-
-        <div>
-          {tipos.map(tipo => (
-            <div key={tipo.id} className={styles.card}>
-              <div>
-                <strong>{tipo.nome}</strong>
-                <p>Status: <span className={tipo.ativo ? styles.ativo : styles.inativo}>
-                  {tipo.ativo ? 'Ativo' : 'Inativo'}
-                </span></p>
-              </div>
-              <div className={styles.botoes}>
-                <button className={styles.btnDetails} onClick={() => abrirModal(tipo)}>Editar</button>
-                <button className={styles.btnToggle} onClick={() => toggleAtivo(tipo.id)}>
-                  {tipo.ativo ? 'Inativar' : 'Ativar'}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <button className={styles.floatingBtn} onClick={() => abrirModal()}>➕ Novo</button>
-
-        {openModal && selected && (
-          <ModalTipoConsulta
-            tipo={selected}
-            onSalvar={salvarTipo}
-            onCancelar={() => setOpenModal(false)}
-          />
-        )}
-      </main>
-    </>
-  );
+  descricao: string;
+  status: boolean;
 }
 
-function ModalTipoConsulta({ tipo, onSalvar, onCancelar }: {
-  tipo: TipoConsulta;
-  onSalvar: (tipo: TipoConsulta) => void;
-  onCancelar: () => void;
-}) {
-  const [nome, setNome] = useState(tipo.nome);
+const API_URL = 'http://localhost:8000/api/tipoConsultas';
 
-  const salvar = () => onSalvar({ ...tipo, nome });
+export default function TipoConsultaPage() {
+  const [tipos, setTipos] = useState<TipoConsulta[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState('');
+
+  useEffect(() => {
+    fetchTipos();
+  }, []);
+
+  const fetchTipos = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(API_URL, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      if (!res.ok) throw new Error('Erro: ' + res.status);
+
+      const data = await res.json();
+      setTipos(data);
+    } catch (err) {
+      setErro('Erro ao carregar tipos de consulta');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔵 CONFIRMAÇÃO ANTES DE ATIVAR/INATIVAR
+  const toggleStatus = async (id: number, statusAtual: boolean) => {
+    const confirmar = await Swal.fire({
+      title: statusAtual ? 'Confirmar Inativação?' : 'Confirmar Ativação?',
+      text: `Você realmente deseja ${statusAtual ? 'inativar' : 'ativar'} este tipo de consulta?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    });
+
+    if (!confirmar.isConfirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/${id}/toggle-status`, {
+        method: 'PATCH',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      if (!res.ok) throw new Error('Erro ao alterar status');
+
+      const atualizado = await res.json();
+      setTipos(prev => prev.map(t => (t.id === atualizado.id ? atualizado : t)));
+
+      Swal.fire({
+        icon: 'success',
+        title: `Status atualizado para ${atualizado.status ? 'Ativo' : 'Inativo'}!`,
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+    } catch (err) {
+      Swal.fire('Erro', 'Não foi possível alterar o status.', 'error');
+    }
+  };
+
+  // 🔵 EDIÇÃO COM CONFIRMAÇÃO
+  const editarTipo = async (tipo: TipoConsulta) => {
+    const { value: descricao } = await Swal.fire({
+      title: 'Editar tipo de consulta',
+      input: 'text',
+      inputValue: tipo.descricao,
+      confirmButtonText: 'Salvar',
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar',
+      inputValidator: value => {
+        if (!value) return 'Digite uma descrição válida';
+      }
+    });
+
+    if (!descricao) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/${tipo.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ descricao }),
+      });
+
+      if (!res.ok) throw new Error('Erro ao salvar');
+
+      const atualizado = await res.json();
+
+      setTipos(prev => prev.map(t => (t.id === atualizado.id ? atualizado : t)));
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Atualizado com sucesso!',
+        timer: 1400,
+        showConfirmButton: false,
+      });
+
+    } catch (err) {
+      Swal.fire('Erro', 'Não foi possível salvar.', 'error');
+    }
+  };
 
   return (
-    <div className={styles.modalOverlay} onClick={onCancelar}>
-      <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-        <h2>{tipo.id === 0 ? 'Novo Tipo de Consulta' : 'Editar Tipo de Consulta'}</h2>
+    <ProtectedRoute allowedRoles={"admin"}>
+      <div className={styles.page}>
+        <Navbar />
+        <main className={styles.content}>
+          <div className={styles.header}>
+            <h2 className={styles.title}>🩺 Tipos de Consulta</h2>
+          </div>
 
-        <label className={styles.modalLabel}>Nome</label>
-        <input
-          className={styles.modalInput}
-          type="text"
-          value={nome}
-          onChange={e => setNome(e.target.value)}
-          autoFocus
-        />
+          {loading && <p className={styles.loading}>Carregando tipos...</p>}
+          {erro && <p className={styles.error}>{erro}</p>}
 
-        <div className={styles.modalButtons}>
-          <button className={styles.buttonClose} onClick={onCancelar}>Cancelar</button>
-          <button className={styles.buttonSubmit} onClick={salvar}>Salvar</button>
-        </div>
+          <div className={styles.tableWrapper}>
+            {tipos.map(tipo => (
+              <div key={tipo.id} className={styles.card}>
+                <div>
+                  <p className={styles.cardTitle}>{tipo.descricao}</p>
+                  <p className={styles.statusText}>
+                    Status:{' '}
+                    <span
+                      className={
+                        tipo.status ? styles.statusAtivo : styles.statusInativo
+                      }
+                    >
+                      {tipo.status ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </p>
+                </div>
+
+                <div className={styles.actions}>
+                  <button
+                    className={`${styles.actionButton} ${styles.primary}`}
+                    onClick={() => editarTipo(tipo)}
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    className={`${styles.actionButton} ${styles.secondary}`}
+                    onClick={() => toggleStatus(tipo.id, tipo.status)}
+                  >
+                    {tipo.status ? 'Inativar' : 'Ativar'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }

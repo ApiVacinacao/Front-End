@@ -1,177 +1,247 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import styles from './locais.module.css';
-import modalStyles from './EditModal.module.css';
 import Navbar from '../components/navbar/page';
+import styles from '../styles/Especialidade.module.css';
+import ProtectedRoute from '../components/auth/protecetroute';
+import Swal from "sweetalert2";
 
 interface Local {
   id: number;
   nome: string;
   endereco: string;
-  ativo: boolean;
+  telefone: string;
+  status: boolean;
 }
 
 const API_URL = 'http://localhost:8000/api/localAtendimentos';
 
-const Locais: React.FC = () => {
+export default function LocaisPage() {
   const [locais, setLocais] = useState<Local[]>([]);
+  const [selected, setSelected] = useState<Local | null>(null);
+  const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [localEditando, setLocalEditando] = useState<Local | null>(null);
 
-  // Fetch dos locais
-  const fetchLocais = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const token = localStorage.getItem('token'); // certifique-se que o token está no localStorage
-      const res = await fetch(API_URL, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : '',
-        },
-      });
-
-      if (!res.ok) {
-        if (res.status === 401 || res.status === 403) {
-          setError('Você não tem permissão para acessar essa informação.');
-        } else {
-          setError(`Erro ao carregar locais: ${res.status}`);
-        }
-        return;
-      }
-
-      const data = await res.json();
-      setLocais(data);
-    } catch (err) {
-      console.error(err);
-      setError('Erro ao conectar com o servidor.');
-    } finally {
-      setLoading(false);
-    }
+  const getHeaders = () => {
+    const token = localStorage.getItem('token');
+    const headers = new Headers();
+    headers.append("Content-Type", "application/json");
+    if (token) headers.append("Authorization", `Bearer ${token}`);
+    return headers;
   };
 
   useEffect(() => {
     fetchLocais();
   }, []);
 
-  const editarLocal = (id: number) => {
-    const local = locais.find(l => l.id === id);
-    if (local) setLocalEditando(local);
-  };
-
-  const salvarEdicao = async (atualizado: Local) => {
+  const fetchLocais = async () => {
+    setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/${atualizado.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : '',
-        },
-        body: JSON.stringify(atualizado),
-      });
+      const res = await fetch(API_URL, { headers: getHeaders() });
+      const data = await res.json();
 
       if (!res.ok) {
-        alert('Erro ao salvar local.');
+        Swal.fire("Erro", data.message || "Erro ao carregar locais", "error");
         return;
       }
 
-      setLocais(prev => prev.map(l => l.id === atualizado.id ? atualizado : l));
-      setLocalEditando(null);
+      setLocais(data);
+
     } catch (err) {
-      console.error(err);
-      alert('Erro ao conectar com o servidor.');
+      Swal.fire("Erro", "Erro ao carregar locais", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const ativarOuInativar = async (id: number) => {
-    const local = locais.find(l => l.id === id);
-    if (!local) return;
+  // -----------------------------------------------------------
+  // ✅ CONFIRMAÇÃO E ALTERAÇÃO DE STATUS
+  // -----------------------------------------------------------
+  const toggleStatus = async (local: Local) => {
+    const acao = local.status ? "inativar" : "ativar";
 
-    const atualizado = { ...local, ativo: !local.ativo };
+    const confirmar = await Swal.fire({
+      title: `Confirmar ${acao}?`,
+      text: `Você realmente deseja ${acao} o local "${local.nome}"?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sim",
+      cancelButtonText: "Não",
+      reverseButtons: true,
+    });
+
+    if (!confirmar.isConfirmed) return;
+
+    const token = localStorage.getItem("token");
 
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/${id}`, {
-        method: 'PUT',
+      const res = await fetch(`${API_URL}/${local.id}/toggle-status`, {
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : '',
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(atualizado),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        alert('Erro ao atualizar status do local.');
+        Swal.fire("Erro", data.error || "Falha ao alterar status", "error");
         return;
       }
 
-      setLocais(prev => prev.map(l => l.id === id ? atualizado : l));
+      Swal.fire(
+        "Atualizado!",
+        `O local agora está ${data.status ? "Ativo" : "Inativo"}.`,
+        "success"
+      );
+
+      fetchLocais();
+
     } catch (err) {
-      console.error(err);
-      alert('Erro ao conectar com o servidor.');
+      Swal.fire("Erro", "Falha inesperada ao alterar status", "error");
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (localEditando) {
-      setLocalEditando({ ...localEditando, [e.target.name]: e.target.value });
+  // -----------------------------------------------------------
+  // ✅ SALVAR LOCAL + ERROS DE VALIDAÇÃO
+  // -----------------------------------------------------------
+  const salvarLocal = async (local: Local) => {
+    if (!local.nome.trim() || !local.endereco.trim() || !local.telefone.trim()) {
+      Swal.fire("Atenção", "Preencha todos os campos obrigatórios.", "warning");
+      return;
     }
+
+    const token = localStorage.getItem("token");
+
+    try {
+      const res = await fetch(`${API_URL}/${local.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(local),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const msg =
+          data.message ||
+          data.error ||
+          (data.errors
+            ? Object.values(data.errors).flat().join("\n")
+            : "Erro ao salvar");
+
+        Swal.fire("Erro", msg, "error");
+        return;
+      }
+
+      Swal.fire("Sucesso", "Local atualizado com sucesso!", "success");
+      fetchLocais();
+      setOpenModal(false);
+      setSelected(null);
+
+    } catch (err) {
+      Swal.fire("Erro", "Falha inesperada ao salvar", "error");
+    }
+  };
+
+  const abrirModal = (local?: Local) => {
+    setSelected(local || { id: 0, nome: '', endereco: '', telefone: '', status: true });
+    setOpenModal(true);
   };
 
   return (
-    <>
+    <ProtectedRoute allowedRoles={"admin"}>
       <Navbar />
-      <main className={styles.content}>
-        <div className={styles.container}>
-          <h1 className={styles.title}>Lista de Locais</h1>
-          <hr className={styles.divider} />
+      <main className={styles.mainContent}>
+        <div className={styles.header}>
+          <h2 style={{ textAlign: 'center', width: '100%' }}>📍 Locais de Atendimento</h2>
+        </div>
 
-          {loading && <p>Carregando locais...</p>}
-          {error && <p style={{ color: 'red' }}>{error}</p>}
-
-          <div className={styles.lista}>
+        {loading ? (
+          <p>Carregando...</p>
+        ) : (
+          <div className={styles.listagem} style={{ overflowX: 'auto' }}>
             {locais.map(local => (
-              <div key={local.id} className={styles.item}>
+              <div key={local.id} className={styles.card}>
                 <div className={styles.info}>
-                  <strong>{local.nome}</strong>
-                  <p>Endereço: {local.endereco}</p>
-                  <p>Status: <span className={local.ativo ? styles.ativo : styles.inativo}>{local.ativo ? 'Ativo' : 'Inativo'}</span></p>
+                  <p><b>Nome:</b> {local.nome}</p>
+                  <p><b>Endereço:</b> {local.endereco}</p>
+                  <p><b>Telefone:</b> {local.telefone}</p>
+                  <p>
+                    <b>Status:</b>{' '}
+                    <span className={local.status ? styles.ativo : styles.inativo}>
+                      {local.status ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </p>
                 </div>
+
                 <div className={styles.botoes}>
-                  <button className={styles.editButton} onClick={() => editarLocal(local.id)}>Editar</button>
-                  <button className={styles.deleteButton} onClick={() => ativarOuInativar(local.id)}>
-                    {local.ativo ? 'Inativar' : 'Ativar'}
+                  <button className={styles.btnEdit} onClick={() => abrirModal(local)}>Editar</button>
+                  <button className={styles.btnToggle} onClick={() => toggleStatus(local)}>
+                    {local.status ? 'Inativar' : 'Ativar'}
                   </button>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        )}
 
-        {localEditando && (
-          <div className={modalStyles.modalOverlay}>
-            <div className={modalStyles.modalContent}>
-              <h2>Editar Local</h2>
-
-              <label>Nome</label>
-              <input type="text" name="nome" value={localEditando.nome} onChange={handleInputChange} />
-
-              <label>Endereço</label>
-              <input type="text" name="endereco" value={localEditando.endereco} onChange={handleInputChange} />
-
-              <div className={modalStyles.actions}>
-                <button onClick={() => setLocalEditando(null)} className={modalStyles.cancelButton}>Cancelar</button>
-                <button onClick={() => salvarEdicao(localEditando)} className={modalStyles.saveButton}>Salvar</button>
-              </div>
-            </div>
-          </div>
+        {openModal && selected && (
+          <ModalLocal
+            local={selected}
+            onSalvar={salvarLocal}
+            onCancelar={() => setOpenModal(false)}
+          />
         )}
       </main>
-    </>
+    </ProtectedRoute >
   );
-};
+}
 
-export default Locais;
+
+// ===================================================================
+// 📌 MODAL COMPLETO
+// ===================================================================
+function ModalLocal({
+  local,
+  onSalvar,
+  onCancelar
+}: {
+  local: Local;
+  onSalvar: (local: Local) => void;
+  onCancelar: () => void;
+}) {
+  const [nome, setNome] = useState(local.nome);
+  const [endereco, setEndereco] = useState(local.endereco);
+  const [telefone, setTelefone] = useState(local.telefone);
+
+  const salvar = () => onSalvar({ ...local, nome, endereco, telefone });
+
+  return (
+    <ProtectedRoute allowedRoles={"admin"}>
+      <div className={styles.modalOverlay} onClick={onCancelar}>
+        <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+          <h2>{local.id === 0 ? 'Novo Local' : 'Editar Local'}</h2>
+
+          <label>Nome*</label>
+          <input value={nome} onChange={e => setNome(e.target.value)} />
+
+          <label>Endereço*</label>
+          <input value={endereco} onChange={e => setEndereco(e.target.value)} />
+
+          <label>Telefone*</label>
+          <input value={telefone} onChange={e => setTelefone(e.target.value)} />
+
+          <div className={styles.modalActions}>
+            <button className={styles.cancelBtn} onClick={onCancelar}>Cancelar</button>
+            <button className={styles.saveBtn} onClick={salvar}>Salvar</button>
+          </div>
+        </div>
+      </div>
+    </ProtectedRoute >
+  );
+}

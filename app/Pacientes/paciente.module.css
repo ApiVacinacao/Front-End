@@ -1,138 +1,220 @@
 :root {
   --primary-blue: #0ea5e9;
   --primary-blue-dark: #0369a1;
-  --secondary-gradient: linear-gradient(135deg, #ff1717, #ff1428);
-  --secondary-gradient-hover: linear-gradient(135deg, #ff2929, #ff3030);
-
+  --secondary-red: #ef4444;
+  --secondary-red-dark: #dc2626;
   --bg-light: #ffffff;
   --bg-lighter: #f9fafb;
   --text-primary: #1a1a1a;
   --text-secondary: #374151;
   --text-label: #555;
+  --border-color: #e5e7eb;
   --shadow-light: rgba(0,0,0,0.06);
-  --shadow-medium: rgba(0,0,0,0.15);
 }
 
-/* Conteúdo principal considerando navbar lateral fixa */
-.content {
+/* =========================
+   Conteúdo principal
+   ========================= */
+.mainContent {
+  width: calc(100% - 250px);
+  max-width: 1400px;
   margin-left: 250px;
   padding: 2rem;
   background-color: var(--bg-lighter);
   min-height: 100vh;
   font-family: 'Inter', sans-serif;
-  transition: margin 0.3s ease;
+  transition: all 0.3s ease;
 }
 
-/* Container centralizado */
-.container {
-  max-width: 1200px;
-  margin: auto;
-  padding: 3rem;
-  background-color: var(--bg-light);
-  border-radius: 16px;
-  box-shadow: 0 6px 20px var(--shadow-light);
-}
-
-/* Título com linha abaixo */
-.title {
-  font-size: 2.5rem;
+.header h2 {
+  font-size: 2rem;
   font-weight: 700;
   margin-bottom: 2rem;
   color: var(--text-primary);
   text-align: center;
-  position: relative;
-  padding-bottom: 0.5rem;
 }
 
-.title::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: 2px;
-  background-color: #e5e7eb;
-  border-radius: 1px;
+/* =========================
+   Lista de Cards
+   ========================= */
+.listagem {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
 }
 
-/* Tabela de pacientes */
-.lista {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 10px;
+.card {
+  background-color: var(--bg-light);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 20px var(--shadow-light);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.lista thead th {
-  text-align: left;
-  padding: 1rem 1.2rem;
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.info p {
+  margin: 0.5rem 0;
+  color: var(--text-secondary);
+}
+
+.status {
   font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  display: inline-block;
+}
+
+.ativo {
+  color: #22c55e;
+  background: rgba(34,197,94,0.1);
+}
+
+.inativo {
+  color: #ef4444;
+  background: rgba(239,68,68,0.1);
+}
+
+/* =========================
+   Botões
+   ========================= */
+.botoes {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btnEdit,
+.btnToggle {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.btnEdit {
+  background-color: var(--primary-blue);
+  color: #fff;
+}
+.btnEdit:hover {
+  background-color: var(--primary-blue-dark);
+  transform: translateY(-2px);
+}
+
+.btnToggle {
+  background-color: var(--secondary-red);
+  color: #fff;
+}
+.btnToggle:hover {
+  background-color: var(--secondary-red-dark);
+  transform: translateY(-2px);
+}
+
+/* =========================
+   Modal
+   ========================= */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modalContent {
+  background: var(--bg-light);
+  padding: 2rem;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modalContent h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.modalContent label {
+  display: block;
+  margin-top: 1rem;
+  margin-bottom: 0.3rem;
   color: var(--text-label);
+}
+
+.modalContent input[type="text"],
+.modalContent input[type="email"] {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   font-size: 1rem;
 }
 
-.lista tbody td {
-  padding: 1rem 1.2rem;
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  background-color: var(--bg-light);
-  border-radius: 12px;
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  gap: 0.5rem;
 }
 
-.lista tbody tr {
-  border-bottom: 1px solid #e5e7eb;
-}
-
-/* Status */
-.status {
-  font-weight: 600;
-}
-
-.ativo { color: #16a34a; }
-.inativo { color: #dc2626; }
-
-/* Botões */
-td .editButton,
-td .deleteButton {
-  font-weight: 700;
-  border-radius: 15px;
-  padding: 10px 20px;
-  font-size: 0.95rem;
-  cursor: pointer;
+.cancelBtn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
   border: none;
-  transition: all 0.25s ease, transform 0.2s;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.12);
-  margin-right: 0.5rem;
+  background: #ccc;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.cancelBtn:hover {
+  background: #999;
 }
 
-td .editButton {
-  background: var(--primary-gradient);
+.saveBtn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--primary-blue);
   color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
-td .editButton:hover {
-  background: var(--primary-gradient-hover);
-  transform: translateY(-2px);
-}
-
-td .deleteButton {
-  background: var(--secondary-gradient);
-  color: #fff;
-}
-td .deleteButton:hover {
-  background: var(--secondary-gradient-hover);
-  transform: translateY(-2px);
+.saveBtn:hover {
+  background: var(--primary-blue-dark);
 }
 
-/* Responsividade */
-@media (max-width: 1280px) {
-  .content { margin-left: 220px; padding: 2rem; }
-}
-
+/* =========================
+   Responsividade
+   ========================= */
 @media (max-width: 1024px) {
-  .content { margin-left: 0; padding: 1.5rem; }
-  .container { padding: 2rem; }
+  .mainContent { width: 100%; margin-left: 0; padding: 1.5rem; }
+  .listagem { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
-  .container { padding: 1.5rem 1rem; }
-  td .editButton, td .deleteButton { width: 100%; margin-right: 0; margin-bottom: 0.5rem; }
+  .modalContent { padding: 1.5rem; }
+  .botoes { flex-direction: column; }
 }

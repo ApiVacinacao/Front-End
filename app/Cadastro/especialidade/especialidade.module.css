@@ -2,6 +2,8 @@
   display: flex;
   min-height: 100vh;
   background: linear-gradient(135deg, #e0efff, #c4dbf7);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #1e293b;
 }
 
 .mainContent {
@@ -10,8 +12,6 @@
   justify-content: center;
   align-items: center;
   padding: 2rem;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #1e293b;
 }
 
 .container {
@@ -20,7 +20,7 @@
   border-radius: 16px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
   text-align: center;
 }
 
@@ -89,10 +89,51 @@
   transform: translateY(-2px);
 }
 
-.mensagem {
-  margin-top: 1rem;
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2rem;
+}
+
+.table th,
+.table td {
+  border: 1px solid #cbd5e1;
+  padding: 0.8rem 1rem;
+  text-align: left;
+}
+
+.table th {
+  background-color: #e0efff;
   font-weight: 600;
-  color: #2563eb;
+  color: #1e293b;
+}
+
+.btnEdit,
+.btnDelete {
+  margin-right: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  color: #fff;
+  transition: 0.3s ease;
+}
+
+.btnEdit {
+  background-color: #3b82f6;
+}
+
+.btnEdit:hover {
+  background-color: #2563eb;
+}
+
+.btnDelete {
+  background-color: #ef4444;
+}
+
+.btnDelete:hover {
+  background-color: #b91c1c;
 }
 
 @media (max-width: 520px) {

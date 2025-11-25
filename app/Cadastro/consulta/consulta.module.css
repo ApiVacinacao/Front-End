@@ -1,0 +1,150 @@
+.pageWrapper {
+  display: flex;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e0efff, #c4dbf7);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #1e293b;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.container {
+  background: #f9fbff;
+  padding: 2.5rem 3rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+}
+
+.title {
+  font-size: 2.4rem;
+  margin-bottom: 1.8rem;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.2rem;
+}
+
+.col {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.input {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1.8px solid #cbd5e1;
+  background-color: #fff;
+  color: #1e293b;
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  outline: none;
+}
+
+.input::placeholder {
+  color: #94a3b8;
+}
+
+.input:hover,
+.input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.3);
+  background-color: #f0f9ff;
+}
+
+.button {
+  margin-top: 1.8rem;
+  width: 100%;
+  padding: 0.85rem 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  background: #3b82f6;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(59, 130, 246, 0.4);
+  transition: background-color 0.4s ease, transform 0.3s ease;
+}
+
+.button:hover {
+  background-color: #2563eb;
+  box-shadow: 0 8px 16px rgba(37, 99, 235, 0.5);
+  transform: translateY(-2px);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2rem;
+}
+
+.table th,
+.table td {
+  border: 1px solid #cbd5e1;
+  padding: 0.8rem 1rem;
+  text-align: left;
+}
+
+.table th {
+  background-color: #e0efff;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.btnEdit,
+.btnDelete {
+  margin-right: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  color: #fff;
+  transition: 0.3s ease;
+}
+
+.btnEdit {
+  background-color: #3b82f6;
+}
+
+.btnEdit:hover {
+  background-color: #2563eb;
+}
+
+.btnDelete {
+  background-color: #ef4444;
+}
+
+.btnDelete:hover {
+  background-color: #b91c1c;
+}
+
+@media (max-width: 520px) {
+  .row {
+    flex-direction: column;
+  }
+  .col {
+    min-width: 100%;
+  }
+  .input,
+  .button {
+    font-size: 1rem;
+  }
+}

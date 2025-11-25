@@ -1,108 +1,181 @@
+/* =======================================================================================
+   TEMA DARK PREMIUM PROFISSIONAL
+   ======================================================================================= */
+
 :root {
-  --bg-start: #0f172a;
-  --bg-end: #1e293b;
-  --text-color: #f8fafc;
-  --card-bg: rgba(30, 41, 59, 0.8);
-  --card-hover: rgba(51, 65, 85, 0.9);
-  --accent: #38bdf8;
-  --border-radius: 18px;
-  --shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  --bg: #0d1117;
+  --bg-soft: #161b22;
+  --bg-soft-2: #1c2430;
+
+  --text: #e6edf3;
+  --text-soft: #9ba3b4;
+  
+  --primary: #4ea1ff;
+  --primary-hover: #2f8aff;
+
+  --radius: 16px;
+  --transition: 0.25s ease;
+
+  --shadow-1: 0 6px 16px rgba(0,0,0,0.35);
+  --shadow-2: 0 12px 24px rgba(0,0,0,0.55);
 }
 
+/* =======================================================================================
+   RESET GLOBAL
+   ======================================================================================= */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body, html {
-  height: 100%;
-  font-family: 'Segoe UI', 'Roboto', sans-serif;
-  background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
-  color: var(--text-color);
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", sans-serif;
   overflow-x: hidden;
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
+/* =======================================================================================
+   LOADING
+   ======================================================================================= */
+
+.loadingWrapper {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
+.spinner {
+  width: 55px;
+  height: 55px;
+  border: 5px solid rgba(255,255,255,0.15);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =======================================================================================
+   HOME / WRAPPER
+   ======================================================================================= */
 
 .bgContainer {
-  position: relative;
-  min-height: 100vh;
-  overflow: hidden;
-}
-
-.bgContainer::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background-image: radial-gradient(circle, #38bdf830 1px, transparent 1px);
-  background-size: 60px 60px;
-  animation: moveBg 30s linear infinite;
-  z-index: 0;
-  opacity: 0.2;
-}
-
-@keyframes moveBg {
-  from {
-    transform: translate(0, 0);
-  }
-  to {
-    transform: translate(100px, 100px);
-  }
+  padding: 60px 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .homePage {
-  position: relative;
-  z-index: 1;
-  padding: 3rem 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 1100px;
 }
 
+/* =======================================================================================
+   HEADER
+   ======================================================================================= */
+
 .header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 2.5rem;
   text-align: center;
-  animation: fadeIn 1.2s ease-in-out;
+  margin-bottom: 45px;
 }
 
 .title {
   font-size: 2.8rem;
-  font-weight: bold;
-  margin-top: 1rem;
-  color: var(--accent);
-  text-shadow: 0 2px 10px rgba(56, 189, 248, 0.4);
+  font-weight: 700;
+  margin-top: 12px;
 }
 
 .subtitle {
-  font-size: 1.2rem;
-  opacity: 0.85;
-  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  opacity: 0.75;
+  margin-top: 6px;
 }
+
+/* =======================================================================================
+   CARDS GRID
+   ======================================================================================= */
 
 .optionsContainer {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 2rem;
-  width: 100%;
+  gap: 26px;
+}
+
+/* =======================================================================================
+   CARD – DESIGN PROFISSIONAL
+   ======================================================================================= */
+
+.optionCard {
+  background: var(--bg-soft);
+  border-radius: var(--radius);
+  padding: 28px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: var(--shadow-1);
+  transition: var(--transition);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.optionCard:hover {
+  background: var(--bg-soft-2);
+  border-color: rgba(255,255,255,0.12);
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-2);
+}
+
+.icon {
+  font-size: 2.6rem;
+}
+
+.optionCard h3 {
+  font-size: 1.35rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.optionCard p {
+  color: var(--text-soft);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  margin-bottom: 28px;
+}
+
+.access {
+  position: absolute;
+  right: 22px;
+  bottom: 18px;
+  opacity: 0.9;
+  transition: var(--transition);
+  font-weight: 600;
+}
+
+.optionCard:hover .access {
+  opacity: 1;
+  color: var(--primary-hover);
+}
+
+/* =======================================================================================
+   ANIMAÇÕES
+   ======================================================================================= */
+
+.floating {
+  opacity: 0;
+  animation: fadeUp 0.45s ease forwards;
 }
 
 @keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(40px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -110,77 +183,16 @@ a {
   }
 }
 
-@keyframes pulseIcon {
-  0%, 100% {
-    transform: scale(1);
+/* =======================================================================================
+   RESPONSIVIDADE
+   ======================================================================================= */
+
+@media (max-width: 650px) {
+  .title {
+    font-size: 2.2rem;
   }
-  50% {
-    transform: scale(1.1);
-  }
-}
 
-@keyframes float {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-  100% { transform: translateY(0); }
-}
-
-.optionCard {
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius);
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  text-align: left;
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow);
-  cursor: pointer;
-  backdrop-filter: blur(8px);
-  animation: fadeUp 1s ease forwards;
-}
-
-.optionCard:hover {
-  background-color: var(--card-hover);
-  transform: translateY(-10px) scale(1.03);
-  box-shadow: 0 15px 45px rgba(56, 189, 248, 0.3);
-}
-
-.floating {
-  animation: float 4s ease-in-out infinite;
-}
-
-.icon {
-  font-size: 3rem;
-  animation: pulseIcon 1.8s infinite ease-in-out;
-}
-
-.optionCard h3 {
-  font-size: 1.4rem;
-  color: var(--accent);
-}
-
-.optionCard p {
-  font-size: 1rem;
-  line-height: 1.5;
-  opacity: 0.9;
-}
-
-.access {
-  margin-top: auto;
-  font-weight: bold;
-  color: var(--accent);
-  text-align: right;
-  font-size: 0.95rem;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
+  .optionCard {
+    padding: 22px;
   }
 }

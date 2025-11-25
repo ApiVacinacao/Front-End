@@ -1,136 +1,215 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Navbar from '../../components/navbar/page';
 import styles from './agendamento.module.css';
-import { useRouter } from 'next/navigation';
+import ProtectedRoute from '@/app/components/auth/protecetroute';
+import Swal from 'sweetalert2';
+
+interface Base { id: number; nome?: string; name?: string; descricao?: string; status: boolean; }
 
 const CadastroAgendamento: React.FC = () => {
   const [data, setData] = useState('');
   const [hora, setHora] = useState('');
-  const [local, setLocal] = useState('');
-  const [profissional, setProfissional] = useState('');
+  const [localAtendimentoId, setLocalAtendimentoId] = useState('');
+  const [medicoId, setMedicoId] = useState('');
   const [tipoAgendamento, setTipoAgendamento] = useState('');
+  const [userId, setUserId] = useState('');
+
+  const [locais, setLocais] = useState<Base[]>([]);
+  const [medicos, setMedicos] = useState<Base[]>([]);
+  const [pacientes, setPacientes] = useState<Base[]>([]);
+  const [tiposAgendamentoList, setTiposAgendamentoList] = useState<Base[]>([]);
+
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
+
+    const get = (url: string) => fetch(url, { headers }).then(r => r.json());
+
+    Promise.all([
+      get('http://localhost:8000/api/localAtendimentos'),
+      get('http://localhost:8000/api/medicos'),
+      get('http://localhost:8000/api/users'),
+      get('http://localhost:8000/api/tipoConsultas'),
+    ])
+      .then(([l, m, p, t]) => {
+        setLocais(l.filter((i: Base) => i.status));
+        setMedicos(m.filter((i: Base) => i.status));
+        setPacientes(p.filter((i: Base) => i.status));
+        setTiposAgendamentoList(t.filter((i: Base) => i.status));
+      })
+      .catch(() => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: 'Erro ao carregar dados.',
+        });
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   const handleSubmit = async () => {
-    // Validação simples
-    if (!data || !hora || !local || !profissional || !tipoAgendamento) {
-      alert('Por favor, preencha todos os campos!');
+    if (!data || !hora || !localAtendimentoId || !medicoId || !tipoAgendamento || !userId) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Atenção',
+        text: 'Preencha todos os campos!',
+      });
       return;
     }
 
-    // Dados que serão enviados para a API
-    const agendamentoData = { 
-      data, 
-      hora, 
-      local, 
-      profissional, 
-      tipoAgendamento 
+    const token = localStorage.getItem('token');
+    const body = {
+      dataHora: `${data} ${hora}`,
+      local_atendimento_id: Number(localAtendimentoId),
+      medico_id: Number(medicoId),
+      tipo_consulta_id: Number(tipoAgendamento),
+      user_id: Number(userId),
     };
 
     try {
-      const response = await fetch('/api/agendamentos', {
+      const res = await fetch('http://localhost:8000/api/agendamentos', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(agendamentoData),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(body),
       });
 
-      if (response.ok) {
-        alert('Agendamento cadastrado com sucesso!');
-        router.push('/'); // Redireciona para a home
-      } else {
-        const errorData = await response.json();
-        alert(errorData.message || 'Erro ao cadastrar agendamento!');
+      if (res.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Sucesso!',
+          text: 'Agendamento registrado com sucesso!',
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
+        setTimeout(() => {
+          router.push('/Agendamento');
+        }, 1500);
+
+        return;
       }
-    } catch (error) {
-      console.error('Erro ao enviar os dados:', error);
-      alert('Erro ao cadastrar agendamento!');
+
+      const err = await res.json();
+
+      if (err.errors) {
+        // Montar lista de mensagens HTML
+        const mensagens = Object.values(err.errors)
+          .flat()
+          .map(msg => `<li>${msg}</li>`)
+          .join('');
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Erros de validação',
+          html: `<ul style="text-align: left;">${mensagens}</ul>`,
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: err.message || 'Erro ao cadastrar.',
+        });
+      }
+
+
+    } catch {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao conectar com o servidor.',
+      });
     }
   };
 
   return (
-    <div className={styles.pageWrapper}>
-      <Navbar />
-      <main className={styles.mainContent}>
-        <div className={styles.container}>
-          <h1 className={styles.title}>Cadastrar Agendamento</h1>
+    <ProtectedRoute allowedRoles={"admin"}>
+      <div className={styles.pageWrapper}>
+        <Navbar />
+        <main className={styles.mainContent}>
 
-          <div className={styles.row}>
-            <div className={styles.col}>
-              <label htmlFor="tipoAgendamento">Tipo de Agendamento</label>
-              <select
-                id="tipoAgendamento"
-                value={tipoAgendamento}
-                onChange={(e) => setTipoAgendamento(e.target.value)}
-                className={styles.input}
-              >
-                <option value="">Selecione o tipo de agendamento</option>
-                <option value="Atendimento Especializado">Atendimento Especializado</option>
-                <option value="Consulta">Consulta</option>
-                <option value="Vacina">Vacina</option>
-                <option value="Exame">Exame</option>
-                <option value="Emergência">Emergência</option>
-              </select>
+          {loading ? (
+            <div className="loadingWrapper"><div className="spinner" /></div>
+          ) : (
+            <div className={styles.container}>
+              <h1 className={styles.title}>Cadastrar Agendamento</h1>
+
+              <div className={styles.row}>
+                <div className={styles.col}>
+                  <label>Paciente</label>
+                  <select value={userId} onChange={e => setUserId(e.target.value)} className={styles.input}>
+                    <option value="">Selecione</option>
+                    {pacientes.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles.col}>
+                  <label>Médico</label>
+                  <select value={medicoId} onChange={e => setMedicoId(e.target.value)} className={styles.input}>
+                    <option value="">Selecione</option>
+                    {medicos.map(m => (
+                      <option key={m.id} value={m.id}>{m.nome}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className={styles.row}>
+                <div className={styles.col}>
+                  <label>Tipo</label>
+                  <select value={tipoAgendamento} onChange={e => setTipoAgendamento(e.target.value)} className={styles.input}>
+                    <option value="">Selecione</option>
+                    {tiposAgendamentoList.map(t => (
+                      <option key={t.id} value={t.id}>{t.descricao}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles.col}>
+                  <label>Local</label>
+                  <select value={localAtendimentoId} onChange={e => setLocalAtendimentoId(e.target.value)} className={styles.input}>
+                    <option value="">Selecione</option>
+                    {locais.map(l => (
+                      <option key={l.id} value={l.id}>{l.nome}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className={styles.row}>
+                <div className={styles.col}>
+                  <label>Data</label>
+                  <input type="date" value={data} onChange={e => setData(e.target.value)} className={styles.input} />
+                </div>
+
+                <div className={styles.col}>
+                  <label>Hora</label>
+                  <input type="time" value={hora} onChange={e => setHora(e.target.value)} className={styles.input} />
+                </div>
+              </div>
+
+              <button className={styles.button} onClick={handleSubmit}>
+                Cadastrar Agendamento
+              </button>
             </div>
-
-            <div className={styles.col}>
-              <label htmlFor="data">Data</label>
-              <input
-                type="date"
-                id="data"
-                value={data}
-                onChange={(e) => setData(e.target.value)}
-                className={styles.input}
-              />
-            </div>
-          </div>
-
-          <div className={styles.row}>
-            <div className={styles.col}>
-              <label htmlFor="hora">Hora</label>
-              <input
-                type="time"
-                id="hora"
-                value={hora}
-                onChange={(e) => setHora(e.target.value)}
-                className={styles.input}
-              />
-            </div>
-
-            <div className={styles.col}>
-              <label htmlFor="local">Local de Atendimento</label>
-              <input
-                type="text"
-                id="local"
-                value={local}
-                onChange={(e) => setLocal(e.target.value)}
-                placeholder="Digite o local"
-                className={styles.input}
-              />
-            </div>
-          </div>
-
-          <div className={styles.row}>
-            <div className={styles.col}>
-              <label htmlFor="profissional">Profissional</label>
-              <input
-                type="text"
-                id="profissional"
-                value={profissional}
-                onChange={(e) => setProfissional(e.target.value)}
-                placeholder="Nome do profissional"
-                className={styles.input}
-              />
-            </div>
-          </div>
-
-          <button className={styles.button} onClick={handleSubmit}>
-            Cadastrar Agendamento
-          </button>
-        </div>
-      </main>
-    </div>
+          )}
+        </main>
+      </div>
+    </ProtectedRoute>
   );
 };
 

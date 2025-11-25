@@ -6,10 +6,11 @@ import styles from './EditModal.module.css';
 interface EditModalProps {
   paciente: {
     id: number;
-    nome: string;
+    name: string;
     email: string;
-    senha: string;
-    cns: string;
+    cpf: string;
+    password: string;
+    status: boolean;
   };
   onClose: () => void;
   onSave: (pacienteAtualizado: any) => void;
@@ -32,17 +33,17 @@ const EditModal: React.FC<EditModalProps> = ({ paciente, onClose, onSave }) => {
       <div className={styles.modalContent}>
         <h2>Editar Paciente</h2>
 
-        <label>Nome</label>
-        <input type="text" name="nome" value={form.nome} onChange={handleChange} />
+        <label>name</label>
+        <input type="text" name="name" value={form.name} onChange={handleChange} />
 
         <label>Email</label>
         <input type="email" name="email" value={form.email} onChange={handleChange} />
 
-        <label>Senha</label>
-        <input type="password" name="senha" value={form.senha} onChange={handleChange} />
+        <label>password</label>
+        <input type="password" name="pas" value={form.password} onChange={handleChange} />
 
-        <label>CNS</label>
-        <input type="text" name="cns" value={form.cns} onChange={handleChange} />
+        <label>cpf</label>
+        <input type="text" name="cpf" value={form.cpf} onChange={handleChange} />
 
         <div className={styles.actions}>
           <button onClick={onClose} className={styles.cancelButton}>Cancelar</button>

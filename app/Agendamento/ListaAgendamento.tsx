@@ -1,278 +1,164 @@
 'use client';
+
 import React, { useEffect, useState } from 'react';
 import styles from '../styles/ListaAgendamento.module.css';
-import NovoAgendamento from './NovoAgendamento';
 import DetalheAgendamento from './AgendamentoDetalhe';
-import { useRouter } from 'next/navigation';
 
-interface Appointment {
+export interface Appointment {
   id?: number;
-  date: string;
-  time: string;
-  services: string[];     // array no front
-  professional: string;
-  location: string;
-  notes: string;
-  patient: string;
-  ativo: boolean;
+  user_id: number;
+  medico_id: number;
+  local_atendimento_id: number;
+  tipo_consulta_id: number;
+  data: string;
+  hora: string;
+  status?: boolean;
+  user?: { id: number; name: string };
+  medico?: { id: number; nome: string };
+  local_atendimento?: { id: number; nome: string };
+  tipo_consulta?: { id: number; descricao: string };
+  dataHora?: string;
 }
 
-const API_BASE = 'http://localhost:8000/api';
-const API_URL = `${API_BASE}/agendamentos`;
+const API_URL = 'http://localhost:8000/api/agendamentos';
 
-const AgendamentosList: React.FC = () => {
-  const router = useRouter();
+export default function AgendamentosList() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [selected, setSelected] = useState<Appointment | null>(null);
-  const [openDetail, setOpenDetail] = useState(false);
-  const [openNew, setOpenNew] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<Appointment | null>(null);
 
-  const getToken = () => (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+  const getToken = () => localStorage.getItem('token');
+  const headers = () => ({
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${getToken()}`,
+  });
 
-  const authHeaders = () => {
-    const token = getToken();
-    return {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
-  };
+  const fetchData = async () => {
+    if (!getToken()) return (window.location.href = '/Login');
 
-  const normalizeToArray = (payload: any): Appointment[] => {
-    // aceita [ ... ] ou { data: [...] } ; senão, array vazio
-    if (Array.isArray(payload)) return payload as Appointment[];
-    if (payload && Array.isArray(payload.data)) return payload.data as Appointment[];
-    return [];
-  };
+    try {
+      let res = await fetch(API_URL, { headers: headers() });
 
-  // 🔹 Carregar lista
-  useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      router.replace('/Login');
-      return;
-    }
-
-    (async () => {
-      try {
-        const res = await fetch(API_URL, { headers: authHeaders() });
-        if (res.status === 401) {
-          localStorage.removeItem('token');
-          router.replace('/Login');
-          return;
-        }
-        const data = await res.json();
-        const list = normalizeToArray(data).map((a: any) => ({
-          ...a,
-          // garante services como array no front, mesmo se vier string/JSON
-          services: Array.isArray(a.services)
-            ? a.services
-            : typeof a.services === 'string'
-              ? (() => {
-                  try { const parsed = JSON.parse(a.services); return Array.isArray(parsed) ? parsed : [a.services]; }
-                  catch { return a.services.split(',').map((s: string) => s.trim()).filter(Boolean); }
-                })()
-              : [],
-          ativo: Boolean(a.ativo),
-        }));
-        setAppointments(list);
-      } catch (err) {
-        console.error('Erro ao carregar agendamentos:', err);
-      } finally {
-        setLoading(false);
+      if (res.status === 401) {
+        localStorage.removeItem('token');
+        return (window.location.href = '/Login');
       }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+      const data = await res.json();
+
+      const formatted = data.map((i: any) => {
+        if (i.data && i.hora) return i;
+        if (!i.dataHora) return i;
+        const [d, h] = i.dataHora.split(' ');
+        return { ...i, data: d, hora: h.slice(0, 5) };
+      });
+
+      setAppointments(formatted);
+    } catch {
+      setAppointments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
-  // 🔹 Criar
-  const addAppointment = async (appointment: Partial<Appointment>) => {
-    try {
-      const payload = {
-        ...appointment,
-        services: Array.isArray(appointment.services)
-          ? appointment.services
-          : appointment && (appointment as any).service
-            ? (Array.isArray((appointment as any).service)
-                ? (appointment as any).service
-                : [String((appointment as any).service)])
-            : [],
-        ativo: appointment.ativo ?? true,
-      };
+  const toggleStatus = async (a: Appointment) => {
+    if (!a.id) return;
 
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify(payload),
-      });
+    const res = await fetch(`${API_URL}/${a.id}/toggle-status`, {
+      method: 'PATCH',
+      headers: headers(),
+    });
 
-      if (res.status === 401) {
-        localStorage.removeItem('token');
-        router.replace('/Login');
-        return;
-      }
+    if (!res.ok) return alert('Erro ao alterar status');
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.message || 'Erro ao criar agendamento');
-      }
+    const { status } = await res.json();
 
-      const created = await res.json();
-      setAppointments(prev => [...prev, created]);
-    } catch (err) {
-      console.error(err);
-      alert('Não foi possível criar o agendamento.');
-    }
-  };
-
-  // 🔹 Ativar/Inativar
-  const toggleAtivo = async (index: number) => {
-    const appt = appointments[index];
-    if (!appt?.id) return;
-
-    const updated = { ...appt, ativo: !appt.ativo };
-
-    try {
-      const res = await fetch(`${API_URL}/${appt.id}`, {
-        method: 'PUT',
-        headers: authHeaders(),
-        body: JSON.stringify(updated),
-      });
-
-      if (res.status === 401) {
-        localStorage.removeItem('token');
-        router.replace('/Login');
-        return;
-      }
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.message || 'Erro ao atualizar status');
-      }
-
-      setAppointments(prev => prev.map((a, i) => (i === index ? updated : a)));
-    } catch (err) {
-      console.error(err);
-      alert('Não foi possível atualizar o status.');
-    }
-  };
-
-  // 🔹 Deletar
-  const deleteAppointment = async (id?: number) => {
-    if (!id) return;
-    try {
-      const res = await fetch(`${API_URL}/${id}`, {
-        method: 'DELETE',
-        headers: authHeaders(),
-      });
-
-      if (res.status === 401) {
-        localStorage.removeItem('token');
-        router.replace('/Login');
-        return;
-      }
-
-      if (!res.ok && res.status !== 204) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.message || 'Erro ao excluir');
-      }
-
-      setAppointments(prev => prev.filter(a => a.id !== id));
-    } catch (err) {
-      console.error(err);
-      alert('Não foi possível excluir o agendamento.');
-    }
-  };
-
-  if (loading) {
-    return (
-      <main className={styles.mainContent}>
-        <div className={styles.header}><h2>Agendamentos</h2></div>
-        <p>Carregando...</p>
-      </main>
+    setAppointments(prev =>
+      prev.map(x => (x.id === a.id ? { ...x, status } : x))
     );
-  }
+  };
 
   return (
     <main className={styles.mainContent}>
-      <div className={styles.header}><h2>Agendamentos</h2></div>
+      <h2 className={styles.title}>Agendamentos</h2>
 
-      <div className={styles.searchBar}>
-        <input type="text" placeholder="Buscar agendamentos..." />
-        <button>🔍</button>
-      </div>
-
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th className={styles.th}>Paciente</th>
-            <th className={styles.th}>Data</th>
-            <th className={styles.th}>Hora</th>
-            <th className={styles.th}>Serviço</th>
-            <th className={styles.th}>Profissional</th>
-            <th className={styles.th}>Status</th>
-            <th className={styles.th}>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {appointments.map((a, i) => (
-            <tr key={a.id ?? i} className={styles.tr}>
-              <td className={styles.td}>{a.patient}</td>
-              <td className={styles.td}>{a.date}</td>
-              <td className={styles.td}>{a.time}</td>
-              <td className={styles.td}>
-                {Array.isArray(a.services) ? a.services.join(', ') : String(a.services ?? '')}
-              </td>
-              <td className={styles.td}>{a.professional}</td>
-              <td className={styles.td}>{a.ativo ? 'Ativo' : 'Inativo'}</td>
-              <td className={styles.td}>
-                <button
-                  className={styles.btnDetails}
-                  onClick={() => { setSelected(a); setOpenDetail(true); }}
-                >
-                  Ver
-                </button>
-                <button
-                  className={styles.btnToggle}
-                  onClick={() => toggleAtivo(i)}
-                >
-                  {a.ativo ? 'Inativar' : 'Ativar'}
-                </button>
-                <button
-                  className={styles.btnDelete}
-                  onClick={() => deleteAppointment(a.id)}
-                >
-                  Excluir
-                </button>
-              </td>
-            </tr>
-          ))}
-          {appointments.length === 0 && (
-            <tr><td className={styles.td} colSpan={7}>Nenhum agendamento encontrado.</td></tr>
-          )}
-        </tbody>
-      </table>
-
-      <button className={styles.floatingBtn} onClick={() => setOpenNew(true)}>➕ Novo</button>
-
-      {openNew && (
-        <NovoAgendamento
-          onClose={() => setOpenNew(false)}
-          onAddAppointment={(appointment: Appointment) => {
-            addAppointment(appointment);
-            setOpenNew(false);
-          }}
-        />
+      {loading && <p className={styles.loading}>Carregando...</p>}
+      {!loading && appointments.length === 0 && (
+        <p className={styles.empty}>Nenhum agendamento encontrado.</p>
       )}
 
-      {openDetail && selected && (
+      {!loading && appointments.length > 0 && (
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Paciente</th>
+                <th>Data</th>
+                <th>Hora</th>
+                <th>Profissional</th>
+                <th>Local</th>
+                <th>Consulta</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {appointments.map(a => (
+                <tr key={a.id}>
+                  <td data-label="Paciente">{a.user?.name}</td>
+                  <td data-label="Data">{a.data}</td>
+                  <td data-label="Hora">{a.hora}</td>
+                  <td data-label="Profissional">{a.medico?.nome}</td>
+                  <td data-label="Local">{a.local_atendimento?.nome}</td>
+                  <td data-label="Consulta">{a.tipo_consulta?.descricao}</td>
+
+                  <td
+                    data-label="Status"
+                    className={a.status ? styles.active : styles.inactive}
+                  >
+                    {a.status ? 'Ativo' : 'Inativo'}
+                  </td>
+
+                  <td className={styles.actionsCell}>
+                    <button
+                      className={styles.btnDetails}
+                      onClick={() => setSelected(a)}
+                    >
+                      Editar
+                    </button>
+
+                    <button
+                      className={
+                        a.status ? styles.btnInativar : styles.btnAtivar
+                      }
+                      onClick={() => toggleStatus(a)}
+                    >
+                      {a.status ? 'Inativar' : 'Ativar'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {selected && (
         <DetalheAgendamento
           appointment={selected}
-          onClose={() => { setOpenDetail(false); setSelected(null); }}
+          onClose={() => setSelected(null)}
+          onUpdate={updated =>
+            setAppointments(prev =>
+              prev.map(a => (a.id === updated.id ? updated : a))
+            )
+          }
         />
       )}
     </main>
   );
-};
-
-export default AgendamentosList;
+}

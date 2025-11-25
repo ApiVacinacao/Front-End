@@ -4,115 +4,251 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../components/navbar/page';
 import styles from './paciente.module.css';
+import Swal from 'sweetalert2';
+import ProtectedRoute from '@/app/components/auth/protecetroute';
 
 const CadastroPaciente: React.FC = () => {
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [cns, setCns] = useState('');
-  const [senha, setSenha] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    cpf: '',
+    password: '',
+    password_confirmation: '',
+    telefone: '',
+  });
+
   const router = useRouter();
 
-  const handleSubmit = async () => {
-    if (!nome.trim() || !email.trim() || !cpf.trim() || !cns.trim() || !senha.trim()) {
-      alert('Por favor, preencha todos os campos obrigatórios!');
+  const getToken = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('token');
+    }
+    return null;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    // Máscara CPF
+    if (name === 'cpf') {
+      let v = value.replace(/\D/g, '').slice(0, 11);
+      v = v.replace(/(\d{3})(\d)/, '$1.$2')
+           .replace(/(\d{3})(\d)/, '$1.$2')
+           .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+
+      setFormData(prev => ({ ...prev, cpf: v }));
       return;
     }
 
-    const pacienteData = { nome, email, cpf, cns, senha };
+    // Máscara Telefone
+    if (name === 'telefone') {
+      let t = value.replace(/\D/g, '').slice(0, 11);
+
+      if (t.length <= 10) {
+        t = t.replace(/(\d{2})(\d)/, '($1) $2')
+             .replace(/(\d{4})(\d)/, '$1-$2');
+      } else {
+        t = t.replace(/(\d{2})(\d)/, '($1) $2')
+             .replace(/(\d{5})(\d)/, '$1-$2');
+      }
+
+      setFormData(prev => ({ ...prev, telefone: t }));
+      return;
+    }
+
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const { name, email, cpf, password, password_confirmation, telefone } = formData;
+
+    if (!name || !email || !cpf || !password || !password_confirmation || !telefone) {
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Campos obrigatórios',
+        text: 'Preencha todos os campos.',
+      });
+    }
+
+    if (password !== password_confirmation) {
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Senhas diferentes',
+        text: 'As senhas não coincidem.',
+      });
+    }
 
     try {
-      const response = await fetch('/api/pacientes', {
+      const payload = {
+        name,
+        email,
+        cpf: cpf.replace(/\D/g, ''),
+        telefone: telefone.replace(/\D/g, ''),
+        password,
+        password_confirmation,
+      };
+
+      const token = getToken();
+
+      if (!token) {
+        return Swal.fire({
+          icon: 'error',
+          title: 'Erro de autenticação',
+          text: 'Faça login novamente.',
+        });
+      }
+
+      const res = await fetch('http://localhost:8000/api/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pacienteData),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
       });
 
-      if (response.ok) {
-        alert('Paciente cadastrado com sucesso!');
-        router.push('/');
-      } else {
-        alert('Erro ao cadastrar paciente.');
+      const data = await res.json();
+
+      /** 🔥 TRATAMENTO DOS ERROS DE VALIDAÇÃO DO BACKEND */
+      if (!res.ok) {
+        if (data.errors) {
+          const mensagens = Object.values(data.errors)
+            .flat()
+            .map((msg: any) => `<li>${msg}</li>`)
+            .join('');
+
+          return Swal.fire({
+            icon: 'error',
+            title: 'Erros de validação',
+            html: `<ul style="text-align:left;">${mensagens}</ul>`,
+          });
+        }
+
+        return Swal.fire({
+          icon: 'error',
+          title: 'Erro ao cadastrar',
+          text: data.message || 'Algo deu errado.',
+        });
       }
-    } catch (error) {
-      console.error('Erro ao enviar dados:', error);
-      alert('Erro ao cadastrar paciente.');
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Sucesso!',
+        text: 'Paciente cadastrado com sucesso!',
+        confirmButtonText: 'Ir para pacientes',
+      }).then(() => {
+        router.push('/Pacientes');
+      });
+
+      setFormData({
+        name: '',
+        email: '',
+        cpf: '',
+        password: '',
+        password_confirmation: '',
+        telefone: '',
+      });
+
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro no servidor',
+        text: 'Não foi possível cadastrar o paciente.',
+      });
     }
   };
 
   return (
-    <div className={styles.pageWrapper}>
-      <Navbar />
-      <main className={styles.mainContent}>
-        <div className={styles.container}>
-          <h1 className={styles.title}>Cadastro de Paciente</h1>
+    <ProtectedRoute allowedRoles={"admin"}>
+      <>
+        <Navbar />
+        <main className={styles.content}>
+          <div className={styles.formContainer}>
+            <h1>Cadastro de Paciente</h1>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="nome">Nome *</label>
-            <input
-              id="nome"
-              type="text"
-              value={nome}
-              onChange={e => setNome(e.target.value)}
-              placeholder="Digite o nome completo"
-              className={styles.input}
-            />
+            <form className={styles.form} onSubmit={handleSubmit}>
+              
+              <div className={styles.row}>
+                <div className={styles.col}>
+                  <label>Nome *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Nome completo"
+                  />
+                </div>
+
+                <div className={styles.col}>
+                  <label>E-mail *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="email@exemplo.com"
+                  />
+                </div>
+              </div>
+
+              <div className={styles.row}>
+                <div className={styles.col}>
+                  <label>CPF *</label>
+                  <input
+                    type="text"
+                    name="cpf"
+                    value={formData.cpf}
+                    onChange={handleChange}
+                    placeholder="000.000.000-00"
+                  />
+                </div>
+
+                <div className={styles.col}>
+                  <label>Telefone *</label>
+                  <input
+                    type="text"
+                    name="telefone"
+                    value={formData.telefone}
+                    onChange={handleChange}
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+              </div>
+
+              <div className={styles.row}>
+                <div className={styles.col}>
+                  <label>Senha *</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Senha"
+                  />
+                </div>
+
+                <div className={styles.col}>
+                  <label>Confirmação *</label>
+                  <input
+                    type="password"
+                    name="password_confirmation"
+                    value={formData.password_confirmation}
+                    onChange={handleChange}
+                    placeholder="Confirme a senha"
+                  />
+                </div>
+              </div>
+
+              <button type="submit">Cadastrar Paciente</button>
+            </form>
           </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="email">E-mail *</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="exemplo@email.com"
-              className={styles.input}
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="cpf">CPF *</label>
-            <input
-              id="cpf"
-              type="text"
-              value={cpf}
-              onChange={e => setCpf(e.target.value)}
-              placeholder="Digite o CPF"
-              className={styles.input}
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="cns">CNS *</label>
-            <input
-              id="cns"
-              type="text"
-              value={cns}
-              onChange={e => setCns(e.target.value)}
-              placeholder="Número do Cartão Nacional de Saúde"
-              className={styles.input}
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="senha">Senha *</label>
-            <input
-              id="senha"
-              type="password"
-              value={senha}
-              onChange={e => setSenha(e.target.value)}
-              placeholder="Crie uma senha segura"
-              className={styles.input}
-            />
-          </div>
-
-          <button className={styles.button} onClick={handleSubmit}>
-            Cadastrar Paciente
-          </button>
-        </div>
-      </main>
-    </div>
+        </main>
+      </>
+    </ProtectedRoute>
   );
 };
 

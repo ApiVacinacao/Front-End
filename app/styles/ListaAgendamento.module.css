@@ -1,372 +1,262 @@
-/* ================================ */
-/* VARIÁVEIS DE CORES               */
-/* ================================ */
 :root {
-  --primary-green: #22c55e;
-  --primary-green-dark: #15803d;
-  --primary-blue: #0ea5e9;
-  --primary-blue-dark: #0369a1;
-  --secondary-red: #f91616;
-  --secondary-red-dark: #c20c0c;
-  --danger-red: #ef4444;
-  --light-gray: #f3f4f6;
-  --white: #ffffff;
-  --text-dark: #1a1a1a;
-  --text-light: #f9fafb;
+  --sidebar-width: 250px;
+
+  --bg-light: #ffffff;
+  --bg-soft: #f7f9fc;
+
+  --text-dark: #1e293b;
+  --text-muted: #0f0f0f;
+
+  --primary-blue: #2563eb;
+  --primary-blue-dark: #1e40af;
+
+  --shadow-light: rgba(0, 0, 0, 0.08);
 }
 
-/* ================================ */
-/* BODY E FONTES                     */
-/* ================================ */
-body {
-  font-family: 'Inter', sans-serif;
-  color: var(--text-dark);
-  margin: 0;
-  background-color: var(--light-gray);
-}
-
-/* ================================ */
-/* MAIN CONTAINER                    */
-/* ================================ */
 .mainContent {
-  max-width: 1200px;
-  margin: 0 auto;
+  margin-left: var(--sidebar-width);
   padding: 2rem;
+  min-height: 100vh;
+  background: var(--bg-soft);
+  transition: margin-left 0.3s ease;
 }
 
-/* ================================ */
-/* CABEÇALHO                          */
-/* ================================ */
-.header {
-  margin-bottom: 2rem;
-}
-
-.header h2 {
+.title {
   font-size: 2rem;
   font-weight: 700;
+  margin-bottom: 1.5rem;
   color: var(--text-dark);
-  margin: 0;
+  text-align: center;
 }
 
-/* ================================ */
-/* BARRA DE PESQUISA                  */
-/* ================================ */
-.searchBar {
-  display: flex;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
+.loading,
+.empty {
+  text-align: center;
+  font-size: 1.1rem;
+  color: var(--text-muted);
 }
 
-.searchBar input {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
-  background: var(--white);
+/* TABELA */
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
 }
 
-.searchBar button {
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
-  color: var(--white);
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.searchBar button:hover,
-.searchBar button:focus {
-  background: linear-gradient(135deg, var(--primary-blue-dark), var(--primary-blue));
-  transform: scale(1.05);
-  outline: none;
-}
-
-/* ================================ */
-/* TABELA DE AGENDAMENTOS            */
-/* ================================ */
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.95rem;
+  background: var(--bg-light);
   border-radius: 12px;
   overflow: hidden;
-  background-color: var(--white);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px var(--shadow-light);
 }
 
-.th, .td {
+.table th {
+  background: #e2e8f0;
   padding: 1rem;
-  text-align: left;
-}
-
-.th {
-  background-color: #f1f5f9;
+  text-align: center;
   font-weight: 600;
-}
-
-.tr:hover {
-  background-color: #f9fafb;
-}
-
-/* STATUS */
-.ativo {
-  color: var(--primary-green);
-  font-weight: 700;
-}
-
-.inativo {
-  color: var(--danger-red);
-  font-weight: 700;
-}
-
-/* BOTÕES DA TABELA */
-.btnDetails,
-.btnToggle,
-.floatingBtn,
-.btnSecondary {
-  font-weight: 700;
-  border-radius: 14px;
-  padding: 0.6rem 1.2rem;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.3s ease, transform 0.2s;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  outline: none;
-  border: none;
-}
-
-/* Botão detalhes */
-.btnDetails {
-  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
-  color: var(--white);
-}
-
-.btnDetails:hover,
-.btnDetails:focus {
-  transform: scale(1.08);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-}
-
-/* Botão alternar status */
-.btnToggle {
-  background: linear-gradient(135deg, var(--secondary-red), var(--secondary-red-dark));
-  color: var(--white);
-  margin-left: 0.5rem;
-}
-
-.btnToggle:hover,
-.btnToggle:focus {
-  transform: scale(1.08);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-}
-
-/* Botão flutuante */
-.floatingBtn {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
-  color: var(--white);
-  font-size: 1.1rem;
-  border-radius: 50px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-}
-
-.floatingBtn:hover,
-.floatingBtn:focus {
-  transform: scale(1.1);
-  box-shadow: 0 0 0 4px rgba(14,165,233,0.4);
-}
-
-/* ================================ */
-/* MODAL DE DETALHES E NOVO          */
-/* ================================ */
-.modal,
-.modalOverlay,
-.mainContainer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 1rem;
-}
-
-.modalContent,
-.detailCard,
-.form {
-  background-color: var(--white);
-  border-radius: 16px;
-  padding: 2rem;
-  width: 100%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
-  animation: fadeInScale 0.3s ease forwards;
-}
-
-/* Animação suave para modals */
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* ================================ */
-/* FORMULÁRIOS                       */
-/* ================================ */
-.label {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  margin: 10px 0 5px;
   color: var(--text-dark);
 }
 
-.input,
-.selectInput {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0 16px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  background-color: #f9fafb;
-  transition: all 0.3s ease;
+.table td {
+  padding: 1rem;
+  text-align: center;
+  border-bottom: 1px solid #000000;
+  color: #000 !important; /* TEXTO PRETO */
 }
 
-.input:focus,
-.selectInput:focus {
-  border-color: var(--primary-green);
-  background-color: var(--white);
-  outline: none;
-}
-
-/* GRID PARA DOIS INPUTS LADO A LADO EM TELAS GRANDES */
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-/* BOTÕES DO FORMULÁRIO */
-.buttonSubmit,
-.buttonClose {
-  padding: 12px 24px;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 8px;
-  font-weight: 700;
-  transition: all 0.3s;
-}
-
-.buttonSubmit {
-  background: linear-gradient(135deg, var(--primary-green), var(--primary-green-dark));
-  color: var(--white);
-  border: none;
-}
-
-.buttonSubmit:hover,
-.buttonSubmit:focus {
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-}
-
-.buttonClose {
-  background: var(--danger-red);
-  color: var(--white);
-  border: none;
-  margin-left: 10px;
-}
-
-.buttonClose:hover,
-.buttonClose:focus {
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-}
-
-/* ================================ */
-/* DETALHES DO AGENDAMENTO           */
-/* ================================ */
-.detailItem {
-  margin-bottom: 18px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid #eee;
-}
-
-.detailItem:last-child {
+.table tr:last-child td {
   border-bottom: none;
-  margin-bottom: 25px;
-  padding-bottom: 0;
 }
 
-.detailItem strong {
-  display: block;
-  font-size: 18px;
+.table tr:hover {
+  background: #eef6ff;
+}
+
+.actionsCell {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* BOTÕES */
+.btnDetails,
+.btnToggle {
+  padding: 0.45rem 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  margin-bottom: 6px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
 }
 
-.detailItem p {
-  font-size: 16px;
-  line-height: 1.4;
-}
-
-/* BOTÃO SECUNDÁRIO */
-.btnSecondary {
-  background-color: #e0f2fe;
-  color: #0284c7;
-  border: 2px solid #0284c7;
-}
-
-.btnSecondary:hover,
-.btnSecondary:focus {
-  background-color: #0284c7;
+.btnDetails {
+  background: var(--primary-blue);
   color: #fff;
-  transform: scale(1.05);
-  box-shadow: 0 0 0 4px rgba(2,132,199,0.5);
 }
 
-/* ================================ */
-/* RESPONSIVIDADE                     */
-/* ================================ */
+.btnDetails:hover {
+  background: var(--primary-blue-dark);
+}
+
+.btnAtivar {
+  background: var(--primary-blue);
+  color: white;
+}
+
+/* INATIVAR – vermelho */
+.btnInativar {
+  background: #e11d48;       /* vermelho */
+  color: #fff !important;
+  font-weight: 600;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Hover vermelho mais escuro */
+.btnInativar:hover {
+  background: #9f1239;
+}
+
+/* ATIVAR – verde (mantido) */
+.btnAtivar {
+  background: var(--green, #10b981);
+  color: #fff !important;
+  font-weight: 600;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.btnAtivar:hover {
+  background: #0f8d0f;
+}
+
+/* Responsivo */
 @media (max-width: 768px) {
-  .searchBar {
-    flex-direction: column;
-  }
-  .formGrid {
-    grid-template-columns: 1fr;
-  }
-  .buttonSubmit,
-  .buttonClose {
+  .btnInativar,
+  .btnAtivar {
     width: 100%;
-    margin-left: 0;
+    padding: 12px;
+    font-size: 1rem;
+    margin-top: 8px;
   }
 }
 
-@media (max-width: 480px) {
+
+.btnAtivar:hover {
+  background: var(--primary-blue-dark);
+}
+
+.btnInativar {
+  background: #e11d48;
+  color: white;
+}
+
+.btnInativar:hover {
+  background: #9f1239;
+}
+
+/* ===========================
+      RESPONSIVIDADE
+=========================== */
+
+@media (max-width: 1024px) {
+  .mainContent {
+    margin-left: 0 !important;
+    padding: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .table,
+  .table thead,
+  .table tbody,
   .table th,
+  .table td,
+  .table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .tableWrapper {
+    overflow-x: hidden;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tr {
+    margin-bottom: 1rem;
+    background: var(--bg-light);
+    box-shadow: 0 4px 16px var(--shadow-light);
+    border-radius: 10px;
+    padding: 1rem;
+  }
+
   .table td {
-    padding: 0.6rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* impede o texto de cair */
+    padding: 0.6rem 0;
+    border: none;
+    border-bottom: 1px solid rgba(0,0,0,0.10);
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #000 !important; /* LABEL PRETA */
+    margin-right: 10px;
+  }
+
+  .table td:last-child {
+    border-bottom: none;
+  }
+
+  .actionsCell {
+    justify-content: flex-start;
+    margin-top: 0.4rem;
+    gap: 0.6rem;
+  }
+
+  .btnDetails,
+  .btnToggle {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.7rem;
+  }
+}
+
+@media (max-width: 450px) {
+  .title {
+    font-size: 1.4rem;
+  }
+
+  .table td {
     font-size: 0.85rem;
   }
-  .floatingBtn {
-    padding: 0.65rem 1rem;
-    font-size: 0.95rem;
+
+  .btnDetails,
+  .btnToggle {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
   }
 }
