@@ -72,7 +72,7 @@ export default function Home() {
     <div className="bgContainer">
       <main className="homePage">
         <header className="header">
-          <Image src="/aa.png" alt="Logo IAITEA" width={80} height={80} />
+          <Image src="/aa.png" alt="Logo IAITEA" width={140} height={140} />
           <h1 className="title">Sistema IAITEA</h1>
           <p className="subtitle">Organização, controle e praticidade</p>
         </header>

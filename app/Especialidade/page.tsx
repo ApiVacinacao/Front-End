@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/navbar/page';
 import styles from '../styles/Especialidade.module.css';
-import Swal from 'sweetalert2';
+import EspecialidadeModal from './EditEspecialidade';
 import ProtectedRoute from '../components/auth/protecetroute';
+import Swal from 'sweetalert2';
 
 type Especialidade = {
   id: number;
@@ -19,6 +20,8 @@ const API_URL = 'http://localhost:8000/api/especialidades';
 export default function EspecialidadePage() {
   const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
   const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [espSelecionada, setEspSelecionada] = useState<Especialidade | undefined>();
 
   useEffect(() => {
     fetchEspecialidades();
@@ -31,7 +34,6 @@ export default function EspecialidadePage() {
       : { 'Content-Type': 'application/json' };
   };
 
-  // LISTAGEM
   const fetchEspecialidades = async () => {
     setLoading(true);
     try {
@@ -47,92 +49,30 @@ export default function EspecialidadePage() {
     }
   };
 
-  // MODAL DE CRIAÇÃO / EDIÇÃO
-  const abrirModal = async (esp?: Especialidade) => {
-    const item = esp || {
-      id: 0,
-      nome: '',
-      descricao: '',
-      area: '',
-      status: true,
-    };
-
-    const { value: dados } = await Swal.fire({
-      title: item.id === 0 ? 'Nova Especialidade' : 'Editar Especialidade',
-      html: `
-        <div style="display:flex;flex-direction:column;gap:10px;text-align:left">
-          <label>Nome*</label>
-          <input id="nome" class="swal2-input" value="${item.nome || ''}" />
-
-          <label>Descrição</label>
-          <input id="descricao" class="swal2-input" value="${item.descricao || ''}" />
-
-          <label>Área*</label>
-          <select id="area" class="swal2-input">
-            <option value="">Selecione...</option>
-            <option value="Médica" ${item.area === 'Médica' ? 'selected' : ''}>Médica</option>
-            <option value="Enfermagem" ${item.area === 'Enfermagem' ? 'selected' : ''}>Enfermagem</option>
-            <option value="Odontologia" ${item.area === 'Odontologia' ? 'selected' : ''}>Odontologia</option>
-            <option value="Fisioterapia" ${item.area === 'Fisioterapia' ? 'selected' : ''}>Fisioterapia</option>
-            <option value="Psicologia" ${item.area === 'Psicologia' ? 'selected' : ''}>Psicologia</option>
-            <option value="Outros" ${item.area === 'Outros' ? 'selected' : ''}>Outros</option>
-          </select>
-        </div>
-      `,
-      focusConfirm: false,
-      confirmButtonText: 'Salvar',
-      cancelButtonText: 'Cancelar',
-      showCancelButton: true,
-      preConfirm: () => {
-        const nome = (document.getElementById('nome') as HTMLInputElement).value;
-        const descricao = (document.getElementById('descricao') as HTMLInputElement).value;
-        const area = (document.getElementById('area') as HTMLSelectElement).value;
-
-        if (!nome.trim() || !area.trim()) {
-          Swal.showValidationMessage('Preencha nome e área.');
-          return false;
-        }
-
-        return { nome, descricao, area };
-      },
-    });
-
-    if (!dados) return;
-
-    salvarEspecialidade({
-      ...item,
-      nome: dados.nome,
-      descricao: dados.descricao,
-      area: dados.area,
-    });
+  // Abrir modal (nova ou edição)
+  const abrirModal = (esp?: Especialidade) => {
+    setEspSelecionada(esp);
+    setModalOpen(true);
   };
 
-  // SALVAR (CRIAR / EDITAR)
-  const salvarEspecialidade = async (esp: Especialidade) => {
-    const confirm = await Swal.fire({
-      title: esp.id === 0 ? 'Confirmar cadastro?' : 'Confirmar alterações?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Salvar',
-      cancelButtonText: 'Cancelar',
-    });
-
-    if (!confirm.isConfirmed) return;
-
+  // Salvar via modal
+  const salvarModal = async (dados: Omit<Especialidade, 'id'>) => {
     try {
       let res: Response;
 
-      if (esp.id === 0) {
+      if (espSelecionada?.id) {
+        // Editar
+        res = await fetch(`${API_URL}/${espSelecionada.id}`, {
+          method: 'PUT',
+          headers: getHeaders(),
+          body: JSON.stringify({ ...espSelecionada, ...dados }),
+        });
+      } else {
+        // Criar
         res = await fetch(API_URL, {
           method: 'POST',
           headers: getHeaders(),
-          body: JSON.stringify(esp),
-        });
-      } else {
-        res = await fetch(`${API_URL}/${esp.id}`, {
-          method: 'PUT',
-          headers: getHeaders(),
-          body: JSON.stringify(esp),
+          body: JSON.stringify({ id: 0, ...dados }),
         });
       }
 
@@ -143,7 +83,6 @@ export default function EspecialidadePage() {
           data.message ||
           data.error ||
           (data.errors ? Object.values(data.errors).flat().join("\n") : "Erro ao salvar");
-
         Swal.fire("Erro", msg, "error");
         return;
       }
@@ -155,13 +94,14 @@ export default function EspecialidadePage() {
         timer: 1500,
       });
 
+      setModalOpen(false);
       fetchEspecialidades();
     } catch {
       Swal.fire('Erro', 'Não foi possível salvar.', 'error');
     }
   };
 
-  // ATIVAR / INATIVAR COM CONFIRMAÇÃO
+  // Ativar / inativar
   const toggleStatus = async (esp: Especialidade) => {
     const acao = esp.status ? "inativar" : "ativar";
 
@@ -245,6 +185,14 @@ export default function EspecialidadePage() {
                 </div>
               ))}
             </div>
+          )}
+
+          {modalOpen && (
+            <EspecialidadeModal
+              especialidade={espSelecionada}
+              onClose={() => setModalOpen(false)}
+              onSave={salvarModal}
+            />
           )}
         </main>
       </>

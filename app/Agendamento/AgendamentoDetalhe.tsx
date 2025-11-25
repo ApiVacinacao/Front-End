@@ -15,29 +15,35 @@ interface Appointment {
 interface Props {
   appointment: Appointment;
   onClose: () => void;
+  onSave?: () => void; // callback opcional após salvar
 }
 
-const DetalheAgendamento: React.FC<Props> = ({ appointment, onClose }) => {
+const DetalheAgendamento: React.FC<Props> = ({ appointment, onClose, onSave }) => {
   const [form, setForm] = useState({
     data: appointment.data,
     hora: appointment.hora,
+    paciente: appointment.user?.name || '',
+    profissional: appointment.medico?.nome || '',
+    local: appointment.local_atendimento?.nome || '',
+    tipo_consulta: appointment.tipo_consulta?.descricao || '',
   });
+
   const [saving, setSaving] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSave = async () => {
     setSaving(true);
-    const getToken = () => localStorage.getItem('token');
+    const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:8001/api/agendamentos/${appointment.id}`, {
+      const res = await fetch(`http://localhost:8000/api/agendamentos/${appointment.id}`, {
         method: 'PUT',
         headers: {
-           'Content-Type': 'application/json' ,
-            'Authorization': `Bearer ${getToken()}`
-          },
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify(form),
       });
 
@@ -45,7 +51,7 @@ const DetalheAgendamento: React.FC<Props> = ({ appointment, onClose }) => {
 
       alert('Agendamento atualizado com sucesso!');
       onClose();
-      window.location.reload();
+      if (onSave) onSave();
     } catch (err) {
       console.error(err);
       alert('Erro ao salvar agendamento');
@@ -56,74 +62,69 @@ const DetalheAgendamento: React.FC<Props> = ({ appointment, onClose }) => {
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.detailCard} onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 className={styles.modalTitle}>Editar Agendamento</h2>
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <h2>Editar Agendamento</h2>
+
+        {/* Campos editáveis */}
+        <label>Paciente</label>
+        <input
+          type="text"
+          name="paciente"
+          value={form.paciente}
+          onChange={handleChange}
+        />
+
+        <label>Profissional</label>
+        <input
+          type="text"
+          name="profissional"
+          value={form.profissional}
+          onChange={handleChange}
+        />
+
+        <label>Local</label>
+        <input
+          type="text"
+          name="local"
+          value={form.local}
+          onChange={handleChange}
+        />
+
+        <label>Tipo Consulta</label>
+        <input
+          type="text"
+          name="tipo_consulta"
+          value={form.tipo_consulta}
+          onChange={handleChange}
+        />
+
+        <label>Data</label>
+        <input
+          type="date"
+          name="data"
+          value={form.data}
+          onChange={handleChange}
+        />
+
+        <label>Hora</label>
+        <input
+          type="time"
+          name="hora"
+          value={form.hora}
+          onChange={handleChange}
+        />
+
+        {/* Botões */}
+        <div className={styles.actions}>
           <button
-            onClick={onClose}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              color: '#555',
-            }}
+            className={styles.saveButton}
+            onClick={handleSave}
+            disabled={saving}
           >
-            ×
-          </button>
-        </div>
-
-        <div className={styles.detailGrid}>
-          <div className={styles.detailGridItem}>
-            <span className={styles.detailLabel}>Paciente</span>
-            <span className={styles.detailValue}>{appointment.user?.name}</span>
-          </div>
-
-          <div className={styles.detailGridItem}>
-            <span className={styles.detailLabel}>Profissional</span>
-            <span className={styles.detailValue}>{appointment.medico?.nome}</span>
-          </div>
-
-          <div className={styles.detailGridItem}>
-            <span className={styles.detailLabel}>Local</span>
-            <span className={styles.detailValue}>{appointment.local_atendimento?.nome}</span>
-          </div>
-
-          <div className={styles.detailGridItem}>
-            <span className={styles.detailLabel}>Tipo Consulta</span>
-            <span className={styles.detailValue}>{appointment.tipo_consulta?.descricao}</span>
-          </div>
-
-          <div className={styles.detailGridItem}>
-            <span className={styles.detailLabel}>Data</span>
-            <input
-              type="date"
-              name="data"
-              value={form.data}
-              onChange={handleChange}
-              className={styles.detailValue}
-            />
-          </div>
-
-          <div className={styles.detailGridItem}>
-            <span className={styles.detailLabel}>Hora</span>
-            <input
-              type="time"
-              name="hora"
-              value={form.hora}
-              onChange={handleChange}
-              className={styles.detailValue}
-            />
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px' }}>
-          <button className={styles.btnSecondary} onClick={handleSave} disabled={saving}>
             {saving ? 'Salvando...' : 'Salvar'}
           </button>
           <button
-            className={styles.btnSecondary}
-            style={{ background: '#ef4444' }}
+            className={styles.cancelButton}
             onClick={onClose}
           >
             Fechar

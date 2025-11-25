@@ -1,11 +1,10 @@
 /* =======================================================================================
    TEMA DARK PREMIUM PROFISSIONAL
    ======================================================================================= */
-
 :root {
-  --bg: #0d1117;
-  --bg-soft: #161b22;
-  --bg-soft-2: #1c2430;
+  --bg: #1e293b;
+  --bg-soft: #1e293b;
+  --bg-soft-2: #1b2536;
 
   --text: #e6edf3;
   --text-soft: #9ba3b4;
@@ -39,7 +38,6 @@ html, body {
 /* =======================================================================================
    LOADING
    ======================================================================================= */
-
 .loadingWrapper {
   height: 100vh;
   display: flex;
@@ -63,7 +61,6 @@ html, body {
 /* =======================================================================================
    HOME / WRAPPER
    ======================================================================================= */
-
 .bgContainer {
   padding: 60px 20px;
   width: 100%;
@@ -73,13 +70,12 @@ html, body {
 
 .homePage {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1200px;
 }
 
 /* =======================================================================================
    HEADER
    ======================================================================================= */
-
 .header {
   text-align: center;
   margin-bottom: 45px;
@@ -89,27 +85,61 @@ html, body {
   font-size: 2.8rem;
   font-weight: 700;
   margin-top: 12px;
+  letter-spacing: 1px;
 }
 
 .subtitle {
   font-size: 1.1rem;
   opacity: 0.75;
   margin-top: 6px;
+  letter-spacing: 0.25px;
 }
 
 /* =======================================================================================
    CARDS GRID
    ======================================================================================= */
-
 .optionsContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(4, 1fr); /* 4 cards no desktop */
   gap: 26px;
+  justify-items: center; /* centraliza cards se sobra espaço */
+}
+
+/* RESPONSIVIDADE GRID */
+@media (max-width: 1200px) {
+  .optionsContainer {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .optionsContainer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .optionsContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .title {
+    font-size: 2.2rem;
+  }
+
+  .optionCard {
+    padding: 22px;
+  }
 }
 
 /* =======================================================================================
    CARD – DESIGN PROFISSIONAL
    ======================================================================================= */
+.optionsContainer a {
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+}
 
 .optionCard {
   background: var(--bg-soft);
@@ -123,6 +153,8 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 100%;
+  max-width: 280px;
 }
 
 .optionCard:hover {
@@ -133,40 +165,46 @@ html, body {
 }
 
 .icon {
-  font-size: 2.6rem;
+  font-size: 2.7rem;
 }
 
 .optionCard h3 {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   color: var(--primary);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
 }
 
 .optionCard p {
   color: var(--text-soft);
-  font-size: 0.95rem;
-  line-height: 1.4;
+  font-size: 1rem;
+  line-height: 1.6;
   margin-bottom: 28px;
+  letter-spacing: 0.25px;
 }
 
 .access {
   position: absolute;
   right: 22px;
   bottom: 18px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  color: var(--primary);
   opacity: 0.9;
   transition: var(--transition);
-  font-weight: 600;
 }
 
 .optionCard:hover .access {
   opacity: 1;
   color: var(--primary-hover);
+  text-shadow: 0 0 6px rgba(78, 161, 255, 0.6);
 }
 
 /* =======================================================================================
    ANIMAÇÕES
    ======================================================================================= */
-
 .floating {
   opacity: 0;
   animation: fadeUp 0.45s ease forwards;
@@ -180,19 +218,5 @@ html, body {
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-/* =======================================================================================
-   RESPONSIVIDADE
-   ======================================================================================= */
-
-@media (max-width: 650px) {
-  .title {
-    font-size: 2.2rem;
-  }
-
-  .optionCard {
-    padding: 22px;
   }
 }

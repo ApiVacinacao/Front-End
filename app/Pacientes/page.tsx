@@ -239,9 +239,6 @@ function ModalPaciente({
         <label>CPF*</label>
         <input value={cpf} onChange={e => setCpf(e.target.value)} />
 
-        <label>Status</label>
-        <input type="checkbox" checked={status} onChange={e => setStatus(e.target.checked)} />
-
         <div className={styles.modalActions}>
           <button className={styles.cancelBtn} onClick={cancelar}>Cancelar</button>
           <button className={styles.saveBtn} onClick={salvar}>Salvar</button>
