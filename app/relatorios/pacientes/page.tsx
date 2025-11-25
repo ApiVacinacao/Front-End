@@ -6,8 +6,7 @@ import Navbar from '@/app/components/navbar/page';
 
 interface Appointment {
   id: number;
-  data: string;
-  hora?: string;
+  dataHora: string;
   status?: 'Agendado' | 'Realizado' | 'Cancelado';
   user?: { id: number; name?: string };
   medico?: { nome?: string; CRM?: string };
@@ -123,8 +122,7 @@ const RelatoriosPage = () => {
         startY: 10 + height + 20,
         head: [['Data', 'Hora', 'Paciente', 'Profissional', 'CRM', 'Tipo Consulta', 'Local', 'Status']],
         body: appointments.map(a => [
-          a.data,
-          a.hora || '-',
+          a.dataHora || '-',
           a.user?.name || '-',
           a.medico?.nome || '-',
           a.medico?.CRM || '-',
@@ -206,8 +204,8 @@ const RelatoriosPage = () => {
                 <tbody>
                   {appointments.map(a => (
                     <tr key={a.id}>
-                      <td>{a.data}</td>
-                      <td>{a.hora || '-'}</td>
+                      <td>{a.dataHora.split(' ')[0]}</td>
+                      <td>{a.dataHora.split(' ')[1]}</td>
                       <td>{a.user?.name || '-'}</td>
                       <td>{a.medico?.nome || '-'}</td>
                       <td>{a.medico?.CRM || '-'}</td>
